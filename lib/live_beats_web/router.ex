@@ -17,7 +17,10 @@ defmodule LiveBeatsWeb.Router do
   scope "/", LiveBeatsWeb do
     pipe_through :browser
 
-    get "/", PageController, :index
+    live_session :default do
+      live "/", HomeLive, :index
+      live "/signin", SigninLive, :index
+    end
   end
 
   # Other scopes may use custom stacks.
