@@ -1,6 +1,8 @@
 defmodule LiveBeatsWeb.Router do
   use LiveBeatsWeb, :router
 
+  import LiveBeatsWeb.UserAuth, only: [redirect_if_user_is_authenticated: 2]
+
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
@@ -17,10 +19,17 @@ defmodule LiveBeatsWeb.Router do
   scope "/", LiveBeatsWeb do
     pipe_through :browser
 
-    live_session :default do
+    live_session :default, on_mount: {LiveBeatsWeb.UserAuth, :mount_defaults} do
+      live "/test", IndexLive
       live "/", HomeLive, :index
       live "/signin", SigninLive, :index
     end
+  end
+
+  scope "/", LiveBeatsWeb do
+    pipe_through [:browser, :redirect_if_user_is_authenticated]
+
+    get "/oauth/callbacks/:provider", OAuthCallbackController, :new
   end
 
   # Other scopes may use custom stacks.

@@ -17,9 +17,12 @@ defmodule LiveBeatsWeb.PlayerLive do
               </p>
             </div>
           </div>
-
-          <div class="bg-gray-200 flex-auto dark:bg-black rounded-full overflow-hidden">
-            <div class="bg-lime-500 dark:bg-lime-400 w-1/2 h-1.5" role="progressbar" aria-valuenow="1456" aria-valuemin="0" aria-valuemax="4550"></div>
+          <div class="bg-gray-200 flex-auto dark:bg-black rounded-full overflow-hidden" phx-update="ignore">
+            <div class="bg-lime-500 dark:bg-lime-400 h-1.5" role="progressbar"
+              style="width: 0%;"
+              x-data="{progress: 0}"
+              x-init="setInterval(() => $el.style.width = `${progress++}%`, 1000)">
+            </div>
           </div>
           <div class="text-gray-500 dark:text-gray-400 flex-row justify-between text-sm font-medium tabular-nums">
             <div><%= @time %></div>
@@ -76,7 +79,7 @@ defmodule LiveBeatsWeb.PlayerLive do
 
   def mount(_parmas, _session, socket) do
     if connected?(socket), do: Process.send_after(self(), :tick, 1000)
-    {:ok, assign(socket, time: inspect(System.system_time()), count: 0)}
+    {:ok, assign(socket, time: inspect(System.system_time()), count: 0), layout: false}
   end
 
   def handle_info(:tick, socket) do
