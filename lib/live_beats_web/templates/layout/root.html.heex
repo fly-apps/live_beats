@@ -10,36 +10,20 @@
     <script defer phx-track-static type="text/javascript" src={Routes.static_path(@conn, "/assets/app.js")}></script>
   </head>
   <body>
-    <div x-data="{open: false}" @keydown.window.escape="open = false" class="relative h-screen flex overflow-hidden bg-white">
-      <div x-show="open" class="fixed inset-0 flex z-40 lg:hidden"
-        x-description="Off-canvas menu for mobile, show/hide based on off-canvas menu state." x-ref="dialog"
-        aria-modal="true" style="display: none;">
-
-        <div x-show="open" x-transition:enter="transition-opacity ease-linear duration-300"
-          x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-          x-transition:leave="transition-opacity ease-linear duration-300" x-transition:leave-start="opacity-100"
-          x-transition:leave-end="opacity-0"
-          x-description="Off-canvas menu overlay, show/hide based on off-canvas menu state."
-          class="fixed inset-0 bg-gray-600 bg-opacity-75" @click="open = false" aria-hidden="true" style="display: none;">
+    <div class="relative h-screen flex overflow-hidden bg-white">
+      <div id="mobile-sidebar-container" class="fixed inset-0 flex z-40 lg:hidden" aria-modal="true" style="display: none;">
+        <div
+          class="fixed inset-0 bg-gray-600 bg-opacity-75"
+          phx-click={hide_mobile_sidebar()}>
         </div>
 
-        <div x-show="open" x-transition:enter="transition ease-in-out duration-300 transform"
-          x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0"
-          x-transition:leave="transition ease-in-out duration-300 transform" x-transition:leave-start="translate-x-0"
-          x-transition:leave-end="-translate-x-full"
-          x-description="Off-canvas menu, show/hide based on off-canvas menu state."
-          class="relative flex-1 flex flex-col max-w-xs w-full pt-5 pb-4 bg-white" style="display: none;">
-
-          <div x-show="open" x-transition:enter="ease-in-out duration-300" x-transition:enter-start="opacity-0"
-            x-transition:enter-end="opacity-100" x-transition:leave="ease-in-out duration-300"
-            x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-            x-description="Close button, show/hide based on off-canvas menu state."
-            class="absolute top-0 right-0 -mr-12 pt-2" style="display: none;">
+        <div id="mobile-sidebar" class="relative flex-1 flex flex-col max-w-xs w-full pt-5 pb-4 bg-white hidden min-h-screen">
+          <div class="absolute top-0 right-0 -mr-12 pt-2">
             <button type="button"
               class="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
-              @click="open = false">
+              phx-click={hide_mobile_sidebar()}>
               <span class="sr-only">Close sidebar</span>
-              <svg class="h-6 w-6 text-white" x-description="Heroicon name: outline/x" xmlns="http://www.w3.org/2000/svg"
+              <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg"
                 fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
               </svg>
@@ -56,9 +40,7 @@
 
                 <%= live_redirect to: Routes.home_path(@conn, :index),
                   class: "bg-gray-100 text-gray-900 group flex items-center px-2 py-2 text-base leading-5 font-medium rounded-md" do %>
-                  <svg class="text-gray-500 mr-3 flex-shrink-0 h-6 w-6" x-state:on="Current" x-state:off="Default"
-                    x-state-description="Current: &quot;text-gray-500&quot;, Default: &quot;text-gray-400 group-hover:text-gray-500&quot;"
-                    x-description="Heroicon name: outline/home" xmlns="http://www.w3.org/2000/svg" fill="none"
+                  <svg class="text-gray-500 mr-3 flex-shrink-0 h-6 w-6"
                     viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6">
@@ -68,11 +50,8 @@
                 <% end %>
 
                 <a href="#"
-                  class="text-gray-600 hover:text-gray-900 hover:bg-gray-50 group flex items-center px-2 py-2 text-base leading-5 font-medium rounded-md"
-                  x-state-description="undefined: &quot;bg-gray-100 text-gray-900&quot;, undefined: &quot;text-gray-600 hover:text-gray-900 hover:bg-gray-50&quot;">
+                  class="text-gray-600 hover:text-gray-900 hover:bg-gray-50 group flex items-center px-2 py-2 text-base leading-5 font-medium rounded-md">
                   <svg class="text-gray-400 group-hover:text-gray-500 mr-3 flex-shrink-0 h-6 w-6"
-                    x-state-description="undefined: &quot;text-gray-500&quot;, undefined: &quot;text-gray-400 group-hover:text-gray-500&quot;"
-                    x-description="Heroicon name: outline/view-list" xmlns="http://www.w3.org/2000/svg" fill="none"
                     viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
@@ -81,14 +60,55 @@
                 </a>
 
                 <%= if @current_user do %>
+                  <!-- User account dropdown -->
+                  <div class="px-3 mt-6 relative inline-block text-left w-full">
+                    <div>
+                      <button type="button"
+                        class="group w-full bg-gray-100 rounded-md px-3.5 py-2 text-sm text-left font-medium text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-purple-500"
+                        id="options-menu-button"
+                        phx-click={show_dropdown("#account-dropdown-mobile")}>
+                        <span class="flex w-full justify-between items-center">
+                          <span class="flex min-w-0 items-center justify-between space-x-3">
+                            <img class="w-10 h-10 bg-gray-300 rounded-full flex-shrink-0"
+                              src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=facearea&amp;facepad=3&amp;w=256&amp;h=256&amp;q=80"
+                              alt="">
+                            <span class="flex-1 flex flex-col min-w-0">
+                              <span class="text-gray-900 text-sm font-medium truncate"><%= @current_user.name %></span>
+                              <span class="text-gray-500 text-sm truncate">@<%= @current_user.username %></span>
+                            </span>
+                          </span>
+                          <svg class="flex-shrink-0 h-5 w-5 text-gray-400 group-hover:text-gray-500"
+                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                            fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd"
+                              d="M10 3a1 1 0 01.707.293l3 3a1 1 0 01-1.414 1.414L10 5.414 7.707 7.707a1 1 0 01-1.414-1.414l3-3A1 1 0 0110 3zm-3.707 9.293a1 1 0 011.414 0L10 14.586l2.293-2.293a1 1 0 011.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+                              clip-rule="evenodd"></path>
+                          </svg>
+                        </span>
+                      </button>
+                    </div>
+                    <div id="account-dropdown-mobile" phx-click-away={hide_dropdown("#account-dropdown-mobile")} class="hidden z-10 mx-3 origin-top absolute right-0 left-0 mt-1 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-200 focus:outline-none" role="menu">
+                      <div class="py-1" role="none">
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" id="options-menu-item-0">View profile</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" id="options-menu-item-1">Settings</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" id="options-menu-item-2">Notifications</a>
+                      </div>
+                      <div class="py-1" role="none">
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" id="options-menu-item-3">Get desktop app</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" id="options-menu-item-4">Support</a>
+                      </div>
+                      <div class="py-1" role="none">
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" id="options-menu-item-5">Logout</a>
+                      </div>
+                    </div>
+                  </div>
 
                 <% else  %>
                   <%= live_redirect to: Routes.signin_path(@conn, :index),
                     class: "text-gray-600 hover:text-gray-900 hover:bg-gray-50 group flex items-center px-2 py-2 text-base leading-5 font-medium rounded-md" do %>
 
                     <svg class="text-gray-400 group-hover:text-gray-500 mr-3 flex-shrink-0 h-6 w-6"
-                      x-state-description="undefined: &quot;text-gray-500&quot;, undefined: &quot;text-gray-400 group-hover:text-gray-500&quot;"
-                      x-description="Heroicon name: outline/clock" xmlns="http://www.w3.org/2000/svg" fill="none"
+                      xmlns="http://www.w3.org/2000/svg" fill="none"
                       viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -150,17 +170,13 @@
           <!-- Sidebar component, swap this element with another sidebar if you like -->
           <div class="h-0 flex-1 flex flex-col overflow-y-auto">
             <%= if @current_user do %>
-            <!-- User account dropdown -->
-              <div x-data="{open: false, activeIndex: 0}"
-                @keydown.escape.stop="open = false"
-                @click.away="open = false"
-                class="px-3 mt-6 relative inline-block text-left">
+              <!-- User account dropdown -->
+              <div class="px-3 mt-6 relative inline-block text-left">
                 <div>
                   <button type="button"
                     class="group w-full bg-gray-100 rounded-md px-3.5 py-2 text-sm text-left font-medium text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-purple-500"
                     id="options-menu-button"
-                    x-ref="button"
-                    @click="open = true">
+                    phx-click={show_dropdown("#account-dropdown")}>
                     <span class="flex w-full justify-between items-center">
                       <span class="flex min-w-0 items-center justify-between space-x-3">
                         <img class="w-10 h-10 bg-gray-300 rounded-full flex-shrink-0"
@@ -172,7 +188,7 @@
                         </span>
                       </span>
                       <svg class="flex-shrink-0 h-5 w-5 text-gray-400 group-hover:text-gray-500"
-                        x-description="Heroicon name: solid/selector" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                        xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
                         fill="currentColor" aria-hidden="true">
                         <path fill-rule="evenodd"
                           d="M10 3a1 1 0 01.707.293l3 3a1 1 0 01-1.414 1.414L10 5.414 7.707 7.707a1 1 0 01-1.414-1.414l3-3A1 1 0 0110 3zm-3.707 9.293a1 1 0 011.414 0L10 14.586l2.293-2.293a1 1 0 011.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
@@ -181,18 +197,18 @@
                     </span>
                   </button>
                 </div>
-                <div x-show="open" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="transform opacity-0 scale-95" x-transition:enter-end="transform opacity-100 scale-100" x-transition:leave="transition ease-in duration-75" x-transition:leave-start="transform opacity-100 scale-100" x-transition:leave-end="transform opacity-0 scale-95" class="z-10 mx-3 origin-top absolute right-0 left-0 mt-1 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-200 focus:outline-none" x-ref="menu-items" x-description="Dropdown menu, show/hide based on menu state." role="menu" aria-orientation="vertical" aria-labelledby="options-menu-button" tabindex="-1" @keydown.arrow-up.prevent="onArrowUp()" @keydown.arrow-down.prevent="onArrowDown()" @keydown.tab="open = false">
+                <div id="account-dropdown" phx-click-away={hide_dropdown("#account-dropdown")} class="hidden z-10 mx-3 origin-top absolute right-0 left-0 mt-1 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-200" role="menu" aria-expanded="true">
                   <div class="py-1" role="none">
-                    <a href="#" class="block px-4 py-2 text-sm text-gray-700" x-state:on="Active" x-state:off="Not Active" :class="{ 'bg-gray-100 text-gray-900': activeIndex === 0, 'text-gray-700': !(activeIndex === 0) }" role="menuitem" tabindex="-1" id="options-menu-item-0" @mouseenter="activeIndex = 0" @mouseleave="activeIndex = -1" @click="open = false; focusButton()">View profile</a>
-                    <a href="#" class="block px-4 py-2 text-sm text-gray-700" :class="{ 'bg-gray-100 text-gray-900': activeIndex === 1, 'text-gray-700': !(activeIndex === 1) }" role="menuitem" tabindex="-1" id="options-menu-item-1" @mouseenter="activeIndex = 1" @mouseleave="activeIndex = -1" @click="open = false; focusButton()">Settings</a>
-                    <a href="#" class="block px-4 py-2 text-sm text-gray-700" :class="{ 'bg-gray-100 text-gray-900': activeIndex === 2, 'text-gray-700': !(activeIndex === 2) }" role="menuitem" tabindex="-1" id="options-menu-item-2" @mouseenter="activeIndex = 2" @mouseleave="activeIndex = -1" @click="open = false; focusButton()">Notifications</a>
+                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" id="options-menu-item-0">View profile</a>
+                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" id="options-menu-item-1">Settings</a>
+                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" id="options-menu-item-2">Notifications</a>
                   </div>
                   <div class="py-1" role="none">
-                    <a href="#" class="block px-4 py-2 text-sm text-gray-700" :class="{ 'bg-gray-100 text-gray-900': activeIndex === 3, 'text-gray-700': !(activeIndex === 3) }" role="menuitem" tabindex="-1" id="options-menu-item-3" @mouseenter="activeIndex = 3" @mouseleave="activeIndex = -1" @click="open = false; focusButton()">Get desktop app</a>
-                    <a href="#" class="block px-4 py-2 text-sm text-gray-700" :class="{ 'bg-gray-100 text-gray-900': activeIndex === 4, 'text-gray-700': !(activeIndex === 4) }" role="menuitem" tabindex="-1" id="options-menu-item-4" @mouseenter="activeIndex = 4" @mouseleave="activeIndex = -1" @click="open = false; focusButton()">Support</a>
+                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" id="options-menu-item-3">Get desktop app</a>
+                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" id="options-menu-item-4">Support</a>
                   </div>
                   <div class="py-1" role="none">
-                    <a href="#" class="block px-4 py-2 text-sm text-gray-700" :class="{ 'bg-gray-100 text-gray-900': activeIndex === 5, 'text-gray-700': !(activeIndex === 5) }" role="menuitem" tabindex="-1" id="options-menu-item-5" @mouseenter="activeIndex = 5" @mouseleave="activeIndex = -1" @click="open = false; focusButton()">Logout</a>
+                    <%= link "Logout", to: Routes.o_auth_callback_path(@conn, :sign_out), method: :delete, role: "menuitem", id: "options-menu-item-5", class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" %>
                   </div>
                 </div>
               </div>
@@ -220,9 +236,8 @@
 
                 <%= live_redirect to: Routes.home_path(@conn, :index),
                   class: "bg-gray-200 text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md" do %>
-                  <svg class="text-gray-500 mr-3 flex-shrink-0 h-6 w-6" x-state:on="Current" x-state:off="Default"
-                    x-state-description="Current: &quot;text-gray-500&quot;, Default: &quot;text-gray-400 group-hover:text-gray-500&quot;"
-                    x-description="Heroicon name: outline/home" xmlns="http://www.w3.org/2000/svg" fill="none"
+                  <svg class="text-gray-500 mr-3 flex-shrink-0 h-6 w-6"
+                    xmlns="http://www.w3.org/2000/svg" fill="none"
                     viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6">
@@ -232,11 +247,9 @@
                 <% end %>
 
                 <a href="#"
-                  class="text-gray-700 hover:text-gray-900 hover:bg-gray-50 group flex items-center px-2 py-2 text-sm font-medium rounded-md"
-                  x-state-description="undefined: &quot;bg-gray-200 text-gray-900&quot;, undefined: &quot;text-gray-700 hover:text-gray-900 hover:bg-gray-50&quot;">
+                  class="text-gray-700 hover:text-gray-900 hover:bg-gray-50 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
                   <svg class="text-gray-400 group-hover:text-gray-500 mr-3 flex-shrink-0 h-6 w-6"
-                    x-state-description="undefined: &quot;text-gray-500&quot;, undefined: &quot;text-gray-400 group-hover:text-gray-500&quot;"
-                    x-description="Heroicon name: outline/view-list" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    xmlns="http://www.w3.org/2000/svg" fill="none"
                     viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
@@ -248,8 +261,7 @@
                   <%= live_redirect to: Routes.signin_path(@conn, :index),
                     class: "text-gray-700 hover:text-gray-900 hover:bg-gray-50 group flex items-center px-2 py-2 text-sm font-medium rounded-md" do %>
                     <svg class="text-gray-400 group-hover:text-gray-500 mr-3 flex-shrink-0 h-6 w-6"
-                      x-state-description="undefined: &quot;text-gray-500&quot;, undefined: &quot;text-gray-400 group-hover:text-gray-500&quot;"
-                      x-description="Heroicon name: outline/clock" xmlns="http://www.w3.org/2000/svg" fill="none"
+                      xmlns="http://www.w3.org/2000/svg" fill="none"
                       viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -300,11 +312,11 @@
       <div class="flex flex-col w-0 flex-1 overflow-hidden">
         <!-- Search header -->
         <div class="relative z-10 flex-shrink-0 flex h-16 bg-white border-b border-gray-200 lg:hidden">
-          <button type="button" x-description="Sidebar toggle, controls the 'sidebarOpen' sidebar state."
+          <button type="button"
             class="px-4 border-r border-gray-200 text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-purple-500 lg:hidden"
-            @click="open = true">
+            phx-click={show_mobile_sidebar()}>
             <span class="sr-only">Open sidebar</span>
-            <svg class="h-6 w-6" x-description="Heroicon name: outline/menu-alt-1" xmlns="http://www.w3.org/2000/svg"
+            <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg"
               fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16"></path>
             </svg>
@@ -315,7 +327,7 @@
                 <label for="search-field" class="sr-only">Search</label>
                 <div class="relative w-full text-gray-400 focus-within:text-gray-600">
                   <div class="absolute inset-y-0 left-0 flex items-center pointer-events-none">
-                    <svg class="h-5 w-5" x-description="Heroicon name: solid/search" xmlns="http://www.w3.org/2000/svg"
+                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                       <path fill-rule="evenodd"
                         d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
@@ -329,16 +341,14 @@
               </form>
             </div>
             <div class="flex items-center">
-              <!-- Profile dropdown -->
-              <div x-data="{open: false}"
-                @keydown.escape.stop="open = false" @click.away="open = false" class="ml-3 relative">
+              <!-- Profile dropdown TODO -->
+              <div @keydown.escape.stop="open = false" @click.away="open = false" class="ml-3 relative">
                 <div>
                   <button type="button"
                     class="max-w-xs bg-white flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-                    id="user-menu-button" x-ref="button" @click="open = true" @keyup.space.prevent="onButtonEnter()"
-                    @keydown.enter.prevent="onButtonEnter()" aria-expanded="false" aria-haspopup="true"
-                    x-bind:aria-expanded="open.toString()" @keydown.arrow-up.prevent="onArrowUp()"
-                    @keydown.arrow-down.prevent="onArrowDown()">
+                    id="user-menu-button" @click="open = true"
+                    aria-expanded="false" aria-haspopup="true"
+                  >
                     <span class="sr-only">Open user menu</span>
                     <img class="h-8 w-8 rounded-full"
                       src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=facearea&amp;facepad=2&amp;w=256&amp;h=256&amp;q=80"
@@ -352,27 +362,7 @@
 
         <main class="flex-1 relative z-0 overflow-y-auto focus:outline-none">
           <%= live_render(@conn, LiveBeatsWeb.PlayerLive, session: %{}) %>
-          <!-- Page title & actions -->
-          <div class="border-b border-gray-200 px-4 py-4 sm:flex sm:items-center sm:justify-between sm:px-6 lg:px-8">
-            <div class="flex-1 min-w-0">
-              <h1 class="text-lg font-medium leading-6 text-gray-900 sm:truncate">
-                LiveBeats – Chill
-              </h1>
-            </div>
-            <div class="mt-4 flex sm:mt-0 sm:ml-4">
-              <button type="button"
-                class="order-1 ml-3 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-0 sm:ml-0">
-                Share
-              </button>
-              <button type="button"
-                class="order-0 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3">
-                Create
-              </button>
-            </div>
-          </div>
-
           <%= @inner_content %>
-
         </main>
       </div>
     </div>

@@ -3,6 +3,18 @@ defmodule LiveBeatsWeb.HomeLive do
 
   def render(assigns) do
     ~H"""
+    <.title_bar>
+      LiveBeats - Chill
+
+      <:action>Share</:action>
+      <:action primary phx-click={show_modal("add-songs")}>Add Songs</:action>
+    </.title_bar>
+    <.modal id="add-songs">
+      <:title>Add Songs</:title>
+      a modal
+      <:cancel>Close</:cancel>
+      <:confirm>Add</:confirm>
+    </.modal>
     <!-- users -->
     <div class="px-4 mt-6 sm:px-6 lg:px-8">
       <h2 class="text-gray-500 text-xs font-medium uppercase tracking-wide">Who's Here</h2>

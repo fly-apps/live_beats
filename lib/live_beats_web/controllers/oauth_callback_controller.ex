@@ -35,6 +35,10 @@ defmodule LiveBeatsWeb.OAuthCallbackController do
     redirect(conn, to: "/")
   end
 
+  def sign_out(conn, _) do
+    LiveBeatsWeb.UserAuth.log_out_user(conn)
+  end
+
   defp github_client(conn) do
     conn.assigns[:github_client] ||  LiveBeats.Github
   end

@@ -1,6 +1,8 @@
 defmodule LiveBeatsWeb.PlayerLive do
   use LiveBeatsWeb, :live_view
 
+  on_mount LiveBeatsWeb.UserAuth
+
   def render(assigns) do
     ~H"""
     <!-- player -->
@@ -17,13 +19,9 @@ defmodule LiveBeatsWeb.PlayerLive do
               </p>
             </div>
           </div>
-          <div class="bg-gray-200 flex-auto dark:bg-black rounded-full overflow-hidden" phx-update="ignore">
-            <div class="bg-lime-500 dark:bg-lime-400 h-1.5" role="progressbar"
-              style="width: 0%;"
-              x-data="{progress: 0}"
-              x-init="setInterval(() => $el.style.width = `${progress++}%`, 1000)">
-            </div>
-          </div>
+
+          <.progress_bar nonce={@nonce} />
+
           <div class="text-gray-500 dark:text-gray-400 flex-row justify-between text-sm font-medium tabular-nums">
             <div><%= @time %></div>
             <div><%= @count %></div>
