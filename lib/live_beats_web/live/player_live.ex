@@ -1,7 +1,7 @@
 defmodule LiveBeatsWeb.PlayerLive do
   use LiveBeatsWeb, :live_view
 
-  on_mount LiveBeatsWeb.UserAuth
+  on_mount {LiveBeatsWeb.UserAuth, :current_user}
 
   def render(assigns) do
     ~H"""
@@ -76,7 +76,7 @@ defmodule LiveBeatsWeb.PlayerLive do
   end
 
   def mount(_parmas, _session, socket) do
-    if connected?(socket), do: Process.send_after(self(), :tick, 1000)
+    # if connected?(socket), do: Process.send_after(self(), :tick, 1000)
     {:ok, assign(socket, time: inspect(System.system_time()), count: 0), layout: false}
   end
 

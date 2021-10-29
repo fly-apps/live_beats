@@ -20,10 +20,19 @@ defmodule LiveBeatsWeb.Router do
   scope "/", LiveBeatsWeb do
     pipe_through :browser
 
-    live_session :default, on_mount: LiveBeatsWeb.UserAuth do
+    delete "/signout", OAuthCallbackController, :sign_out
+
+    live_session :default, on_mount: [{LiveBeatsWeb.UserAuth, :current_user}, LiveBeatsWeb.Nav] do
+      live "/signin", SignInLive, :index
+    end
+
+    live_session :authenticated, on_mount: [{LiveBeatsWeb.UserAuth, :ensure_authenticated}, LiveBeatsWeb.Nav] do
       live "/", HomeLive, :index
-      live "/signin", SigninLive, :index
-      delete "/signout", OAuthCallbackController, :sign_out
+      live "/songs", SongLive.Index, :index
+      live "/songs/new", SongLive.Index, :new
+      live "/songs/:id/edit", SongLive.Index, :edit
+      live "/songs/:id", SongLive.Show, :show
+      live "/songs/:id/show/edit", SongLive.Show, :edit
     end
   end
 

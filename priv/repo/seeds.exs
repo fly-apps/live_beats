@@ -9,3 +9,16 @@
 #
 # We recommend using the bang functions (`insert!`, `update!`
 # and so on) as they will fail if something goes wrong.
+
+for title <- ~w(Chill Pop Hip-hop Electronic) do
+  {:ok, _} = LiveBeats.MediaLibrary.create_genre(%{title: title})
+end
+
+for i <- 1..20 do
+  {:ok, _} =
+    LiveBeats.MediaLibrary.create_song(%{
+      artist: "Bonobo",
+      title: "Black Sands #{i}",
+      duration: 180_000
+    })
+end

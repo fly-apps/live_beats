@@ -91,6 +91,7 @@ defmodule LiveBeatsWeb do
       import LiveBeatsWeb.LiveHelpers
       import LiveBeatsWeb.Gettext
       alias LiveBeatsWeb.Router.Helpers, as: Routes
+      alias Phoenix.LiveView.JS
     end
   end
 

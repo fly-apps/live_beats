@@ -1,0 +1,47 @@
+<h1>Show Song</h1>
+
+<%= if @live_action in [:edit] do %>
+  <%#= live_modal LiveBeatsWeb.SongLive.FormComponent,
+    id: @song.id,
+    title: @page_title,
+    action: @live_action,
+    song: @song,
+    return_to: Routes.song_show_path(@socket, :show, @song) %>
+<% end %>
+
+<ul>
+
+  <li>
+    <strong>Album artist:</strong>
+    <%= @song.album_artist %>
+  </li>
+
+  <li>
+    <strong>Artist:</strong>
+    <%= @song.artist %>
+  </li>
+
+  <li>
+    <strong>Duration:</strong>
+    <%= @song.duration %>
+  </li>
+
+  <li>
+    <strong>Title:</strong>
+    <%= @song.title %>
+  </li>
+
+  <li>
+    <strong>Date recorded:</strong>
+    <%= @song.date_recorded %>
+  </li>
+
+  <li>
+    <strong>Date released:</strong>
+    <%= @song.date_released %>
+  </li>
+
+</ul>
+
+<span><%= live_patch "Edit", to: Routes.song_show_path(@socket, :edit, @song), class: "button" %></span> |
+<span><%= live_redirect "Back", to: Routes.song_index_path(@socket, :index) %></span>

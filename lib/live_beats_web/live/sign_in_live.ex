@@ -1,4 +1,4 @@
-defmodule LiveBeatsWeb.SigninLive do
+defmodule LiveBeatsWeb.SignInLive do
   use LiveBeatsWeb, :live_view
 
   def render(assigns) do

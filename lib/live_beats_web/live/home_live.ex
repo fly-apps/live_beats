@@ -1,14 +1,19 @@
 defmodule LiveBeatsWeb.HomeLive do
   use LiveBeatsWeb, :live_view
 
+  alias LiveBeats.MediaLibrary
+
   def render(assigns) do
     ~H"""
     <.title_bar>
       LiveBeats - Chill
 
-      <:action>Share</:action>
-      <:action primary phx-click={show_modal("add-songs")}>Add Songs</:action>
+      <:actions>
+        <.button>Share</.button>
+        <.button primary phx-click={show_modal("add-songs")}>Add Songs</.button>
+      </:actions>
     </.title_bar>
+
     <.modal id="add-songs">
       <:title>Add Songs</:title>
       a modal
@@ -321,164 +326,26 @@ defmodule LiveBeatsWeb.HomeLive do
     </div>
 
     <!-- Songs table (small breakpoint and up) -->
-    <div class="hidden mt-8 sm:block">
-      <div class="align-middle inline-block min-w-full border-b border-gray-200">
-        <table class="min-w-full">
-          <thead>
-            <tr class="border-t border-gray-200">
-              <th
-                class="px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                <span class="lg:pl-2">Nextup</span>
-              </th>
-              <th
-                class="px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                likes
-              </th>
-              <th
-                class="hidden md:table-cell px-6 py-3 border-b border-gray-200 bg-gray-50 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                user
-              </th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-100">
-            <%= for _ <- 1..20 do %>
-            <tr>
-              <td class="px-6 py-3 max-w-0 w-full whitespace-nowrap text-sm font-medium text-gray-900">
-                <div class="flex items-center space-x-3 lg:pl-2">
-                  <div class="flex-shrink-0 w-2.5 h-2.5 rounded-full bg-pink-600" aria-hidden="true"></div>
-                  <a href="#" class="truncate hover:text-gray-600">
-                    <span>
-                      GraphQL API
-                      <!-- space -->
-                      <span class="text-gray-500 font-normal">in Engineering</span>
-                    </span>
-                  </a>
-                </div>
-              </td>
-              <td class="px-6 py-3 text-sm text-gray-500 font-medium">
-                <div class="flex items-center space-x-2">
-                  <div class="flex flex-shrink-0 -space-x-1">
-
-                    <img class="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
-                      src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=facearea&amp;facepad=2&amp;w=256&amp;h=256&amp;q=80"
-                      alt="Dries Vincent">
-
-                    <img class="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
-                      src="https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=facearea&amp;facepad=2&amp;w=256&amp;h=256&amp;q=80"
-                      alt="Lindsay Walton">
-
-                    <img class="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
-                      src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=facearea&amp;facepad=2&amp;w=256&amp;h=256&amp;q=80"
-                      alt="Courtney Henry">
-
-                    <img class="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
-                      src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=facearea&amp;facepad=2&amp;w=256&amp;h=256&amp;q=80"
-                      alt="Tom Cook">
-
-                  </div>
-
-                  <span class="flex-shrink-0 text-xs leading-5 font-medium">+8</span>
-                </div>
-              </td>
-              <td class="hidden md:table-cell px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-right">
-                March 17, 2020
-              </td>
-            </tr>
-            <% end %>
-
-            <tr>
-              <td class="px-6 py-3 max-w-0 w-full whitespace-nowrap text-sm font-medium text-gray-900">
-                <div class="flex items-center space-x-3 lg:pl-2">
-                  <div class="flex-shrink-0 w-2.5 h-2.5 rounded-full bg-purple-600" aria-hidden="true"></div>
-                  <a href="#" class="truncate hover:text-gray-600">
-                    <span>
-                      New Benefits Plan
-                      <!-- space -->
-                      <span class="text-gray-500 font-normal">in Human Resources</span>
-                    </span>
-                  </a>
-                </div>
-              </td>
-              <td class="px-6 py-3 text-sm text-gray-500 font-medium">
-                <div class="flex items-center space-x-2">
-                  <div class="flex flex-shrink-0 -space-x-1">
-
-                    <img class="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
-                      src="https://images.unsplash.com/photo-1519345182560-3f2917c472ef?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=facearea&amp;facepad=2&amp;w=256&amp;h=256&amp;q=80"
-                      alt="Leonard Krasner">
-
-                    <img class="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
-                      src="https://images.unsplash.com/photo-1463453091185-61582044d556?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=facearea&amp;facepad=2&amp;w=256&amp;h=256&amp;q=80"
-                      alt="Floyd Miles">
-
-                    <img class="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
-                      src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=facearea&amp;facepad=2&amp;w=256&amp;h=256&amp;q=80"
-                      alt="Emily Selman">
-
-                    <img class="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
-                      src="https://images.unsplash.com/photo-1500917293891-ef795e70e1f6?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=facearea&amp;facepad=2&amp;w=256&amp;h=256&amp;q=80"
-                      alt="Kristin Watson">
-
-                  </div>
-
-                  <span class="flex-shrink-0 text-xs leading-5 font-medium">+4</span>
-                </div>
-              </td>
-              <td class="hidden md:table-cell px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-right">
-                April 4, 2020
-              </td>
-            </tr>
-
-            <tr>
-              <td class="px-6 py-3 max-w-0 w-full whitespace-nowrap text-sm font-medium text-gray-900">
-                <div class="flex items-center space-x-3 lg:pl-2">
-                  <div class="flex-shrink-0 w-2.5 h-2.5 rounded-full bg-yellow-500" aria-hidden="true"></div>
-                  <a href="#" class="truncate hover:text-gray-600">
-                    <span>
-                      Onboarding Emails
-                      <!-- space -->
-                      <span class="text-gray-500 font-normal">in Customer Success</span>
-                    </span>
-                  </a>
-                </div>
-              </td>
-              <td class="px-6 py-3 text-sm text-gray-500 font-medium">
-                <div class="flex items-center space-x-2">
-                  <div class="flex flex-shrink-0 -space-x-1">
-
-                    <img class="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
-                      src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=facearea&amp;facepad=2&amp;w=256&amp;h=256&amp;q=80"
-                      alt="Emily Selman">
-
-                    <img class="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
-                      src="https://images.unsplash.com/photo-1500917293891-ef795e70e1f6?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=facearea&amp;facepad=2&amp;w=256&amp;h=256&amp;q=80"
-                      alt="Kristin Watson">
-
-                    <img class="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
-                      src="https://images.unsplash.com/photo-1505840717430-882ce147ef2d?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=facearea&amp;facepad=2&amp;w=256&amp;h=256&amp;q=80"
-                      alt="Emma Dorsey">
-
-                    <img class="max-w-none h-6 w-6 rounded-full ring-2 ring-white"
-                      src="https://images.unsplash.com/photo-1509783236416-c9ad59bae472?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=facearea&amp;facepad=2&amp;w=256&amp;h=256&amp;q=80"
-                      alt="Alicia Bell">
-
-                  </div>
-
-                  <span class="flex-shrink-0 text-xs leading-5 font-medium">+10</span>
-                </div>
-              </td>
-              <td class="hidden md:table-cell px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-right">
-                March 30, 2020
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <.table rows={@songs}>
+      <:col let={song} label="Song">
+        <%= song.title %>
+      </:col>
+      <:col let={song} label="Artist">
+        <%= song.artist %>
+      </:col>
+      <:col let={song} label="Time">
+        <%= song.duration %>
+      </:col>
+      <:col label=""></:col>
+    </.table>
     """
   end
 
   def mount(_parmas, _session, socket) do
-    {:ok, socket}
+    {:ok, assign(socket, :songs, fetch_songs(socket))}
+  end
+
+  defp fetch_songs(_socket) do
+    MediaLibrary.list_songs()
   end
 end

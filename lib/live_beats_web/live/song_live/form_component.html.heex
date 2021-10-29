@@ -1,0 +1,40 @@
+<div>
+  <h2><%= @title %></h2>
+
+  <.form
+    let={f}
+    for={@changeset}
+    id="song-form"
+    phx-target={@myself}
+    phx-change="validate"
+    phx-submit="save">
+  
+    <%= label f, :album_artist %>
+    <%= text_input f, :album_artist %>
+    <%= error_tag f, :album_artist %>
+  
+    <%= label f, :artist %>
+    <%= text_input f, :artist %>
+    <%= error_tag f, :artist %>
+  
+    <%= label f, :duration %>
+    <%= number_input f, :duration %>
+    <%= error_tag f, :duration %>
+  
+    <%= label f, :title %>
+    <%= text_input f, :title %>
+    <%= error_tag f, :title %>
+  
+    <%= label f, :date_recorded %>
+    <%= datetime_select f, :date_recorded %>
+    <%= error_tag f, :date_recorded %>
+  
+    <%= label f, :date_released %>
+    <%= datetime_select f, :date_released %>
+    <%= error_tag f, :date_released %>
+  
+    <div>
+      <%= submit "Save", phx_disable_with: "Saving..." %>
+    </div>
+  </.form>
+</div>

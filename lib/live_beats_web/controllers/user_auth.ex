@@ -6,14 +6,28 @@ defmodule LiveBeatsWeb.UserAuth do
   alias LiveBeats.Accounts
   alias LiveBeatsWeb.Router.Helpers, as: Routes
 
-  def on_mount(:default, _params, session, socket) do
+  def on_mount(:current_user, _params, session, socket) do
     socket = LiveView.assign(socket, :nonce, Map.fetch!(session, "nonce"))
+
     case session do
       %{"user_id" => user_id} ->
         {:cont, LiveView.assign_new(socket, :current_user, fn -> Accounts.get_user!(user_id) end)}
 
       %{} ->
         {:cont, LiveView.assign(socket, :current_user, nil)}
+    end
+  end
+
+  def on_mount(:ensure_authenticated, _params, session, socket) do
+    case session do
+      %{"user_id" => user_id} ->
+        {:cont, LiveView.assign_new(socket, :current_user, fn -> Accounts.get_user!(user_id) end)}
+
+      %{} ->
+        {:halt,
+         socket
+         |> LiveView.put_flash(:error, "Please sign in")
+         |> LiveView.redirect(to: Routes.sign_in_path(socket, :index))}
     end
   end
 
@@ -102,6 +116,7 @@ defmodule LiveBeatsWeb.UserAuth do
 
   def require_authenticated_admin(conn, _opts) do
     user = conn.assigns[:current_user]
+
     if user && LiveBeats.Accounts.admin?(user) do
       assign(conn, :current_admin, user)
     else

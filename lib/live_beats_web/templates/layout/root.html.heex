@@ -104,7 +104,7 @@
                   </div>
 
                 <% else  %>
-                  <%= live_redirect to: Routes.signin_path(@conn, :index),
+                  <%= live_redirect to: Routes.sign_in_path(@conn, :index),
                     class: "text-gray-600 hover:text-gray-900 hover:bg-gray-50 group flex items-center px-2 py-2 text-base leading-5 font-medium rounded-md" do %>
 
                     <svg class="text-gray-400 group-hover:text-gray-500 mr-3 flex-shrink-0 h-6 w-6"
@@ -123,32 +123,16 @@
                   Rooms
                 </h3>
                 <div class="mt-1 space-y-1" role="group" aria-labelledby="mobile-teams-headline">
-
-                  <a href="#"
-                    class="group flex items-center px-3 py-2 text-base leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50">
-                    <span class="w-2.5 h-2.5 mr-4 bg-indigo-500 rounded-full" aria-hidden="true"></span>
-                    <span class="truncate">
-                      Chill
-                    </span>
-                  </a>
-
-                  <a href="#"
-                    class="group flex items-center px-3 py-2 text-base leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50">
-                    <span class="w-2.5 h-2.5 mr-4 bg-green-500 rounded-full" aria-hidden="true"></span>
-                    <span class="truncate">
-                      Pop
-                    </span>
-                  </a>
-
-                  <a href="#"
-                    class="group flex items-center px-3 py-2 text-base leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50">
-                    <span class="w-2.5 h-2.5 mr-4 bg-yellow-500 rounded-full" aria-hidden="true"></span>
-                    <span class="truncate">
-                      Techo
-                    </span>
-                  </a>
-
-                </div>
+                  <%= for genre <- @genres do %>
+                    <a href="#"
+                      class="group flex items-center px-3 py-2 text-base leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50">
+                      <span class="w-2.5 h-2.5 mr-4 bg-indigo-500 rounded-full" aria-hidden="true"></span>
+                      <span class="truncate">
+                        <%= genre.title %>
+                      </span>
+                    </a>
+                  <% end %>
+               </div>
               </div>
             </nav>
           </div>
@@ -246,8 +230,8 @@
                   Home
                 <% end %>
 
-                <a href="#"
-                  class="text-gray-700 hover:text-gray-900 hover:bg-gray-50 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                <%= live_redirect to: Routes.song_index_path(@conn, :index),
+                  class: "text-gray-700 hover:text-gray-900 hover:bg-gray-50 group flex items-center px-2 py-2 text-sm font-medium rounded-md" do %>
                   <svg class="text-gray-400 group-hover:text-gray-500 mr-3 flex-shrink-0 h-6 w-6"
                     xmlns="http://www.w3.org/2000/svg" fill="none"
                     viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -255,10 +239,10 @@
                       d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
                   </svg>
                   My Songs
-                </a>
+                <% end %>
 
                 <%= unless @current_user do %>
-                  <%= live_redirect to: Routes.signin_path(@conn, :index),
+                  <%= live_redirect to: Routes.sign_in_path(@conn, :index),
                     class: "text-gray-700 hover:text-gray-900 hover:bg-gray-50 group flex items-center px-2 py-2 text-sm font-medium rounded-md" do %>
                     <svg class="text-gray-400 group-hover:text-gray-500 mr-3 flex-shrink-0 h-6 w-6"
                       xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -277,31 +261,15 @@
                   Rooms
                 </h3>
                 <div class="mt-1 space-y-1" role="group" aria-labelledby="desktop-teams-headline">
-
-                  <a href="#"
-                    class="group flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-md hover:text-gray-900 hover:bg-gray-50">
-                    <span class="w-2.5 h-2.5 mr-4 bg-indigo-500 rounded-full" aria-hidden="true"></span>
-                    <span class="truncate">
-                      Chill
-                    </span>
-                  </a>
-
-                  <a href="#"
-                    class="group flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-md hover:text-gray-900 hover:bg-gray-50">
-                    <span class="w-2.5 h-2.5 mr-4 bg-green-500 rounded-full" aria-hidden="true"></span>
-                    <span class="truncate">
-                      Pop
-                    </span>
-                  </a>
-
-                  <a href="#"
-                    class="group flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-md hover:text-gray-900 hover:bg-gray-50">
-                    <span class="w-2.5 h-2.5 mr-4 bg-yellow-500 rounded-full" aria-hidden="true"></span>
-                    <span class="truncate">
-                      Techo
-                    </span>
-                  </a>
-
+                  <%= for genre <- @genres do %>
+                    <a href="#"
+                      class="group flex items-center px-3 py-2 text-base leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50">
+                      <span class="w-2.5 h-2.5 mr-4 bg-indigo-500 rounded-full" aria-hidden="true"></span>
+                      <span class="truncate">
+                        <%= genre.title %>
+                      </span>
+                    </a>
+                  <% end %>
                 </div>
               </div>
             </nav>
