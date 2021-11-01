@@ -30,7 +30,7 @@ defmodule LiveBeats.MediaLibrary.Song do
 
       changeset
       |> Ecto.Changeset.put_change(:mp3_filename, filename)
-      |> Ecto.Changeset.put_change(:mp3_path, "priv/uploads/songs/#{filename}")
+      |> Ecto.Changeset.put_change(:mp3_path, "priv/static/uploads/songs/#{filename}")
     else
       changeset
     end
