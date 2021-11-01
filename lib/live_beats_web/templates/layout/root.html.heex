@@ -65,7 +65,6 @@
                     <div>
                       <button type="button"
                         class="group w-full bg-gray-100 rounded-md px-3.5 py-2 text-sm text-left font-medium text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-purple-500"
-                        id="options-menu-button"
                         phx-click={show_dropdown("#account-dropdown-mobile")}>
                         <span class="flex w-full justify-between items-center">
                           <span class="flex min-w-0 items-center justify-between space-x-3">
@@ -89,16 +88,16 @@
                     </div>
                     <div id="account-dropdown-mobile" phx-click-away={hide_dropdown("#account-dropdown-mobile")} class="hidden z-10 mx-3 origin-top absolute right-0 left-0 mt-1 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-200 focus:outline-none" role="menu">
                       <div class="py-1" role="none">
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" id="options-menu-item-0">View profile</a>
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" id="options-menu-item-1">Settings</a>
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" id="options-menu-item-2">Notifications</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">View profile</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Settings</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Notifications</a>
                       </div>
                       <div class="py-1" role="none">
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" id="options-menu-item-3">Get desktop app</a>
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" id="options-menu-item-4">Support</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Get desktop app</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Support</a>
                       </div>
                       <div class="py-1" role="none">
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" id="options-menu-item-5">Logout</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Logout</a>
                       </div>
                     </div>
                   </div>
@@ -159,7 +158,6 @@
                 <div>
                   <button type="button"
                     class="group w-full bg-gray-100 rounded-md px-3.5 py-2 text-sm text-left font-medium text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-purple-500"
-                    id="options-menu-button"
                     phx-click={show_dropdown("#account-dropdown")}>
                     <span class="flex w-full justify-between items-center">
                       <span class="flex min-w-0 items-center justify-between space-x-3">
@@ -183,13 +181,13 @@
                 </div>
                 <div id="account-dropdown" phx-click-away={hide_dropdown("#account-dropdown")} class="hidden z-10 mx-3 origin-top absolute right-0 left-0 mt-1 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-200" role="menu" aria-expanded="true">
                   <div class="py-1" role="none">
-                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" id="options-menu-item-0">View profile</a>
-                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" id="options-menu-item-1">Settings</a>
-                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" id="options-menu-item-2">Notifications</a>
+                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">View profile</a>
+                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Settings</a>
+                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Notifications</a>
                   </div>
                   <div class="py-1" role="none">
-                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" id="options-menu-item-3">Get desktop app</a>
-                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem" id="options-menu-item-4">Support</a>
+                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Get desktop app</a>
+                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Support</a>
                   </div>
                   <div class="py-1" role="none">
                     <%= link "Logout", to: Routes.o_auth_callback_path(@conn, :sign_out), method: :delete, role: "menuitem", id: "options-menu-item-5", class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" %>

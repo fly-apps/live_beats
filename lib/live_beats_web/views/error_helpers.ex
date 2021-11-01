@@ -9,13 +9,19 @@ defmodule LiveBeatsWeb.ErrorHelpers do
   Generates tag for inlined form input errors.
   """
   def error_tag(form, field) do
-    Enum.map(Keyword.get_values(form.errors, field), fn error ->
+    error_tag(form.errors, field, input_name(form, field))
+  end
+
+  def error_tag(errors, field, input_name) do
+    Enum.map(Keyword.get_values(errors, field), fn error ->
       content_tag(:div, translate_error(error),
         class: "invalid-feedback mt-0 text-sm text-red-600 text-right",
-        phx_feedback_for: input_name(form, field)
+        phx_feedback_for: input_name
       )
     end)
   end
+
+
 
   @doc """
   Translates an error message using gettext.

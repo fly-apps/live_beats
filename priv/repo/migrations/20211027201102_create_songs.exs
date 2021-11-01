@@ -7,6 +7,8 @@ defmodule LiveBeats.Repo.Migrations.CreateSongs do
       add :artist, :string
       add :duration, :integer
       add :title, :string
+      add :mp3_path, :string
+      add :mp3_filename, :string
       add :date_recorded, :naive_datetime
       add :date_released, :naive_datetime
       add :user_id, references(:users, on_delete: :nothing)

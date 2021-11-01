@@ -8,6 +8,46 @@ defmodule LiveBeats.MediaLibrary do
 
   alias LiveBeats.MediaLibrary.{Song, Genre}
 
+  def store_mp3(%Song{} = song, tmp_path) do
+    File.mkdir_p!("priv/static/uploads/songs")
+    File.cp!(tmp_path, song.mp3_path)
+  end
+
+  def import_songs(changesets, consome_file)
+      when is_map(changesets) and is_function(consome_file, 2) do
+    changesets
+    |> Enum.reduce(Ecto.Multi.new(), fn {ref, chset}, acc ->
+      chset =
+        chset
+        |> Song.put_mp3_path()
+        |> Map.put(:action, nil)
+
+      Ecto.Multi.insert(acc, {:song, ref}, chset)
+    end)
+    |> LiveBeats.Repo.transaction()
+    |> case do
+      {:ok, results} ->
+        {:ok,
+         results
+         |> Enum.filter(&match?({{:song, _ref}, _}, &1))
+         |> Enum.map(fn {{:song, ref}, song} ->
+           consome_file.(ref, fn tmp_path -> store_mp3(song, tmp_path) end)
+           {ref, song}
+         end)
+         |> Enum.into(%{})}
+
+      {:error, _failed_op, _failed_val, _changes} ->
+        {:error, :invalid}
+    end
+  end
+
+  def parse_file_name(name) do
+    case Regex.split(~r/[-–]/, Path.rootname(name), parts: 2) do
+      [title] -> %{title: String.trim(title), artist: nil}
+      [title, artist] -> %{title: String.trim(title), artist: String.trim(artist)}
+    end
+  end
+
   def create_genre(attrs \\ %{}) do
     %Genre{}
     |> Genre.changeset(attrs)

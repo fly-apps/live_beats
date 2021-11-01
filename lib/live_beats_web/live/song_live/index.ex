@@ -17,7 +17,7 @@ defmodule LiveBeatsWeb.SongLive.Index do
     <%= if @live_action in [:new, :edit] do %>
       <.modal show id="add-songs" return_to={Routes.song_index_path(@socket, :index)}>
         <.live_component
-          module={LiveBeatsWeb.SongLive.FormComponent}
+          module={LiveBeatsWeb.SongLive.UploadFormComponent}
           title={@page_title}
           id={@song.id || :new}
           action={@live_action}
