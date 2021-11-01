@@ -96,7 +96,7 @@ defmodule LiveBeatsWeb.LiveHelpers do
       transition: {"ease-in duration-200", "opacity-100", "opacity-0"}
     )
     |> JS.hide(
-      to: "##{id} .modal-content",
+      to: "##{id}-content",
       transition:
         {"ease-in duration-200", "opacity-100 translate-y-0 sm:scale-100",
          "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"}
@@ -120,7 +120,7 @@ defmodule LiveBeatsWeb.LiveHelpers do
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
         <div
           id={"#{@id}-content"}
-          class={"#{if @show, do: "fade-in-scale", else: "hidden"} modal-content inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6"}
+          class={"#{if @show, do: "fade-in-scale", else: "hidden"} sticky inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform sm:my-8 sm:align-middle sm:max-w-xl sm:w-full sm:p-6"}
           phx-window-keydown={hide_modal(@id)} phx-key="escape"
           phx-click-away={hide_modal(@id)}
         >
@@ -134,7 +134,7 @@ defmodule LiveBeatsWeb.LiveHelpers do
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full mr-12">
               <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
                 <%= render_slot(@title) %>
               </h3>

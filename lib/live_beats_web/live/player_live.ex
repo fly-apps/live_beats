@@ -20,7 +20,7 @@ defmodule LiveBeatsWeb.PlayerLive do
             </div>
           </div>
 
-          <.progress_bar nonce={@nonce} />
+          <.progress_bar />
 
           <div class="text-gray-500 dark:text-gray-400 flex-row justify-between text-sm font-medium tabular-nums">
             <div><%= @time %></div>

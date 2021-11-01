@@ -7,8 +7,6 @@ defmodule LiveBeatsWeb.UserAuth do
   alias LiveBeatsWeb.Router.Helpers, as: Routes
 
   def on_mount(:current_user, _params, session, socket) do
-    socket = LiveView.assign(socket, :nonce, Map.fetch!(session, "nonce"))
-
     case session do
       %{"user_id" => user_id} ->
         {:cont, LiveView.assign_new(socket, :current_user, fn -> Accounts.get_user!(user_id) end)}

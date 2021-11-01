@@ -49,7 +49,8 @@ defmodule LiveBeats.MixProject do
       {:gettext, "~> 0.18"},
       {:jason, "~> 1.2"},
       {:plug_cowboy, "~> 2.5"},
-      {:mint, "~> 1.0"}
+      {:mint, "~> 1.0"},
+      {:erlp3tags, github: "segun/erlp3tags"}
     ]
   end
 

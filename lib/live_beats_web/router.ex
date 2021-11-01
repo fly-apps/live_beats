@@ -10,7 +10,6 @@ defmodule LiveBeatsWeb.Router do
     plug :put_root_layout, {LiveBeatsWeb.LayoutView, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
-    plug :put_nonce
   end
 
   pipeline :api do
@@ -73,21 +72,5 @@ defmodule LiveBeatsWeb.Router do
 
       forward "/mailbox", Plug.Swoosh.MailboxPreview
     end
-  end
-
-  defp put_nonce(conn, _) do
-    nonce = Phoenix.HTML.Tag.csrf_token_value()
-    endpoint = Phoenix.Controller.endpoint_module(conn)
-    url = endpoint.url()
-    uri = endpoint.struct_url()
-    ws_url = %URI{uri | scheme: "ws"}
-    wss_url = %URI{uri | scheme: "wss"}
-
-    conn
-    |> put_session(:nonce, nonce)
-    |> put_resp_header(
-      "content-security-policy",
-      "script-src 'nonce-#{nonce}' #{url} #{ws_url}; connect-src 'self' #{ws_url} #{wss_url}"
-    )
   end
 end

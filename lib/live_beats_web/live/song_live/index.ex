@@ -23,6 +23,7 @@ defmodule LiveBeatsWeb.SongLive.Index do
           action={@live_action}
           return_to={Routes.song_index_path(@socket, :index)}
           song={@song}
+          genres={@genres}
         />
       </.modal>
     <% end %>
