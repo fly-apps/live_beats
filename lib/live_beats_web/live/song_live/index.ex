@@ -3,6 +3,7 @@ defmodule LiveBeatsWeb.SongLive.Index do
 
   alias LiveBeats.MediaLibrary
   alias LiveBeats.MediaLibrary.Song
+  alias LiveBeatsWeb.SongLive.DeleteDialogComponent
 
   def render(assigns) do
     ~H"""
@@ -10,7 +11,7 @@ defmodule LiveBeatsWeb.SongLive.Index do
       Listing Songs
 
       <:actions>
-        <.button primary patch_to={Routes.song_index_path(@socket, :new)}>New Song</.button>
+        <.button primary patch_to={Routes.song_index_path(@socket, :new)}>Upload Songs</.button>
       </:actions>
     </.title_bar>
 
@@ -28,14 +29,16 @@ defmodule LiveBeatsWeb.SongLive.Index do
       </.modal>
     <% end %>
 
-    <.table rows={@songs}>
+    <.live_component module={DeleteDialogComponent} id="delete-modal"/>
+
+    <.table rows={@songs} row_id={fn song -> "song-#{song.id}" end}>
       <:col let={song} label="Title"><%= song.title %></:col>
       <:col let={song} label="Artist"><%= song.artist %></:col>
       <:col let={song} label="Duration"><%= song.duration %></:col>
       <:col let={song} label="">
         <.link redirect_to={Routes.song_show_path(@socket, :show, song)}>Show</.link>
         <.link patch_to={Routes.song_index_path(@socket, :edit, song)}>Edit</.link>
-        <.link phx-click={JS.push("delete", value: %{id: song.id})} data-confirm="Are you sure?">Delete</.link>
+        <.link phx-click={JS.push("delete", value: %{id: song.id}) |> show_modal("delete-modal")}>Delete</.link>
       </:col>
     </.table>
     """
@@ -68,9 +71,13 @@ defmodule LiveBeatsWeb.SongLive.Index do
   end
 
   def handle_event("delete", %{"id" => id}, socket) do
+    DeleteDialogComponent.send_show(MediaLibrary.get_song!(id))
+    {:noreply, socket}
+  end
+
+  def handle_event("confirm-delete", %{"id" => id}, socket) do
     song = MediaLibrary.get_song!(id)
     {:ok, _} = MediaLibrary.delete_song(song)
-
     {:noreply, assign(socket, :songs, list_songs())}
   end
 

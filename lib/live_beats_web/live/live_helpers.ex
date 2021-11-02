@@ -54,6 +54,16 @@ defmodule LiveBeatsWeb.LiveHelpers do
     )
   end
 
+  def hide(js \\ %JS{}, selector) do
+    JS.hide(js,
+      to: selector,
+      time: 300,
+      transition:
+        {"transition ease-in duration-300", "transform opacity-100 scale-100",
+         "transform opacity-0 scale-95"}
+    )
+  end
+
   def show_dropdown(to) do
     JS.show(
       to: to,
@@ -108,10 +118,14 @@ defmodule LiveBeatsWeb.LiveHelpers do
     assigns =
       assigns
       |> assign_new(:show, fn -> false end)
-      |> assign_new(:title, fn -> [] end)
-      |> assign_new(:confirm, fn -> nil end)
-      |> assign_new(:cancel, fn -> nil end)
+      |> assign_new(:loading, fn -> false end)
       |> assign_new(:return_to, fn -> nil end)
+      |> assign_new(:on_cancel, fn -> %JS{} end)
+      |> assign_new(:on_confirm, fn -> %JS{} end)
+      # slots
+      |> assign_new(:title, fn -> [] end)
+      |> assign_new(:confirm, fn -> [] end)
+      |> assign_new(:cancel, fn -> [] end)
 
     ~H"""
     <div id={@id} class={"fixed z-10 inset-0 overflow-y-auto #{if @show, do: "fade-in", else: "hidden"}"} aria-labelledby="modal-title" role="dialog" aria-modal="true">
@@ -120,18 +134,18 @@ defmodule LiveBeatsWeb.LiveHelpers do
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
         <div
           id={"#{@id}-content"}
-          class={"#{if @show, do: "fade-in-scale", else: "hidden"} sticky inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform sm:my-8 sm:align-middle lg:ml-48 sm:max-w-2xl sm:w-full sm:p-6"}
-          phx-window-keydown={hide_modal(@id)} phx-key="escape"
-          phx-click-away={hide_modal(@id)}
+          class={"#{if @show, do: "fade-in-scale", else: "hidden"} sticky inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform sm:my-8 sm:align-middle sm:max-w-xl sm:w-full sm:p-6"}
+          phx-window-keydown={hide_modal(@on_cancel, @id)} phx-key="escape"
+          phx-click-away={hide_modal(@on_cancel, @id)}
         >
           <%= if @return_to do %>
             <%= live_redirect "close", to: @return_to, data: [modal_return: true], class: "hidden" %>
           <% end %>
           <div class="sm:flex sm:items-start">
-            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-green-100 sm:mx-0 sm:h-10 sm:w-10">
+            <div class={"mx-auto flex-shrink-0 flex items-center justify-center h-8 w-8 rounded-full bg-purple-100 sm:mx-0"}>
               <!-- Heroicon name: outline/plus -->
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg xmlns="http://www.w3.org/2000/svg" class={"#{if @loading, do: "animate-ping"} h-6 w-6 text-purple-600"} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
             <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full mr-12">
@@ -139,25 +153,32 @@ defmodule LiveBeatsWeb.LiveHelpers do
                 <%= render_slot(@title) %>
               </h3>
               <div class="mt-2">
-                <p class="text-sm text-gray-500">
+                <p class={"text-sm text-gray-500 #{if @loading, do: "invisible"}"}>
                   <%= render_slot(@inner_block) %>
                 </p>
               </div>
             </div>
           </div>
-          <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-            <%= if @confirm do %>
-              <button type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
-                <%= render_slot(@confirm) %>
+          <div class={"mt-5 sm:mt-4 sm:flex sm:flex-row-reverse #{if @loading, do: "invisible"}"}>
+            <%= for confirm <- @confirm do %>
+              <button
+                type="button"
+                class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
+                phx-click={@on_confirm |> hide_modal(@id)}
+                tabindex="1"
+                autofocus
+              >
+                <%= render_slot(confirm) %>
               </button>
             <% end %>
-            <%= if @cancel do %>
+            <%= for cancel <- @cancel do %>
               <button
                 type="button"
                 class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm"
-                phx-click={hide_modal(@id)}
+                phx-click={hide_modal(@on_cancel, @id)}
+                tabindex="2"
               >
-                <%= render_slot(@cancel) %>
+                <%= render_slot(cancel) %>
               </button>
             <% end %>
           </div>
@@ -241,6 +262,8 @@ defmodule LiveBeatsWeb.LiveHelpers do
   end
 
   def table(assigns) do
+    assigns = assign_new(assigns, :row_id, fn -> false end)
+
     ~H"""
     <div class="hidden mt-8 sm:block">
       <div class="align-middle inline-block min-w-full border-b border-gray-200">
@@ -257,7 +280,7 @@ defmodule LiveBeatsWeb.LiveHelpers do
           </thead>
           <tbody class="bg-white divide-y divide-gray-100">
             <%= for row <- @rows do %>
-              <tr class="hover:bg-gray-50">
+              <tr id={@row_id && @row_id.(row)} class="hover:bg-gray-50">
                 <%= for {col, i} <- Enum.with_index(@col) do %>
                   <td class={"px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900 #{if i == 0, do: "max-w-0 w-full"}"}>
                     <div class="flex items-center space-x-3 lg:pl-2">
