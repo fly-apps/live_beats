@@ -29,7 +29,11 @@ defmodule LiveBeatsWeb.SongLive.Index do
       </.modal>
     <% end %>
 
-    <.live_component module={DeleteDialogComponent} id="delete-modal"/>
+
+    <.modal id="delete-modal">
+      <:cancel>Cancel</:cancel>
+      <:confirm>Delete</:confirm>
+    </.modal>
 
     <.table rows={@songs} row_id={fn song -> "song-#{song.id}" end}>
       <:col let={song} label="Title"><%= song.title %></:col>
@@ -38,7 +42,13 @@ defmodule LiveBeatsWeb.SongLive.Index do
       <:col let={song} label="">
         <.link redirect_to={Routes.song_show_path(@socket, :show, song)}>Show</.link>
         <.link patch_to={Routes.song_index_path(@socket, :edit, song)}>Edit</.link>
-        <.link phx-click={JS.push("delete", value: %{id: song.id}) |> show_modal("delete-modal")}>Delete</.link>
+        <.link phx-click={
+          show_modal(
+            "delete-modal",
+            content: "Are you sure you want to delete \"#{song.title}\"?",
+            on_confirm: JS.push("delete", value: %{id: song.id}) |> hide("#song-#{song.id}")
+          )
+        }>Delete</.link>
       </:col>
     </.table>
     """
@@ -71,11 +81,6 @@ defmodule LiveBeatsWeb.SongLive.Index do
   end
 
   def handle_event("delete", %{"id" => id}, socket) do
-    DeleteDialogComponent.send_show(MediaLibrary.get_song!(id))
-    {:noreply, socket}
-  end
-
-  def handle_event("confirm-delete", %{"id" => id}, socket) do
     song = MediaLibrary.get_song!(id)
     {:ok, _} = MediaLibrary.delete_song(song)
     {:noreply, assign(socket, :songs, list_songs())}
