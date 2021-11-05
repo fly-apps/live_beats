@@ -4,6 +4,21 @@ defmodule LiveBeatsWeb.LiveHelpers do
 
   alias Phoenix.LiveView.JS
 
+  def icon(assigns) do
+    assigns =
+      assigns
+      |> assign_new(:outlined, fn -> false end)
+      |> assign_new(:class, fn -> "w-4 h-4" end)
+
+    ~H"""
+    <%= if @outlined do %>
+      <%= apply(Heroicons.Outline, @name, [assigns_to_attributes(assigns, [:outlined, :name])]) %>
+    <% else %>
+      <%= apply(Heroicons.Solid, @name, [assigns_to_attributes(assigns, [:outlined, :name])]) %>
+    <% end %>
+    """
+  end
+
   def link(%{redirect_to: to} = assigns) do
     opts = assigns |> assigns_to_attributes() |> Keyword.put(:to, to)
     assigns = assign(assigns, :opts, opts)
@@ -148,9 +163,7 @@ defmodule LiveBeatsWeb.LiveHelpers do
           <div class="sm:flex sm:items-start">
             <div class={"mx-auto flex-shrink-0 flex items-center justify-center h-8 w-8 rounded-full bg-purple-100 sm:mx-0"}>
               <!-- Heroicon name: outline/plus -->
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+              <.icon name={:information_circle} outlined class="h-6 w-6 text-purple-600"/>
             </div>
             <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full mr-12">
               <h3 class="text-lg leading-6 font-medium text-gray-900" id={"#{@id}-title"}>
@@ -339,7 +352,6 @@ defmodule LiveBeatsWeb.LiveHelpers do
     </div>
     """
   end
-
 
   @doc """
   Calls a wired up event listener to call a function with arguments.

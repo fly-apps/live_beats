@@ -50,6 +50,7 @@ defmodule LiveBeats.MixProject do
       {:jason, "~> 1.2"},
       {:plug_cowboy, "~> 2.5"},
       {:mint, "~> 1.0"},
+      {:heroicons, "~> 0.2.2"},
     ]
   end
 
