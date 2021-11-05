@@ -19,7 +19,7 @@
 				<!-- upload -->
 				<div class="sm:grid sm:border-t sm:border-gray-200 sm:pt-5">
 					<div class="mt-1 sm:mt-0" phx-drop-target={@uploads.mp3.ref}>
-						<%= if Enum.any?(@uploads.mp3.errors) do %>
+						<%= if Enum.any?(@error_messages) do %>
 							<div class="rounded-md bg-red-50 p-4 mb-2">
 								<div class="flex">
 									<div class="flex-shrink-0">
@@ -31,8 +31,8 @@
 										</h3>
 										<div class="mt-2 text-sm text-red-700">
 											<ul role="list" class="list-disc pl-5 space-y-1">
-												<%= for {_ref, error} <- @uploads.mp3.errors do %>
-													<li><.file_error kind={error} /></li>
+												<%= for {client_name, error} <- @error_messages do %>
+													<li><%= client_name %>: <.file_error kind={error} /></li>
 												<% end %>
 											</ul>
 										</div>

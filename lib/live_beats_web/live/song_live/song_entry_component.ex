@@ -11,7 +11,10 @@ defmodule LiveBeatsWeb.SongLive.SongEntryComponent do
           <%= if @duration do %>
             Title <span class="text-gray-400">(<%= MP3Stat.to_mmss(@duration) %>)</span>
           <% else %>
-            Title <span class="text-gray-400">(calculating duration...)</span>
+            Title
+            <span class="text-gray-400">
+              (calculating duration <.spinner class="inline-block animate-spin h-2.5 w-2.5 text-gray-400"/>)
+            </span>
           <% end %>
         </label>
         <input type="text" name={"songs[#{@ref}][title]"} value={@title}
@@ -41,7 +44,7 @@ defmodule LiveBeatsWeb.SongLive.SongEntryComponent do
      |> assign(:errors, changeset.errors)
      |> assign(title: Ecto.Changeset.get_field(changeset, :title))
      |> assign(artist: Ecto.Changeset.get_field(changeset, :artist))
-     |> assign(duration: IO.inspect(Ecto.Changeset.get_field(changeset, :duration)))
+     |> assign(duration: Ecto.Changeset.get_field(changeset, :duration))
      |> assign_new(:progress, fn -> 0 end)}
   end
 end

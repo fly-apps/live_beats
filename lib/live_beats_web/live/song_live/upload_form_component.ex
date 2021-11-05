@@ -21,7 +21,7 @@ defmodule LiveBeatsWeb.SongLive.UploadFormComponent do
     {:ok,
      socket
      |> assign(assigns)
-     |> assign(changesets: %{})
+     |> assign(changesets: %{}, error_messages: [])
      |> allow_upload(:mp3,
        song_id: song.id,
        auto_upload: true,
@@ -34,7 +34,7 @@ defmodule LiveBeatsWeb.SongLive.UploadFormComponent do
 
   @impl true
   def handle_event("validate", %{"_target" => ["mp3"]}, socket) do
-    {:noreply, socket}
+    {:noreply, drop_invalid_uploads(socket)}
   end
 
   def handle_event("validate", %{"songs" => songs_params, "_target" => ["songs", _, _]}, socket) do
@@ -56,7 +56,7 @@ defmodule LiveBeatsWeb.SongLive.UploadFormComponent do
   defp consume_entry(socket, ref, store_func) when is_function(store_func) do
     {entries, []} = uploaded_entries(socket, :mp3)
     entry = Enum.find(entries, fn entry -> entry.ref == ref end)
-    consume_uploaded_entry(socket, entry, fn meta -> store_func.(meta.path) end)
+    consume_uploaded_entry(socket, entry, fn meta -> {:ok, store_func.(meta.path)} end)
   end
 
   def handle_event("save", %{"songs" => song_params}, socket) do
@@ -123,6 +123,7 @@ defmodule LiveBeatsWeb.SongLive.UploadFormComponent do
     {:noreply, put_new_changeset(socket, entry)}
   end
 
+  defp file_error(%{kind: :dropped} = assigns), do: ~H|dropped (exceeds limit of 10 files)|
   defp file_error(%{kind: :too_large} = assigns), do: ~H|larger than 10MB|
   defp file_error(%{kind: :not_accepted} = assigns), do: ~H|not a valid MP3 file|
   defp file_error(%{kind: :too_many_files} = assigns), do: ~H|too many files|
@@ -133,5 +134,26 @@ defmodule LiveBeatsWeb.SongLive.UploadFormComponent do
     else
       socket
     end
+  end
+
+  defp drop_invalid_uploads(socket) do
+    %{uploads: uploads} = socket.assigns
+
+    {new_socket, error_messages, _index} =
+      Enum.reduce(uploads.mp3.entries, {socket, [], 0}, fn entry, {socket, msgs, i} ->
+        if i >= @max_songs do
+          {cancel_upload(socket, :mp3, entry.ref), [{entry.client_name, :dropped} | msgs], i + 1}
+        else
+          case upload_errors(uploads.mp3, entry) do
+            [first | _] ->
+              {cancel_upload(socket, :mp3, entry.ref), [{entry.client_name, first} | msgs], i + 1}
+
+            [] ->
+              {socket, msgs, i + 1}
+          end
+        end
+      end)
+
+    assign(new_socket, error_messages: error_messages)
   end
 end

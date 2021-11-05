@@ -48,7 +48,8 @@ defmodule LiveBeatsWeb.SongLive.Index do
     if connected?(socket) do
       MediaLibrary.subscribe(socket.assigns.current_user)
     end
-    {:ok, assign(socket, songs: list_songs(), active_id: nil)}
+
+    {:ok, assign(socket, songs: list_songs(), active_id: nil), temporary_assigns: [songs: []]}
   end
 
   def handle_params(params, _url, socket) do
@@ -66,11 +67,6 @@ defmodule LiveBeatsWeb.SongLive.Index do
     {:noreply, socket}
   end
 
-  def handle_info({_ref, {:duration, entry_ref, result}}, socket) do
-    IO.inspect({:async_duration, entry_ref, result})
-    {:noreply, socket}
-  end
-
   def handle_info({:play, %Song{} = song, _meta}, socket) do
     {:noreply, play_song(socket, song)}
   end
@@ -80,21 +76,20 @@ defmodule LiveBeatsWeb.SongLive.Index do
   end
 
   defp pause_song(socket, song_id) do
-    if old = Enum.find(socket.assigns.songs, fn song -> song.id == song_id end) do
-      send_update(LiveBeatsWeb.SongLive.SongRow, id: "song-#{old.id}", action: :deactivate)
-    end
+    send_update(LiveBeatsWeb.SongLive.SongRow, id: "song-#{song_id}", action: :deactivate)
     socket
   end
 
   defp play_song(socket, %Song{} = song) do
-    socket = pause_song(socket, socket.assigns.active_id)
-    next = Enum.find(socket.assigns.songs, &(&1.id == song.id))
+    send_update(LiveBeatsWeb.SongLive.SongRow, id: "song-#{song.id}", action: :activate)
 
-    if next do
-      send_update(LiveBeatsWeb.SongLive.SongRow, id: "song-#{next.id}", action: :activate)
+    if socket.assigns.active_id do
+      socket
+      |> pause_song(socket.assigns.active_id)
+      |> assign(active_id: song.id)
+    else
+      assign(socket, active_id: song.id)
     end
-
-    assign(socket, active_id: next.id)
   end
 
   defp maybe_show_modal(socket) do
@@ -114,12 +109,6 @@ defmodule LiveBeatsWeb.SongLive.Index do
     end
 
     socket
-  end
-
-  defp apply_action(socket, :edit, %{"id" => id}) do
-    socket
-    |> assign(:page_title, "Edit Song")
-    |> assign(:song, MediaLibrary.get_song!(id))
   end
 
   defp apply_action(socket, :new, _params) do
