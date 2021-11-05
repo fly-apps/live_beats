@@ -1,11 +1,19 @@
 defmodule LiveBeatsWeb.SongLive.SongEntryComponent do
   use LiveBeatsWeb, :live_component
 
+  alias LiveBeats.MP3Stat
+
   def render(assigns) do
     ~H"""
     <div class="sm:grid sm:grid-cols-2 sm:gap-2 sm:items-start sm:border-t sm:border-gray-200 sm:pt-2">
       <div class="border border-gray-300 rounded-md px-3 py-2 mt-2 shadow-sm focus-within:ring-1 focus-within:ring-indigo-600 focus-within:border-indigo-600">
-        <label for="name" class="block text-xs font-medium text-gray-900">Title</label>
+        <label for="name" class="block text-xs font-medium text-gray-900">
+          <%= if @duration do %>
+            Title <span class="text-gray-400">(<%= MP3Stat.to_mmss(@duration) %>)</span>
+          <% else %>
+            Title <span class="text-gray-400">(calculating duration...)</span>
+          <% end %>
+        </label>
         <input type="text" name={"songs[#{@ref}][title]"} value={@title}
           class="block w-full border-0 p-0 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"/>
         <%= error_tag(@errors, :title, "songs[#{@ref}][title]") %>
@@ -33,6 +41,7 @@ defmodule LiveBeatsWeb.SongLive.SongEntryComponent do
      |> assign(:errors, changeset.errors)
      |> assign(title: Ecto.Changeset.get_field(changeset, :title))
      |> assign(artist: Ecto.Changeset.get_field(changeset, :artist))
+     |> assign(duration: IO.inspect(Ecto.Changeset.get_field(changeset, :duration)))
      |> assign_new(:progress, fn -> 0 end)}
   end
 end

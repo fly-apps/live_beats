@@ -27,6 +27,58 @@ Hooks.Progress = {
 	}
 }
 
+Hooks.AudioPlayer = {
+  mounted(){
+    this.playbackBeganAt = null
+    this.player = this.el.querySelector("audio")
+    this.currentTime = this.el.querySelector("#player-time")
+    this.duration = this.el.querySelector("#player-duration")
+    this.progress = this.el.querySelector("#player-progress")
+    let enableAudio = () => {
+      document.removeEventListener("click", enableAudio)
+      this.player.play().catch(error => null)
+      this.player.pause()
+    }
+    document.addEventListener("click", enableAudio)
+    this.el.addEventListener("js:play_pause", () => {
+      this.play()
+    })
+    this.handleEvent("play", ({url, began_at}) => {
+      this.playbackBeganAt = began_at
+      this.player.src = url
+      this.play()
+    })
+    this.handleEvent("pause", () => {
+      console.log("Server Pause!")
+      this.pause()
+    })
+  },
+
+  play(){
+    this.player.play().then(() => {
+      this.player.currentTime = (Date.now() - this.playbackBeganAt) / 1000
+      this.progressTimer = setInterval(() => this.updateProgress(), 100)
+      this.pushEvent("audio-accepted", {})
+    }, error => {
+      this.pushEvent("audio-rejected", {})
+    })
+  },
+
+  pause(){
+    this.player.pause()
+    clearInterval(this.progressTimer)
+  },
+
+  updateProgress(){
+    if(isNaN(this.player.duration)){ return false }
+		this.progress.style.width = `${(this.player.currentTime / (this.player.duration) * 100)}%`
+    this.duration.innerText = this.formatTime(this.player.duration)
+    this.currentTime.innerText = this.formatTime(this.player.currentTime)
+  },
+
+  formatTime(seconds){ return new Date(1000 * seconds).toISOString().substr(14, 5) }
+}
+
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, {
 	hooks: Hooks,
@@ -50,6 +102,8 @@ let liveSocket = new LiveSocket("/live", Socket, {
 topbar.config({barColors: {0: "#29d"}, shadowColor: "rgba(0, 0, 0, .3)"})
 window.addEventListener("phx:page-loading-start", info => topbar.show())
 window.addEventListener("phx:page-loading-stop", info => topbar.hide())
+
+window.addEventListener("js:exec", e => e.target[e.detail.call](...e.detail.args))
 
 // connect if there are any LiveViews on the page
 liveSocket.connect()

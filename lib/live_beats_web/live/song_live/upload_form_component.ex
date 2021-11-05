@@ -1,12 +1,22 @@
 defmodule LiveBeatsWeb.SongLive.UploadFormComponent do
   use LiveBeatsWeb, :live_component
 
-  alias LiveBeats.{MediaLibrary, ID3}
+  alias LiveBeats.{MediaLibrary, MP3Stat}
   alias LiveBeatsWeb.SongLive.SongEntryComponent
 
   @max_songs 10
 
   @impl true
+  def update(%{action: {:duration, entry_ref, result}}, socket) do
+    case result do
+      {:ok, %MP3Stat{} = stat} ->
+        {:ok, put_stats(socket, entry_ref, stat)}
+
+      _ ->
+        {:ok, cancel_upload(socket, :mp3, entry_ref)}
+    end
+  end
+
   def update(%{song: song} = assigns, socket) do
     {:ok,
      socket
@@ -50,9 +60,10 @@ defmodule LiveBeatsWeb.SongLive.UploadFormComponent do
   end
 
   def handle_event("save", %{"songs" => song_params}, socket) do
+    %{current_user: current_user} = socket.assigns
     changesets = socket.assigns.changesets
 
-    case MediaLibrary.import_songs(changesets, &consume_entry(socket, &1, &2)) do
+    case MediaLibrary.import_songs(current_user, changesets, &consume_entry(socket, &1, &2)) do
       {:ok, songs} ->
         {:noreply,
          socket
@@ -92,16 +103,35 @@ defmodule LiveBeatsWeb.SongLive.UploadFormComponent do
 
   defp handle_progress(:mp3, entry, socket) do
     send_update(SongEntryComponent, id: entry.ref, progress: entry.progress)
-    {:noreply, put_new_changeset(socket, entry)}
-  end
+    lv = self()
 
-  defp put_tmp_mp3(changeset, path) do
-    {:ok, tmp_path} = Plug.Upload.random_file("tmp_mp3")
-    File.cp!(path, tmp_path)
-    Ecto.Changeset.put_change(changeset, :tmp_mp3_path, tmp_path)
+    if entry.done? do
+      consume_uploaded_entry(socket, entry, fn %{path: path} ->
+        Task.Supervisor.start_child(LiveBeats.TaskSupervisor, fn ->
+          result = LiveBeats.MP3Stat.parse(path)
+
+          send_update(lv, __MODULE__,
+            id: socket.assigns.id,
+            action: {:duration, entry.ref, result}
+          )
+        end)
+
+        {:postpone, :ok}
+      end)
+    end
+
+    {:noreply, put_new_changeset(socket, entry)}
   end
 
   defp file_error(%{kind: :too_large} = assigns), do: ~H|larger than 10MB|
   defp file_error(%{kind: :not_accepted} = assigns), do: ~H|not a valid MP3 file|
   defp file_error(%{kind: :too_many_files} = assigns), do: ~H|too many files|
+
+  defp put_stats(socket, entry_ref, %MP3Stat{} = stat) do
+    if changeset = get_changeset(socket, entry_ref) do
+      update_changeset(socket, MediaLibrary.put_stats(changeset, stat), entry_ref)
+    else
+      socket
+    end
+  end
 end

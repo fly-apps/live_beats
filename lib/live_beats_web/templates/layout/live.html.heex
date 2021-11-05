@@ -7,5 +7,7 @@
     phx-click="lv:clear-flash"
     phx-value-key="error"><%= live_flash(@flash, :error) %></p>
 
+  <.live_component module={LiveBeatsWeb.LayoutComponent} id="layout" />
+
   <%= @inner_content %>
 </main>

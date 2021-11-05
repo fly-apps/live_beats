@@ -7,30 +7,17 @@ defmodule LiveBeats.ID3 do
             year: nil
 
   def parse(path) do
-    binary = File.read!(path)
-    size = byte_size(binary) - 128
-    <<_::binary-size(size), id3_tag::binary>> = binary
-
-    case id3_tag do
-      <<
-        "TAG",
-        title::binary-size(30),
-        artist::binary-size(30),
-        album::binary-size(30),
-        year::binary-size(4),
-        _comment::binary-size(30),
-        _rest::binary
-      >> ->
-        {:ok,
-         %ID3{
-           title: strip(title),
-           artist: strip(artist),
-           album: strip(album),
-           year: year
-         }}
-
-      _invalid ->
-        {:error, :invalid}
+    with {:ok, parsed} <- :id3_tag_reader.read_tag(path) do
+      {:ok, parsed}
+        # %ID3{
+        #   title: strip(title),
+        #   artist: strip(artist),
+        #   album: strip(album),
+        #   year: 2028
+        # }}
+    else
+      other ->
+        {:error, other}
     end
   end
 

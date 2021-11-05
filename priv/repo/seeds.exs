@@ -14,7 +14,7 @@
 #   {:ok, _} = LiveBeats.MediaLibrary.create_genre(%{title: title})
 # end
 
-for i <- 1..20 do
+for i <- 1..200 do
   {:ok, _} =
     LiveBeats.MediaLibrary.create_song(%{
       artist: "Bonobo",

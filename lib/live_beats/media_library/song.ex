@@ -2,6 +2,8 @@ defmodule LiveBeats.MediaLibrary.Song do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias LiveBeats.Accounts
+
   schema "songs" do
     field :album_artist, :string
     field :artist, :string
@@ -11,7 +13,7 @@ defmodule LiveBeats.MediaLibrary.Song do
     field :title, :string
     field :mp3_path, :string
     field :mp3_filename, :string
-    belongs_to :user, LiveBeats.Accounts.User
+    belongs_to :user, Accounts.User
     belongs_to :genre, LiveBeats.MediaLibrary.Genre
 
     timestamps()
@@ -22,6 +24,11 @@ defmodule LiveBeats.MediaLibrary.Song do
     song
     |> cast(attrs, [:album_artist, :artist, :title, :date_recorded, :date_released])
     |> validate_required([:artist, :title])
+    |> validate_number(:duration, greater_than: 0, less_than: 1200)
+  end
+
+  def put_user(%Ecto.Changeset{} = changeset, %Accounts.User{} = user) do
+    put_assoc(changeset, :user, user)
   end
 
   def put_mp3_path(%Ecto.Changeset{} = changeset) do
@@ -30,7 +37,7 @@ defmodule LiveBeats.MediaLibrary.Song do
 
       changeset
       |> Ecto.Changeset.put_change(:mp3_filename, filename)
-      |> Ecto.Changeset.put_change(:mp3_path, "priv/static/uploads/songs/#{filename}")
+      |> Ecto.Changeset.put_change(:mp3_path, "uploads/songs/#{filename}")
     else
       changeset
     end

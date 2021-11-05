@@ -4,21 +4,45 @@ defmodule LiveBeats.MediaLibrary do
   """
 
   import Ecto.Query, warn: false
-  alias LiveBeats.Repo
-
+  alias LiveBeats.{Repo, MP3Stat, Accounts}
   alias LiveBeats.MediaLibrary.{Song, Genre}
 
-  def store_mp3(%Song{} = song, tmp_path) do
-    File.mkdir_p!("priv/static/uploads/songs")
-    File.cp!(tmp_path, song.mp3_path)
+  @pubsub LiveBeats.PubSub
+
+  def subscribe(%Accounts.User{} = user) do
+    Phoenix.PubSub.subscribe(@pubsub, topic(user.id))
   end
 
-  def import_songs(changesets, consome_file)
-      when is_map(changesets) and is_function(consome_file, 2) do
+  def play_song(%Song{id: id}), do: play_song(id)
+
+  def play_song(id) do
+    song = get_song!(id)
+    Phoenix.PubSub.broadcast!(@pubsub, topic(song.user_id), {:play, song, %{began_at: now_ms()}})
+  end
+
+  def pause_song(%Song{} = song) do
+    Phoenix.PubSub.broadcast!(@pubsub, topic(song.user_id), {:pause, song})
+  end
+
+  defp topic(user_id), do: "room:#{user_id}"
+
+  def store_mp3(%Song{} = song, tmp_path) do
+    dir = "priv/static/uploads/songs"
+    File.mkdir_p!(dir)
+    File.cp!(tmp_path, Path.join(dir, song.mp3_filename))
+  end
+
+  def put_stats(%Ecto.Changeset{} = changeset, %MP3Stat{} = stat) do
+    Ecto.Changeset.put_change(changeset, :duration, stat.duration)
+  end
+
+  def import_songs(%Accounts.User{} = user, changesets, consume_file)
+      when is_map(changesets) and is_function(consume_file, 2) do
     changesets
     |> Enum.reduce(Ecto.Multi.new(), fn {ref, chset}, acc ->
       chset =
         chset
+        |> Song.put_user(user)
         |> Song.put_mp3_path()
         |> Map.put(:action, nil)
 
@@ -31,7 +55,7 @@ defmodule LiveBeats.MediaLibrary do
          results
          |> Enum.filter(&match?({{:song, _ref}, _}, &1))
          |> Enum.map(fn {{:song, ref}, song} ->
-           consome_file.(ref, fn tmp_path -> store_mp3(song, tmp_path) end)
+           consume_file.(ref, fn tmp_path -> store_mp3(song, tmp_path) end)
            {ref, song}
          end)
          |> Enum.into(%{})}
@@ -58,8 +82,8 @@ defmodule LiveBeats.MediaLibrary do
     Repo.all(Genre, order_by: [asc: :title])
   end
 
-  def list_songs do
-    Repo.all(Song)
+  def list_songs(limit \\ 100) do
+    Repo.all(from s in Song, limit: ^limit, order_by: [asc: s.inserted_at])
   end
 
   def get_song!(id), do: Repo.get!(Song, id)
@@ -83,4 +107,6 @@ defmodule LiveBeats.MediaLibrary do
   def change_song(%Song{} = song, attrs \\ %{}) do
     Song.changeset(song, attrs)
   end
+
+  defp now_ms, do: System.system_time() |> System.convert_time_unit(:native, :millisecond)
 end

@@ -82,27 +82,7 @@ defmodule LiveBeatsWeb.LiveHelpers do
     )
   end
 
-  def show_modal(%JS{} = js, id, opts) when is_binary(id) and is_list(opts) do
-    on_confirm = Keyword.get(opts, :on_confirm, %JS{}) |> hide_modal(id)
-    title = Keyword.get(opts, :title, "")
-    content = Keyword.get(opts, :content, "")
-
-    js
-    |> JS.inner_text(title, to: "##{id}-title")
-    |> JS.inner_text(content, to: "##{id}-content")
-    |> JS.set_attribute("phx-click", to: "##{id}-confirm", value: on_confirm)
-    |> show_modal(id)
-  end
-
-  def show_modal(id) when is_binary(id) do
-    show_modal(%JS{}, id, [])
-  end
-
-  def show_modal(id, opts) when is_binary(id) and is_list(opts) do
-    show_modal(%JS{}, id, opts)
-  end
-
-  def show_modal(%JS{} = js, id) when is_binary(id) do
+  def show_modal(js \\ %JS{}, id) when is_binary(id) do
     js
     |> JS.show(
       to: "##{id}",
@@ -116,6 +96,7 @@ defmodule LiveBeatsWeb.LiveHelpers do
         {"ease-out duration-300", "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95",
          "opacity-100 translate-y-0 sm:scale-100"}
     )
+    |> js_exec("##{id}-confirm", "focus", [])
   end
 
   def hide_modal(js \\ %JS{}, id) do
@@ -138,8 +119,8 @@ defmodule LiveBeatsWeb.LiveHelpers do
     assigns =
       assigns
       |> assign_new(:show, fn -> false end)
-      |> assign_new(:loading, fn -> false end)
-      |> assign_new(:return_to, fn -> nil end)
+      |> assign_new(:patch_to, fn -> nil end)
+      |> assign_new(:redirect_to, fn -> nil end)
       |> assign_new(:on_cancel, fn -> %JS{} end)
       |> assign_new(:on_confirm, fn -> %JS{} end)
       # slots
@@ -158,13 +139,16 @@ defmodule LiveBeatsWeb.LiveHelpers do
           phx-window-keydown={hide_modal(@on_cancel, @id)} phx-key="escape"
           phx-click-away={hide_modal(@on_cancel, @id)}
         >
-          <%= if @return_to do %>
-            <%= live_redirect "close", to: @return_to, data: [modal_return: true], class: "hidden" %>
+          <%= if @patch_to do %>
+            <.link patch_to={@patch_to} data-modal-return class="hidden"></.link>
+          <% end %>
+          <%= if @redirect_to do %>
+            <.link redirect_to={@redirect_to} data-modal-return class="hidden"></.link>
           <% end %>
           <div class="sm:flex sm:items-start">
             <div class={"mx-auto flex-shrink-0 flex items-center justify-center h-8 w-8 rounded-full bg-purple-100 sm:mx-0"}>
               <!-- Heroicon name: outline/plus -->
-              <svg xmlns="http://www.w3.org/2000/svg" class={"#{if @loading, do: "animate-ping"} h-6 w-6 text-purple-600"} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
@@ -173,31 +157,31 @@ defmodule LiveBeatsWeb.LiveHelpers do
                 <%= render_slot(@title) %>
               </h3>
               <div class="mt-2">
-                <p id={"#{@id}-content"} class={"text-sm text-gray-500 #{if @loading, do: "invisible"}"}>
+                <p id={"#{@id}-content"} class={"text-sm text-gray-500"}>
                   <%= render_slot(@inner_block) %>
                 </p>
               </div>
             </div>
           </div>
-          <div class={"mt-5 sm:mt-4 sm:flex sm:flex-row-reverse #{if @loading, do: "invisible"}"}>
+          <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
             <%= for confirm <- @confirm do %>
               <button
                 id={"#{@id}-confirm"}
-                type="button"
                 class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
-                phx-click={@on_confirm |> hide_modal(@id)}
+                phx-click={@on_confirm}
+                phx-disable-with
                 tabindex="1"
-                autofocus
+                {assigns_to_attributes(confirm)}
               >
                 <%= render_slot(confirm) %>
               </button>
             <% end %>
             <%= for cancel <- @cancel do %>
               <button
-                type="button"
                 class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm"
                 phx-click={hide_modal(@on_cancel, @id)}
                 tabindex="2"
+                {assigns_to_attributes(cancel)}
               >
                 <%= render_slot(cancel) %>
               </button>
@@ -218,9 +202,9 @@ defmodule LiveBeatsWeb.LiveHelpers do
 
     ~H"""
     <div class="bg-gray-200 flex-auto dark:bg-black rounded-full overflow-hidden" phx-update="ignore">
-      <div id="progress"
+      <div
+        id={@id}
         class="bg-lime-500 dark:bg-lime-400 h-1.5 w-0"
-        phx-hook="Progress"
         data-min={@min}
         data-max={@max}
         data-val={@value}>
@@ -300,14 +284,11 @@ defmodule LiveBeatsWeb.LiveHelpers do
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-100">
-            <%= for row <- @rows do %>
+            <%= for {row, i} <- Enum.with_index(@rows) do %>
               <tr id={@row_id && @row_id.(row)} class="hover:bg-gray-50">
-                <%= for {col, i} <- Enum.with_index(@col) do %>
+                <%= for col <- @col do %>
                   <td class={"px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900 #{if i == 0, do: "max-w-0 w-full"}"}>
                     <div class="flex items-center space-x-3 lg:pl-2">
-                      <%= if i == 0 do %>
-                        <div class="flex-shrink-0 w-2.5 h-2.5 rounded-full bg-pink-600 mr-2" aria-hidden="true"></div>
-                      <% end %>
                       <%= render_slot(col, row) %>
                     </div>
                   </td>
@@ -319,5 +300,53 @@ defmodule LiveBeatsWeb.LiveHelpers do
       </div>
     </div>
     """
+  end
+
+  def live_table(assigns) do
+    assigns =
+      assigns
+      |> assign_new(:row_id, fn -> false end)
+      |> assign_new(:active_id, fn -> nil end)
+
+    ~H"""
+    <div class="hidden mt-8 sm:block">
+      <div class="align-middle inline-block min-w-full border-b border-gray-200">
+        <table class="min-w-full">
+          <thead>
+            <tr class="border-t border-gray-200">
+              <%= for col <- @col do %>
+                <th
+                  class="px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <span class="lg:pl-2"><%= col.label %></span>
+                </th>
+              <% end %>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-100">
+            <%= for {row, i} <- Enum.with_index(@rows) do %>
+              <.live_component
+                module={@module}
+                id={@row_id.(row)}
+                row={row} col={@col}
+                index={i}
+                active_id={@active_id}
+                class="hover:bg-gray-50"
+              />
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    """
+  end
+
+
+  @doc """
+  Calls a wired up event listener to call a function with arguments.
+
+      window.addEventListener("js:exec", e => e.target[e.detail.call](...e.detail.args))
+  """
+  def js_exec(js \\ %JS{}, to, call, args) do
+    JS.dispatch(js, "js:exec", to: to, detail: %{call: call, args: args})
   end
 end

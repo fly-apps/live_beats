@@ -8,6 +8,7 @@ defmodule LiveBeats.Application do
   @impl true
   def start(_type, _args) do
     children = [
+      {Task.Supervisor, name: LiveBeats.TaskSupervisor},
       # Start the Ecto repository
       LiveBeats.Repo,
       # Start the Telemetry supervisor
