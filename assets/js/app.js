@@ -3,15 +3,7 @@ import {Socket} from "phoenix"
 import {LiveSocket} from "./phoenix_live_view"
 import topbar from "../vendor/topbar"
 
-let render = (webComponent, html) => {
-	let shadow = webComponent.attachShadow({mode: "open"})
-	document.querySelectorAll("link").forEach(link => shadow.appendChild(link.cloneNode()))
-  let div = document.createElement("div")
-	div.setAttribute("class", webComponent.getAttribute("class"))
-	div.innerHTML = html || webComponent.innerHTML
-  shadow.appendChild(div)
-	return div
-}
+let nowSeconds = () => Math.round(Date.now() / 1000)
 
 let Hooks = {}
 
@@ -40,23 +32,30 @@ Hooks.AudioPlayer = {
       this.player.pause()
     }
     document.addEventListener("click", enableAudio)
+    this.el.addEventListener("js:listen_now", () => this.play({sync: true}))
     this.el.addEventListener("js:play_pause", () => {
-      this.play()
+      if(this.player.paused){
+        this.play()
+      }
     })
-    this.handleEvent("play", ({url, began_at}) => {
-      this.playbackBeganAt = began_at
-      this.player.src = url
-      this.play()
+    this.handleEvent("play", ({url, elapsed}) => {
+      this.playbackBeganAt = nowSeconds() - elapsed
+      if(this.player.src === url && this.player.paused){
+        this.play({sync: true})
+      } else if(this.player.src !== url) {
+        this.player.src = url
+        this.play({sync: true})
+      }
     })
     this.handleEvent("pause", () => {
-      console.log("Server Pause!")
       this.pause()
     })
   },
 
-  play(){
+  play(opts = {}){
+    let {sync} = opts
     this.player.play().then(() => {
-      this.player.currentTime = (Date.now() - this.playbackBeganAt) / 1000
+      if(sync){ this.player.currentTime = nowSeconds() - this.playbackBeganAt }
       this.progressTimer = setInterval(() => this.updateProgress(), 100)
       this.pushEvent("audio-accepted", {})
     }, error => {
@@ -65,8 +64,8 @@ Hooks.AudioPlayer = {
   },
 
   pause(){
-    this.player.pause()
     clearInterval(this.progressTimer)
+    this.player.pause()
   },
 
   updateProgress(){

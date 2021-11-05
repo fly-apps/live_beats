@@ -2,7 +2,7 @@ defmodule LiveBeatsWeb.SongLive.UploadFormComponent do
   use LiveBeatsWeb, :live_component
 
   alias LiveBeats.{MediaLibrary, MP3Stat}
-  alias LiveBeatsWeb.SongLive.SongEntryComponent
+  alias LiveBeatsWeb.SongLive.SongEntry
 
   @max_songs 10
 
@@ -37,29 +37,12 @@ defmodule LiveBeatsWeb.SongLive.UploadFormComponent do
     {:noreply, drop_invalid_uploads(socket)}
   end
 
-  def handle_event("validate", %{"songs" => songs_params, "_target" => ["songs", _, _]}, socket) do
-    new_socket =
-      Enum.reduce(songs_params, socket, fn {ref, song_params}, acc ->
-        new_changeset =
-          acc
-          |> get_changeset(ref)
-          |> Ecto.Changeset.apply_changes()
-          |> MediaLibrary.change_song(song_params)
-          |> Map.put(:action, :validate)
-
-        update_changeset(acc, new_changeset, ref)
-      end)
-
-    {:noreply, new_socket}
+  def handle_event("validate", %{"songs" => params, "_target" => ["songs", _, _]}, socket) do
+    {:noreply, apply_params(socket, params, :validate)}
   end
 
-  defp consume_entry(socket, ref, store_func) when is_function(store_func) do
-    {entries, []} = uploaded_entries(socket, :mp3)
-    entry = Enum.find(entries, fn entry -> entry.ref == ref end)
-    consume_uploaded_entry(socket, entry, fn meta -> {:ok, store_func.(meta.path)} end)
-  end
-
-  def handle_event("save", %{"songs" => song_params}, socket) do
+  def handle_event("save", %{"songs" => params}, socket) do
+    socket = apply_params(socket, params, :insert)
     %{current_user: current_user} = socket.assigns
     changesets = socket.assigns.changesets
 
@@ -73,6 +56,25 @@ defmodule LiveBeatsWeb.SongLive.UploadFormComponent do
       {:error, _reason} ->
         {:noreply, put_flash(socket, :error, "There were problems uploading your songs")}
     end
+  end
+
+  defp consume_entry(socket, ref, store_func) when is_function(store_func) do
+    {entries, []} = uploaded_entries(socket, :mp3)
+    entry = Enum.find(entries, fn entry -> entry.ref == ref end)
+    consume_uploaded_entry(socket, entry, fn meta -> {:ok, store_func.(meta.path)} end)
+  end
+
+  defp apply_params(socket, params, action) when action in [:validate, :insert] do
+    Enum.reduce(params, socket, fn {ref, song_params}, acc ->
+      new_changeset =
+        acc
+        |> get_changeset(ref)
+        |> Ecto.Changeset.apply_changes()
+        |> MediaLibrary.change_song(song_params)
+        |> Map.put(:action, action)
+
+      update_changeset(acc, new_changeset, ref)
+    end)
   end
 
   defp get_changeset(socket, entry_ref) do
@@ -102,25 +104,28 @@ defmodule LiveBeatsWeb.SongLive.UploadFormComponent do
   end
 
   defp handle_progress(:mp3, entry, socket) do
-    send_update(SongEntryComponent, id: entry.ref, progress: entry.progress)
-    lv = self()
+    send_update(SongEntry, id: entry.ref, progress: entry.progress)
 
     if entry.done? do
-      consume_uploaded_entry(socket, entry, fn %{path: path} ->
-        Task.Supervisor.start_child(LiveBeats.TaskSupervisor, fn ->
-          result = LiveBeats.MP3Stat.parse(path)
-
-          send_update(lv, __MODULE__,
-            id: socket.assigns.id,
-            action: {:duration, entry.ref, result}
-          )
-        end)
-
-        {:postpone, :ok}
-      end)
+      async_calculate_duration(socket, entry)
     end
 
     {:noreply, put_new_changeset(socket, entry)}
+  end
+
+  defp async_calculate_duration(socket, %Phoenix.LiveView.UploadEntry{} = entry) do
+    lv = self()
+
+    consume_uploaded_entry(socket, entry, fn %{path: path} ->
+      Task.Supervisor.start_child(LiveBeats.TaskSupervisor, fn ->
+        send_update(lv, __MODULE__,
+          id: socket.assigns.id,
+          action: {:duration, entry.ref, LiveBeats.MP3Stat.parse(path)}
+        )
+      end)
+
+      {:postpone, :ok}
+    end)
   end
 
   defp file_error(%{kind: :dropped} = assigns), do: ~H|dropped (exceeds limit of 10 files)|

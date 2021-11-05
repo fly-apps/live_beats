@@ -1,5 +1,9 @@
-defmodule LiveBeatsWeb.SongLive.SongRow do
+defmodule LiveBeatsWeb.SongLive.SongRowComponent do
   use LiveBeatsWeb, :live_component
+
+  def send_status(id, status) when status in [:playing, :paused, :stopped] do
+    send_update(__MODULE__, id: "song-#{id}", action: :send, status: status)
+  end
 
   def render(assigns) do
     ~H"""
@@ -7,16 +11,22 @@ defmodule LiveBeatsWeb.SongLive.SongRow do
       <%= for {col, i} <- Enum.with_index(@col) do %>
         <td
           class={"px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900 #{if i == 0, do: "max-w-0 w-full cursor-pointer"}"}
-          phx-click={JS.push("play-song", value: %{id: @song.id})}
+          phx-click={JS.push("play_or_pause", value: %{id: @song.id})}
          >
           <div class="flex items-center space-x-3 lg:pl-2">
               <%= if i == 0 do %>
-                <%= if @active do %>
+                <%= if @status == :playing do %>
                   <span class="flex pt-1 relative mr-2 w-4">
                     <span class="w-3 h-3 animate-ping bg-purple-400 rounded-full absolute"></span>
                     <.icon name={:volume_up} class="h-5 w-5 -mt-1 -ml-1"/>
                   </span>
-                <% else %>
+                <% end %>
+                <%= if @status == :paused do %>
+                  <span class="flex pt-1 relative mr-2 w-4">
+                    <.icon name={:volume_up} class="h-5 w-5 -mt-1 -ml-1 text-gray-400"/>
+                  </span>
+                <% end %>
+                <%= if @status == :stopped do %>
                   <span class="flex relative w-6 -translate-x-1">
                     <.icon name={:play} class="h-5 w-5 text-gray-400"/>
                   </span>
@@ -30,16 +40,8 @@ defmodule LiveBeatsWeb.SongLive.SongRow do
     """
   end
 
-  def update(%{action: :activate}, socket) do
-    {:ok, assign(socket, active: true)}
-  end
-
-  def update(%{action: :deactivate}, socket) do
-    {:ok, assign(socket, active: false)}
-  end
-
-  def update(%{action: action}, _socket) do
-    raise ArgumentError, "unkown action #{inspect(action)}"
+  def update(%{action: :send, status: status}, socket) when status in [:playing, :paused, :stopped] do
+    {:ok, assign(socket, status: status)}
   end
 
   def update(assigns, socket) do
@@ -50,7 +52,7 @@ defmodule LiveBeatsWeb.SongLive.SongRow do
        col: assigns.col,
        class: assigns.class,
        index: assigns.index,
-       active: false
+       status: :stopped
      )}
   end
 end

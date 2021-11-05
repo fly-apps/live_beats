@@ -2,7 +2,6 @@
   <h2><%= @title %></h2>
 
   <.form
-    let={f}
     for={:songs}
     id="song-form"
     class="space-y-8"
@@ -13,7 +12,7 @@
     <div class="space-y-8 divide-y divide-gray-200 sm:space-y-5">
 			<div class="space-y-2 sm:space-y-2">
 				<%= for {ref, changeset} <- @changesets do %>
-				  <.live_component id={ref} module={SongEntryComponent} changeset={changeset} />
+				  <.live_component id={ref} module={SongEntry} changeset={changeset} />
 				<% end %>
 
 				<!-- upload -->

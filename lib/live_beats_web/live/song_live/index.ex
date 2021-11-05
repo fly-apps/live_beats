@@ -2,8 +2,8 @@ defmodule LiveBeatsWeb.SongLive.Index do
   use LiveBeatsWeb, :live_view
 
   alias LiveBeats.{MediaLibrary, MP3Stat}
-  alias LiveBeats.MediaLibrary.Song
   alias LiveBeatsWeb.LayoutComponent
+  alias LiveBeatsWeb.SongLive.{SongRowComponent, UploadFormComponent}
 
   def render(assigns) do
     ~H"""
@@ -27,7 +27,7 @@ defmodule LiveBeatsWeb.SongLive.Index do
     <% end %>
 
     <.live_table
-      module={LiveBeatsWeb.SongLive.SongRow}
+      module={SongRowComponent}
       rows={@songs}
       row_id={fn song -> "song-#{song.id}" end}
     >
@@ -45,19 +45,33 @@ defmodule LiveBeatsWeb.SongLive.Index do
   end
 
   def mount(_params, _session, socket) do
+    %{current_user: current_user} = socket.assigns
+
     if connected?(socket) do
-      MediaLibrary.subscribe(socket.assigns.current_user)
+      MediaLibrary.subscribe(current_user)
     end
 
-    {:ok, assign(socket, songs: list_songs(), active_id: nil), temporary_assigns: [songs: []]}
+    active_id =
+      if song = MediaLibrary.get_current_active_song(current_user.id) do
+        SongRowComponent.send_status(song.id, song.status)
+        song.id
+      end
+
+    {:ok, assign(socket, songs: list_songs(), active_id: active_id), temporary_assigns: [songs: []]}
   end
 
   def handle_params(params, _url, socket) do
     {:noreply, socket |> apply_action(socket.assigns.live_action, params) |> maybe_show_modal()}
   end
 
-  def handle_event("play-song", %{"id" => id}, socket) do
-    MediaLibrary.play_song(id)
+  def handle_event("play_or_pause", %{"id" => id}, socket) do
+    song = MediaLibrary.get_song!(id)
+    if socket.assigns.active_id == id and MediaLibrary.playing?(song) do
+      MediaLibrary.pause_song(song)
+    else
+      MediaLibrary.play_song(id)
+    end
+
     {:noreply, socket}
   end
 
@@ -67,42 +81,59 @@ defmodule LiveBeatsWeb.SongLive.Index do
     {:noreply, socket}
   end
 
-  def handle_info({:play, %Song{} = song, _meta}, socket) do
+  def handle_info({:play, %MediaLibrary.Song{} = song, _meta}, socket) do
     {:noreply, play_song(socket, song)}
   end
 
-  def handle_info({:pause, %Song{} = song}, socket) do
+  def handle_info({:pause, %MediaLibrary.Song{} = song}, socket) do
     {:noreply, pause_song(socket, song.id)}
   end
 
+  defp stop_song(socket, song_id) do
+    SongRowComponent.send_status(song_id, :stopped)
+
+    if socket.assigns.active_id == song_id do
+      assign(socket, :active_id, nil)
+    else
+      socket
+    end
+  end
+
   defp pause_song(socket, song_id) do
-    send_update(LiveBeatsWeb.SongLive.SongRow, id: "song-#{song_id}", action: :deactivate)
+    SongRowComponent.send_status(song_id, :paused)
     socket
   end
 
-  defp play_song(socket, %Song{} = song) do
-    send_update(LiveBeatsWeb.SongLive.SongRow, id: "song-#{song.id}", action: :activate)
+  defp play_song(socket, %MediaLibrary.Song{} = song) do
+    %{active_id: active_id} = socket.assigns
 
-    if socket.assigns.active_id do
-      socket
-      |> pause_song(socket.assigns.active_id)
-      |> assign(active_id: song.id)
-    else
-      assign(socket, active_id: song.id)
+    cond do
+      active_id == song.id ->
+        SongRowComponent.send_status(song.id, :playing)
+        socket
+
+      active_id ->
+        SongRowComponent.send_status(song.id, :playing)
+
+        socket
+        |> stop_song(active_id)
+        |> assign(active_id: song.id)
+
+      true ->
+        SongRowComponent.send_status(song.id, :playing)
+        assign(socket, active_id: song.id)
     end
   end
 
   defp maybe_show_modal(socket) do
-    if socket.assigns.live_action in [:new, :edit] do
-      LayoutComponent.show_modal(LiveBeatsWeb.SongLive.UploadFormComponent, %{
+    if socket.assigns.live_action in [:new] do
+      LayoutComponent.show_modal(UploadFormComponent, %{
+        id: :new,
         confirm: {"Save", type: "submit", form: "song-form"},
         patch_to: Routes.song_index_path(socket, :index),
-        id: socket.assigns.song.id || :new,
-        title: socket.assigns.page_title,
-        action: socket.assigns.live_action,
         song: socket.assigns.song,
-        current_user: socket.assigns.current_user,
-        genres: socket.assigns.genres
+        title: socket.assigns.page_title,
+        current_user: socket.assigns.current_user
       })
     else
       LayoutComponent.hide_modal()
@@ -114,7 +145,7 @@ defmodule LiveBeatsWeb.SongLive.Index do
   defp apply_action(socket, :new, _params) do
     socket
     |> assign(:page_title, "Add Songs")
-    |> assign(:song, %Song{})
+    |> assign(:song, %MediaLibrary.Song{})
   end
 
   defp apply_action(socket, :index, _params) do

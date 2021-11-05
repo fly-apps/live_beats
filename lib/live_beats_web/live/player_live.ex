@@ -87,7 +87,7 @@ defmodule LiveBeatsWeb.PlayerLive do
       </div>
 
       <%= if @error do %>
-        <.modal show id="enable-audio" on_confirm={js_play_pause() |> hide_modal("enable-audio")}>
+        <.modal show id="enable-audio" on_confirm={js_listen_now() |> hide_modal("enable-audio")}>
           <:title>Start Listening now</:title>
           Your browser needs a click event to enable playback
           <:confirm>Listen Now</:confirm>
@@ -101,15 +101,24 @@ defmodule LiveBeatsWeb.PlayerLive do
   def mount(_parmas, _session, socket) do
     if connected?(socket) and socket.assigns.current_user do
       MediaLibrary.subscribe(socket.assigns.current_user)
+      send(self(), :play_current)
     end
 
-    {:ok, assign(socket, song: nil, playing: false, error: false), layout: false}
+    socket =
+      assign(socket,
+        song: nil,
+        playing: false,
+        error: false,
+        current_user_id: socket.assigns.current_user.id,
+        # todo use actual room user id
+        room_user_id: socket.assigns.current_user.id
+      )
+
+    {:ok, socket, layout: false, temporary_assigns: [current_user: nil]}
   end
 
   def handle_event("play_pause", _, socket) do
     %{song: song, playing: playing} = socket.assigns
-
-    IO.inspect({:play_pause, playing})
 
     cond do
       song && playing ->
@@ -133,6 +142,15 @@ defmodule LiveBeatsWeb.PlayerLive do
     {:noreply, assign(socket, error: false)}
   end
 
+  def handle_info(:play_current, socket) do
+    # we raced a pubsub, noop
+    if socket.assigns.song do
+      {:noreply, socket}
+    else
+      {:noreply, play_current_song(socket)}
+    end
+  end
+
   def handle_info({:pause, _}, socket) do
     {:noreply,
      socket
@@ -140,14 +158,44 @@ defmodule LiveBeatsWeb.PlayerLive do
      |> assign(playing: false)}
   end
 
-  def handle_info({:play, %Song{} = song, %{began_at: at}}, socket) do
-    {:noreply,
-     socket
-     |> push_event("play", %{began_at: at, url: Path.join(LiveBeatsWeb.Endpoint.url(), song.mp3_path)})
-     |> assign(song: song, playing: true)}
+  def handle_info({:play, %Song{} = song, %{elapsed: elapsed}}, socket) do
+    {:noreply, play_song(socket, song, elapsed)}
   end
 
-  defp js_play_pause(js \\ %JS{}) do
+  defp play_song(socket, %Song{} = song, elapsed) do
+    socket
+    |> push_play(song, elapsed)
+    |> assign(song: song, playing: true)
+  end
+
+  defp js_play_pause(%JS{} = js) do
     JS.dispatch(js, "js:play_pause", to: "#audio-player")
+  end
+
+  defp js_listen_now(js \\ %JS{}) do
+    JS.dispatch(js, "js:listen_now", to: "#audio-player")
+  end
+
+  defp play_current_song(socket) do
+    song = MediaLibrary.get_current_active_song(socket.assigns.room_user_id)
+
+    cond do
+      song && MediaLibrary.playing?(song) ->
+        play_song(socket, song, MediaLibrary.elapsed_playback(song))
+
+      song && MediaLibrary.paused?(song) ->
+        assign(socket, song: song, playing: false)
+
+      true ->
+        socket
+    end
+  end
+
+  defp push_play(socket, %Song{} = song, elapsed) do
+    push_event(socket, "play", %{
+      paused: Song.paused?(song),
+      elapsed: elapsed,
+      url: Path.join(LiveBeatsWeb.Endpoint.url(), song.mp3_path)
+    })
   end
 end

@@ -2,22 +2,30 @@ defmodule LiveBeats.MediaLibrary.Song do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias LiveBeats.MediaLibrary.Song
   alias LiveBeats.Accounts
 
   schema "songs" do
     field :album_artist, :string
     field :artist, :string
+    field :played_at, :utc_datetime
+    field :paused_at, :utc_datetime
     field :date_recorded, :naive_datetime
     field :date_released, :naive_datetime
     field :duration, :integer
+    field :status, Ecto.Enum, values: [stopped: 1, playing: 2, paused: 3]
     field :title, :string
     field :mp3_path, :string
-    field :mp3_filename, :string
+    field :mp3_filepath, :string
     belongs_to :user, Accounts.User
     belongs_to :genre, LiveBeats.MediaLibrary.Genre
 
     timestamps()
   end
+
+  def playing?(%Song{} = song), do: song.status == :playing
+  def paused?(%Song{} = song), do: song.status == :paused
+  def stopped?(%Song{} = song), do: song.status == :stopped
 
   @doc false
   def changeset(song, attrs) do
@@ -34,10 +42,11 @@ defmodule LiveBeats.MediaLibrary.Song do
   def put_mp3_path(%Ecto.Changeset{} = changeset) do
     if changeset.valid? do
       filename = Ecto.UUID.generate() <> ".mp3"
+      filepath = Path.join("priv/static/uploads/songs", filename)
 
       changeset
-      |> Ecto.Changeset.put_change(:mp3_filename, filename)
-      |> Ecto.Changeset.put_change(:mp3_path, "uploads/songs/#{filename}")
+      |> Ecto.Changeset.put_change(:mp3_filepath, filepath)
+      |> Ecto.Changeset.put_change(:mp3_path, Path.join("uploads/songs", filename))
     else
       changeset
     end
