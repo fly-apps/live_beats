@@ -29,4 +29,4 @@ live_beats-*.tar
 npm-debug.log
 /assets/node_modules/
 
-/priv/static/uploads
+/priv/uploads

@@ -1,5 +1,11 @@
 import Config
 
+config :live_beats, :file_host, %{
+  scheme: "http",
+  host: "localhost",
+  port: 4000
+}
+
 config :live_beats, :github, %{
   client_id: "83806139172df82d4ccc",
   client_secret: System.fetch_env!("LIVE_BEATS_GITHUB_CLIENT_SECRET"),

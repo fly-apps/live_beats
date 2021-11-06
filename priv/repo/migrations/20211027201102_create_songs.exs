@@ -10,7 +10,8 @@ defmodule LiveBeats.Repo.Migrations.CreateSongs do
       add :played_at, :utc_datetime
       add :paused_at, :utc_datetime
       add :title, :string, null: false
-      add :mp3_path, :string, null: false
+      add :mp3_url, :string, null: false
+      add :mp3_filename, :string, null: false
       add :mp3_filepath, :string, null: false
       add :date_recorded, :naive_datetime
       add :date_released, :naive_datetime

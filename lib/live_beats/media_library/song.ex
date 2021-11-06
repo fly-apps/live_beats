@@ -15,8 +15,9 @@ defmodule LiveBeats.MediaLibrary.Song do
     field :duration, :integer
     field :status, Ecto.Enum, values: [stopped: 1, playing: 2, paused: 3]
     field :title, :string
-    field :mp3_path, :string
+    field :mp3_url, :string
     field :mp3_filepath, :string
+    field :mp3_filename, :string
     belongs_to :user, Accounts.User
     belongs_to :genre, LiveBeats.MediaLibrary.Genre
 
@@ -42,13 +43,19 @@ defmodule LiveBeats.MediaLibrary.Song do
   def put_mp3_path(%Ecto.Changeset{} = changeset) do
     if changeset.valid? do
       filename = Ecto.UUID.generate() <> ".mp3"
-      filepath = Path.join("priv/static/uploads/songs", filename)
+      filepath = LiveBeats.MediaLibrary.local_filepath(filename)
 
       changeset
+      |> Ecto.Changeset.put_change(:mp3_filename, filename)
       |> Ecto.Changeset.put_change(:mp3_filepath, filepath)
-      |> Ecto.Changeset.put_change(:mp3_path, Path.join("uploads/songs", filename))
+      |> Ecto.Changeset.put_change(:mp3_url, mp3_url(filename))
     else
       changeset
     end
+  end
+
+  defp mp3_url(filename) do
+    %{scheme: scheme, host: host, port: port} = Application.fetch_env!(:live_beats, :file_host)
+    URI.to_string(%URI{scheme: scheme, host: host, port: port, path: "/files/#{filename}"})
   end
 end

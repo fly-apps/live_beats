@@ -19,6 +19,10 @@ defmodule LiveBeats.MediaLibrary do
     Phoenix.PubSub.subscribe(@pubsub, topic(user.id))
   end
 
+  def local_filepath(filename_uuid) when is_binary(filename_uuid) do
+    Path.join("priv/uploads/songs", filename_uuid)
+  end
+
   def play_song(%Song{id: id}), do: play_song(id)
 
   def play_song(id) do

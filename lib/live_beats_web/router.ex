@@ -19,6 +19,8 @@ defmodule LiveBeatsWeb.Router do
   scope "/", LiveBeatsWeb do
     pipe_through :browser
 
+    get "/files/:id", FileController, :show
+
     delete "/signout", OAuthCallbackController, :sign_out
 
     live_session :default, on_mount: [{LiveBeatsWeb.UserAuth, :current_user}, LiveBeatsWeb.Nav] do

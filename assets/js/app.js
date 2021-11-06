@@ -38,12 +38,13 @@ Hooks.AudioPlayer = {
         this.play()
       }
     })
-    this.handleEvent("play", ({url, elapsed}) => {
+    this.handleEvent("play", ({url, token, elapsed}) => {
       this.playbackBeganAt = nowSeconds() - elapsed
-      if(this.player.src === url && this.player.paused){
+      let currentSrc = this.player.src.split("?")[0]
+      if(currentSrc === url && this.player.paused){
         this.play({sync: true})
-      } else if(this.player.src !== url) {
-        this.player.src = url
+      } else if(currentSrc !== url) {
+        this.player.src = `${url}?token=${token}`
         this.play({sync: true})
       }
     })
