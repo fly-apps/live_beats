@@ -187,15 +187,15 @@ defmodule LiveBeats.MediaLibrary do
     Repo.delete(song)
   end
 
-  def change_song(song_or_changeset, attrs \\ %{}) do
-    song_or_changeset
-    |> recycle_changeset()
-    |> Song.changeset(attrs)
+  def change_song(song_or_changeset, attrs \\ %{})
+
+  def change_song(%Song{} = song, attrs) do
+    Song.changeset(song, attrs)
   end
 
-  defp recycle_changeset(%Ecto.Changeset{} = changeset) do
-    Map.merge(changeset, %{action: nil, errors: [], valid?: true})
+  def change_song(%Ecto.Changeset{} = prev_changeset, attrs) do
+    %Song{}
+    |> change_song(attrs)
+    |> Ecto.Changeset.change(Map.take(prev_changeset.changes, [:duration]))
   end
-
-  defp recycle_changeset(%{} = other), do: other
 end
