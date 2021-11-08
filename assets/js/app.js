@@ -64,7 +64,11 @@ Hooks.AudioPlayer = {
     this.player.play().then(() => {
       if(sync){ this.player.currentTime = nowSeconds() - this.playbackBeganAt }
       this.progressTimer = setInterval(() => this.updateProgress(), 100)
-    }, error => execJS("#enable-audio", "data-js-show"))
+    }, error => {
+      if(error.name === "NotAllowedError"){
+        execJS("#enable-audio", "data-js-show")
+      }
+    })
   },
 
   pause(){
