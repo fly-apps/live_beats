@@ -5,6 +5,10 @@ import topbar from "../vendor/topbar"
 
 let nowSeconds = () => Math.round(Date.now() / 1000)
 
+let execJS = (selector, attr) => {
+  document.querySelectorAll(selector).forEach(el => liveSocket.execJS(el, el.getAttribute(attr)))
+}
+
 let Hooks = {}
 
 Hooks.Progress = {
@@ -60,10 +64,7 @@ Hooks.AudioPlayer = {
     this.player.play().then(() => {
       if(sync){ this.player.currentTime = nowSeconds() - this.playbackBeganAt }
       this.progressTimer = setInterval(() => this.updateProgress(), 100)
-      this.pushEvent("audio-accepted", {})
-    }, error => {
-      this.pushEvent("audio-rejected", {})
-    })
+    }, error => execJS("#enable-audio", "data-js-show"))
   },
 
   pause(){

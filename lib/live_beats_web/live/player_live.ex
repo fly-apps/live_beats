@@ -86,13 +86,15 @@ defmodule LiveBeatsWeb.PlayerLive do
         </button>
       </div>
 
-      <%= if @error do %>
-        <.modal show id="enable-audio" on_confirm={js_listen_now() |> hide_modal("enable-audio")}>
-          <:title>Start Listening now</:title>
-          Your browser needs a click event to enable playback
-          <:confirm>Listen Now</:confirm>
-        </.modal>
-      <% end %>
+      <.modal
+        id="enable-audio"
+        on_confirm={js_listen_now() |> hide_modal("enable-audio")}
+        data-js-show={show_modal("enable-audio")}
+      >
+        <:title>Start Listening now</:title>
+        Your browser needs a click event to enable playback
+        <:confirm>Listen Now</:confirm>
+      </.modal>
     </div>
     <!-- /player -->
     """
@@ -108,7 +110,6 @@ defmodule LiveBeatsWeb.PlayerLive do
       assign(socket,
         song: nil,
         playing: false,
-        error: false,
         current_user_id: socket.assigns.current_user.id,
         # todo use actual room user id
         room_user_id: socket.assigns.current_user.id
@@ -132,14 +133,6 @@ defmodule LiveBeatsWeb.PlayerLive do
       true ->
         {:noreply, assign(socket, playing: false)}
     end
-  end
-
-  def handle_event("audio-rejected", _, socket) do
-    {:noreply, assign(socket, error: true)}
-  end
-
-  def handle_event("audio-accepted", _, socket) do
-    {:noreply, assign(socket, error: false)}
   end
 
   def handle_info(:play_current, socket) do

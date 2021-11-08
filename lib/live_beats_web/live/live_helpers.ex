@@ -151,9 +151,10 @@ defmodule LiveBeatsWeb.LiveHelpers do
       |> assign_new(:title, fn -> [] end)
       |> assign_new(:confirm, fn -> [] end)
       |> assign_new(:cancel, fn -> [] end)
+      |> assign_rest(~w(id show patch_to redirect_to on_cancel on_confirm title confirm cancel)a)
 
     ~H"""
-    <div id={@id} class={"fixed z-10 inset-0 overflow-y-auto #{if @show, do: "fade-in", else: "hidden"}"} aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div id={@id} class={"fixed z-10 inset-0 overflow-y-auto #{if @show, do: "fade-in", else: "hidden"}"} aria-labelledby="modal-title" role="dialog" aria-modal="true" {@rest}>
       <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
@@ -369,5 +370,9 @@ defmodule LiveBeatsWeb.LiveHelpers do
   """
   def js_exec(js \\ %JS{}, to, call, args) do
     JS.dispatch(js, "js:exec", to: to, detail: %{call: call, args: args})
+  end
+
+  defp assign_rest(assigns, exclude) do
+    assign(assigns, :rest, assigns_to_attributes(assigns, exclude))
   end
 end
