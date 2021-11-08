@@ -2,7 +2,7 @@ defmodule LiveBeatsWeb.SongLive.UploadFormComponent do
   use LiveBeatsWeb, :live_component
 
   alias LiveBeats.{MediaLibrary, MP3Stat}
-  alias LiveBeatsWeb.SongLive.SongEntry
+  alias LiveBeatsWeb.SongLive.SongEntryComponent
 
   @max_songs 10
 
@@ -12,8 +12,8 @@ defmodule LiveBeatsWeb.SongLive.UploadFormComponent do
       {:ok, %MP3Stat{} = stat} ->
         {:ok, put_stats(socket, entry_ref, stat)}
 
-      _ ->
-        {:ok, cancel_upload(socket, :mp3, entry_ref)}
+      {:error, _} ->
+        {:ok, cancel_changeset_upload(socket, entry_ref, :not_accepted)}
     end
   end
 
@@ -54,7 +54,7 @@ defmodule LiveBeatsWeb.SongLive.UploadFormComponent do
          |> push_redirect(to: Routes.song_index_path(socket, :index))}
 
       {:error, _reason} ->
-        {:noreply, put_flash(socket, :error, "There were problems uploading your songs")}
+        {:noreply, socket}
     end
   end
 
@@ -69,7 +69,6 @@ defmodule LiveBeatsWeb.SongLive.UploadFormComponent do
       new_changeset =
         acc
         |> get_changeset(ref)
-        |> Ecto.Changeset.apply_changes()
         |> MediaLibrary.change_song(song_params)
         |> Map.put(:action, action)
 
@@ -103,8 +102,12 @@ defmodule LiveBeatsWeb.SongLive.UploadFormComponent do
     update(socket, :changesets, &Map.put(&1, entry_ref, changeset))
   end
 
+  defp drop_changeset(socket, entry_ref) do
+    update(socket, :changesets, &Map.delete(&1, entry_ref))
+  end
+
   defp handle_progress(:mp3, entry, socket) do
-    send_update(SongEntry, id: entry.ref, progress: entry.progress)
+    SongEntryComponent.send_progress(entry)
 
     if entry.done? do
       async_calculate_duration(socket, entry)
@@ -144,21 +147,32 @@ defmodule LiveBeatsWeb.SongLive.UploadFormComponent do
   defp drop_invalid_uploads(socket) do
     %{uploads: uploads} = socket.assigns
 
-    {new_socket, error_messages, _index} =
-      Enum.reduce(uploads.mp3.entries, {socket, [], 0}, fn entry, {socket, msgs, i} ->
-        if i >= @max_songs do
-          {cancel_upload(socket, :mp3, entry.ref), [{entry.client_name, :dropped} | msgs], i + 1}
-        else
-          case upload_errors(uploads.mp3, entry) do
-            [first | _] ->
-              {cancel_upload(socket, :mp3, entry.ref), [{entry.client_name, first} | msgs], i + 1}
+    Enum.reduce(Enum.with_index(uploads.mp3.entries), socket, fn {entry, i}, socket ->
+      if i >= @max_songs do
+        cancel_changeset_upload(socket, entry.ref, :dropped)
+      else
+        case upload_errors(uploads.mp3, entry) do
+          [first | _] ->
+            cancel_changeset_upload(socket, entry.ref, first)
 
-            [] ->
-              {socket, msgs, i + 1}
-          end
+          [] ->
+            socket
         end
-      end)
+      end
+    end)
+  end
 
-    assign(new_socket, error_messages: error_messages)
+  defp cancel_changeset_upload(socket, entry_ref, reason) do
+    entry = get_entry!(socket, entry_ref)
+
+    socket
+    |> cancel_upload(:mp3, entry.ref)
+    |> drop_changeset(entry.ref)
+    |> update(:error_messages, &(&1 ++ [{entry.client_name, reason}]))
+  end
+
+  defp get_entry!(socket, entry_ref) do
+    Enum.find(socket.assigns.uploads.mp3.entries, fn entry -> entry.ref == entry_ref end) ||
+      raise "no entry found for ref #{inspect(entry_ref)}"
   end
 end

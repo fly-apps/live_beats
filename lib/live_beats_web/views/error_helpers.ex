@@ -4,24 +4,37 @@ defmodule LiveBeatsWeb.ErrorHelpers do
   """
 
   use Phoenix.HTML
+  import Phoenix.LiveView
+  import Phoenix.LiveView.Helpers
 
   @doc """
   Generates tag for inlined form input errors.
   """
   def error_tag(form, field) do
-    error_tag(form.errors, field, input_name(form, field))
+    error(%{errors: form.errors, field: field, input_name: input_name(form, field)})
   end
 
-  def error_tag(errors, field, input_name) do
-    Enum.map(Keyword.get_values(errors, field), fn error ->
-      content_tag(:div, translate_error(error),
-        class: "invalid-feedback mt-0 text-sm text-red-600 text-right",
-        phx_feedback_for: input_name
-      )
-    end)
+  def error(%{errors: errors, field: field} = assigns) do
+    assigns =
+      assigns
+      |> assign(:error_values, Keyword.get_values(errors, field))
+      |> assign_new(:class, fn -> "" end)
+
+    ~H"""
+    <%= for error <- @error_values do %>
+      <div
+        phx-feedback-for={@input_name}
+        class={"invalid-feedback -mt-1 pl-2 text-sm text-white bg-red-600 rounded-md #{@class}"}
+      >
+        <%= translate_error(error) %>
+      </div>
+    <% end %>
+
+    <%= if Enum.empty?(@error_values) do %>
+      <div class={"invalid-feedback h-0 #{@class}"}></div>
+    <% end %>
+    """
   end
-
-
 
   @doc """
   Translates an error message using gettext.

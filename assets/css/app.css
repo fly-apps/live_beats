@@ -11,9 +11,7 @@
 .fade-out-scale {
   animation: 0.2s ease-out 0s normal forwards 1 fade-out-scale-keys;
 }
-.slide-in-right {
-  animation: slide-in-right-keys 0.2s forwards;
-}
+
 .fade-in {
   animation: 0.2s ease-out 0s normal forwards 1 fade-in-keys;
 }
@@ -75,9 +73,7 @@
   display: none;
 }
 .invalid-feedback {
-  color: #a94442;
-  display: block;
-  margin: -1rem 0 2rem;
+  display: inline-block;
 }
 
 /* LiveView specific classes for your customization */

@@ -27,9 +27,11 @@ Hooks.AudioPlayer = {
     this.duration = this.el.querySelector("#player-duration")
     this.progress = this.el.querySelector("#player-progress")
     let enableAudio = () => {
-      document.removeEventListener("click", enableAudio)
-      this.player.play().catch(error => null)
-      this.player.pause()
+      if(this.player.src){
+        document.removeEventListener("click", enableAudio)
+        this.player.play().catch(error => null)
+        this.player.pause()
+      }
     }
     document.addEventListener("click", enableAudio)
     this.el.addEventListener("js:listen_now", () => this.play({sync: true}))
