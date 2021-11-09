@@ -2,7 +2,12 @@ defmodule LiveBeatsWeb.LiveHelpers do
   import Phoenix.LiveView
   import Phoenix.LiveView.Helpers
 
+  alias LiveBeatsWeb.Router.Helpers, as: Routes
   alias Phoenix.LiveView.JS
+
+  def home_path(socket) do
+    Routes.song_index_path(socket, :index, socket.assigns.current_user.username)
+  end
 
   def spinner(assigns) do
     ~H"""

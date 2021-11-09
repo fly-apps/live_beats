@@ -38,18 +38,6 @@
             <nav class="px-2">
               <div class="space-y-1">
 
-                <%= live_redirect to: Routes.home_path(@conn, :index),
-                  class: "bg-gray-100 text-gray-900 group flex items-center px-2 py-2 text-base leading-5 font-medium rounded-md" do %>
-                  <.icon name={:home} outlined class="text-gray-500 mr-3 flex-shrink-0 h-6 w-6"/>
-                  Home
-                <% end %>
-
-                <a href="#"
-                  class="text-gray-600 hover:text-gray-900 hover:bg-gray-50 group flex items-center px-2 py-2 text-base leading-5 font-medium rounded-md">
-                  <.icon name={:music_note} outlined class="text-gray-400 group-hover:text-gray-500 mr-3 flex-shrink-0 h-6 w-6"/>
-                  My tasks
-                </a>
-
                 <%= if @current_user do %>
                   <!-- User account dropdown -->
                   <div class="px-3 mt-6 relative inline-block text-left w-full">
@@ -207,16 +195,22 @@
             <nav class="px-3 mt-6">
               <div class="space-y-1">
 
-                <%= live_redirect to: Routes.home_path(@conn, :index),
-                  class: "bg-gray-200 text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md" do %>
-                  <.icon name={:home} outlined class="text-gray-500 mr-3 flex-shrink-0 h-6 w-6"/>
-                  Home
-                <% end %>
+                <%= if @current_user do %>
+                  <.link
+                    redirect_to={Routes.song_index_path(@conn, :index, @current_user.username)}
+                    class="text-gray-700 hover:text-gray-900 hover:bg-gray-50 group flex items-center px-2 py-2 text-sm font-medium rounded-md"
+                  >
+                    <.icon name={:music_note} outlined class="text-gray-400 group-hover:text-gray-500 mr-3 flex-shrink-0 h-6 w-6"/>
+                    My Songs
+                  </.link>
 
-                <%= live_redirect to: Routes.song_index_path(@conn, :index),
-                  class: "text-gray-700 hover:text-gray-900 hover:bg-gray-50 group flex items-center px-2 py-2 text-sm font-medium rounded-md" do %>
-                  <.icon name={:music_note} outlined class="text-gray-400 group-hover:text-gray-500 mr-3 flex-shrink-0 h-6 w-6"/>
-                  My Songs
+                  <.link
+                    redirect_to={Routes.settings_path(@conn, :edit)}
+                    class="text-gray-700 hover:text-gray-900 hover:bg-gray-50 group flex items-center px-2 py-2 text-sm font-medium rounded-md"
+                  >
+                    <.icon name={:adjustments} outlined class="text-gray-400 group-hover:text-gray-500 mr-3 flex-shrink-0 h-6 w-6"/>
+                    Settings
+                  </.link>
                 <% end %>
 
                 <%= unless @current_user do %>

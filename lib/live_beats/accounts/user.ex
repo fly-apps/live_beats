@@ -10,6 +10,7 @@ defmodule LiveBeats.Accounts.User do
     field :username, :string
     field :confirmed_at, :naive_datetime
     field :role, :string, default: "subscriber"
+    field :profile_tagline, :string
 
     has_many :identities, Identity
 
@@ -21,16 +22,21 @@ defmodule LiveBeats.Accounts.User do
   """
   def github_registration_changeset(info, primary_email, emails, token) do
     %{"login" => username} = info
-    identity_changeset = Identity.github_registration_changeset(info, primary_email, emails, token)
+
+    identity_changeset =
+      Identity.github_registration_changeset(info, primary_email, emails, token)
+
     if identity_changeset.valid? do
       params = %{
         "username" => username,
         "email" => primary_email,
-        "name" => get_change(identity_changeset, :provider_name),
+        "name" => get_change(identity_changeset, :provider_name)
       }
+
       %User{}
       |> cast(params, [:email, :name, :username])
       |> validate_required([:email, :name, :username])
+      |> validate_username()
       |> validate_email()
       |> put_assoc(:identities, [identity_changeset])
     else
@@ -41,6 +47,13 @@ defmodule LiveBeats.Accounts.User do
     end
   end
 
+  def settings_changeset(%User{} = user, params) do
+    user
+    |> cast(params, [:username])
+    |> validate_required([:username])
+    |> validate_username()
+  end
+
   defp validate_email(changeset) do
     changeset
     |> validate_required([:email])
@@ -48,5 +61,22 @@ defmodule LiveBeats.Accounts.User do
     |> validate_length(:email, max: 160)
     |> unsafe_validate_unique(:email, LiveBeats.Repo)
     |> unique_constraint(:email)
+  end
+
+  defp validate_username(changeset) do
+    changeset
+    |> validate_format(:username, ~r/^[a-z0-9_-]{2,32}$/)
+    |> unsafe_validate_unique(:username, LiveBeats.Repo)
+    |> unique_constraint(:username)
+    |> prepare_changes(fn changeset ->
+      case fetch_change(changeset, :profile_tagline) do
+        {:ok, _} ->
+          changeset
+
+        :error ->
+          username = get_field(changeset, :username)
+          put_change(changeset, :profile_tagline, "#{username}'s beats")
+      end
+    end)
   end
 end

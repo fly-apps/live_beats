@@ -74,6 +74,16 @@ defmodule LiveBeats.Accounts do
     Repo.one(query)
   end
 
+  def change_settings(%User{} = user, attrs) do
+    User.settings_changeset(user, attrs)
+  end
+
+  def update_settings(%User{} = user, attrs) do
+    user
+    |> change_settings(attrs)
+    |> Repo.update()
+  end
+
   defp update_github_token(%User{} = user, new_token) do
     identity =
       Repo.one!(from(i in Identity, where: i.user_id == ^user.id and i.provider == "github"))

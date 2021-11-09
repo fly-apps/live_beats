@@ -43,6 +43,7 @@ defmodule LiveBeatsWeb.UserAuth do
   """
   def log_in_user(conn, user) do
     user_return_to = get_session(conn, :user_return_to)
+    conn = assign(conn, :current_user, user)
 
     conn
     |> renew_session()
@@ -107,7 +108,7 @@ defmodule LiveBeatsWeb.UserAuth do
       conn
       |> put_flash(:error, "You must log in to access this page.")
       |> maybe_store_return_to()
-      |> redirect(to: Routes.home_path(conn, :index))
+      |> redirect(to: Routes.sign_in_path(conn, :index))
       |> halt()
     end
   end
@@ -134,5 +135,5 @@ defmodule LiveBeatsWeb.UserAuth do
 
   defp maybe_store_return_to(conn), do: conn
 
-  defp signed_in_path(_conn), do: "/"
+  def signed_in_path(conn), do: Routes.song_index_path(conn, :index, conn.assigns.current_user.username)
 end

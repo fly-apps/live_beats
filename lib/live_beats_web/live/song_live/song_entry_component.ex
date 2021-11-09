@@ -30,8 +30,8 @@ defmodule LiveBeatsWeb.SongLive.SongEntryComponent do
           class="block w-full border-0 p-0 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"/>
       </div>
       <div class="col-span-full sm:grid sm:grid-cols-2 sm:gap-2 sm:items-start">
-        <.error input_name={"songs[#{@ref}][title]"} field={:title} errors={@errors}/>
-        <.error input_name={"songs[#{@ref}][artist]"} field={:artist} errors={@errors}/>
+        <.error input_name={"songs[#{@ref}][title]"} field={:title} errors={@errors} class="-mt-1"/>
+        <.error input_name={"songs[#{@ref}][artist]"} field={:artist} errors={@errors} class="-mt-1"/>
       </div>
       <div style={"width: #{@progress}%;"} class="col-span-full bg-purple-500 dark:bg-purple-400 h-1.5 w-0 p-0">
       </div>

@@ -22,16 +22,16 @@ defmodule LiveBeatsWeb.ErrorHelpers do
 
     ~H"""
     <%= for error <- @error_values do %>
-      <div
+      <span
         phx-feedback-for={@input_name}
-        class={"invalid-feedback -mt-1 pl-2 text-sm text-white bg-red-600 rounded-md #{@class}"}
+        class={"invalid-feedback inline-block pl-2 pr-2 text-sm text-white bg-red-600 rounded-md #{@class}"}
       >
         <%= translate_error(error) %>
-      </div>
+      </span>
     <% end %>
 
     <%= if Enum.empty?(@error_values) do %>
-      <div class={"invalid-feedback h-0 #{@class}"}></div>
+      <span class={"invalid-feedback inline-block h-0 #{@class}"}></span>
     <% end %>
     """
   end
