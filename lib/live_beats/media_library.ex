@@ -94,6 +94,7 @@ defmodule LiveBeats.MediaLibrary do
 
   def play_prev_song(user_id) do
     song = get_current_active_song(user_id) || get_first_song(user_id)
+
     if prev_song = get_prev_song(song) do
       play_song(prev_song)
     end
@@ -101,6 +102,7 @@ defmodule LiveBeats.MediaLibrary do
 
   def play_next_song(user_id) do
     song = get_current_active_song(user_id) || get_first_song(user_id)
+
     if next_song = get_next_song(song) do
       play_song(next_song)
     end
@@ -169,7 +171,9 @@ defmodule LiveBeats.MediaLibrary do
   end
 
   def list_songs(limit \\ 100) do
-    Repo.all(from s in Song, limit: ^limit, order_by: [asc: s.inserted_at, asc: s.id])
+    from(s in Song, limit: ^limit)
+    |> order_by_playlist(:asc)
+    |> Repo.all()
   end
 
   def get_current_active_song(user_id) do
@@ -193,38 +197,47 @@ defmodule LiveBeats.MediaLibrary do
   def get_song!(id), do: Repo.get!(Song, id)
 
   def get_first_song(user_id) do
-    Repo.one(
-      from s in Song,
-        where: s.user_id == ^user_id,
-        order_by: [asc: s.inserted_at, asc: s.id],
-        limit: 1
+    from(s in Song,
+      where: s.user_id == ^user_id,
+      limit: 1
     )
+    |> order_by_playlist(:asc)
+    |> Repo.one()
   end
 
   def get_last_song(user_id) do
-    Repo.one(
-      from s in Song,
-        where: s.user_id == ^user_id,
-        order_by: [desc: s.inserted_at, desc: s.id],
-        limit: 1
+    from(s in Song,
+      where: s.user_id == ^user_id,
+      order_by: [desc: s.inserted_at, desc: s.id],
+      limit: 1
     )
+    |> order_by_playlist(:desc)
+    |> Repo.one()
   end
+
   def get_next_song(%Song{} = song) do
-    Repo.one(
-      from s in Song,
+    next =
+      from(s in Song,
         where: s.user_id == ^song.user_id and s.id > ^song.id,
-        order_by: [asc: s.inserted_at, asc: s.id],
         limit: 1
-    ) || get_first_song(song.user_id)
+      )
+      |> order_by_playlist(:asc)
+      |> Repo.one()
+
+    next || get_first_song(song.user_id)
   end
 
   def get_prev_song(%Song{} = song) do
-    Repo.one(
-      from s in Song,
+    prev =
+      from(s in Song,
         where: s.user_id == ^song.user_id and s.id < ^song.id,
         order_by: [desc: s.inserted_at, desc: s.id],
         limit: 1
-    ) || get_last_song(song.user_id)
+      )
+      |> order_by_playlist(:desc)
+      |> Repo.one()
+
+    prev || get_last_song(song.user_id)
   end
 
   def create_song(attrs \\ %{}) do
@@ -263,5 +276,9 @@ defmodule LiveBeats.MediaLibrary do
     %Song{}
     |> change_song(attrs)
     |> Ecto.Changeset.change(Map.take(prev_changeset.changes, [:duration]))
+  end
+
+  defp order_by_playlist(%Ecto.Query{} = query, direction) when direction in [:asc, :desc] do
+    from(s in query, order_by: [{^direction, s.inserted_at}, {^direction, s.id}])
   end
 end
