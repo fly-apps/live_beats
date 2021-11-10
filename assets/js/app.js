@@ -94,20 +94,7 @@ Hooks.AudioPlayer = {
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, {
 	hooks: Hooks,
-  params: {_csrf_token: csrfToken},
-  dom: {
-    onNodeAdded(node){
-      if(node.getAttribute && node.getAttribute("data-fade-in")){
-        from.classList.add("fade-in")
-      }
-    },
-    onBeforeElUpdated(from, to) {
-      if(from.classList.contains("fade-in")){
-        from.classList.remove("fade-in")
-        from.classList.add("fade-in")
-      }
-    }
-  }
+  params: {_csrf_token: csrfToken}
 })
 
 // Show progress bar on live navigation and form submits

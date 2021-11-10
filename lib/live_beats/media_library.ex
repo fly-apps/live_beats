@@ -208,7 +208,6 @@ defmodule LiveBeats.MediaLibrary do
   def get_last_song(user_id) do
     from(s in Song,
       where: s.user_id == ^user_id,
-      order_by: [desc: s.inserted_at, desc: s.id],
       limit: 1
     )
     |> order_by_playlist(:desc)
