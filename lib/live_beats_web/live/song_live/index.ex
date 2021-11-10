@@ -33,6 +33,7 @@ defmodule LiveBeatsWeb.SongLive.Index do
     >
       <:col let={%{song: song}} label="Title"><%= song.title %></:col>
       <:col let={%{song: song}} label="Artist"><%= song.artist %></:col>
+      <:col let={%{song: song}} label="Attribution" class="max-w-5xl break-words text-gray-600 font-light"><%= song.attribution %></:col>
       <:col let={%{song: song}} label="Duration"><%= MP3Stat.to_mmss(song.duration) %></:col>
       <:col let={%{song: song}} label="">
         <.link phx-click={show_modal("delete-modal-#{song.id}")} class="inline-flex items-center px-3 py-2 text-sm leading-4 font-medium">

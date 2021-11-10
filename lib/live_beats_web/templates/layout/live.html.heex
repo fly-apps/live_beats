@@ -1,4 +1,10 @@
 <main>
+  <.live_component module={LiveBeatsWeb.LayoutComponent} id="layout" />
+
+  <%= if @current_user do %>
+    <%= live_render(@socket, LiveBeatsWeb.PlayerLive, id: "player", session: %{}, sticky: true) %>
+  <% end %>
+
   <p class="alert alert-info fade-in-scale" role="alert"
     phx-click="lv:clear-flash"
     phx-value-key="info"><%= live_flash(@flash, :info) %></p>
@@ -6,8 +12,6 @@
   <p class="alert alert-danger fade-in-scale" role="alert"
     phx-click="lv:clear-flash"
     phx-value-key="error"><%= live_flash(@flash, :error) %></p>
-
-  <.live_component module={LiveBeatsWeb.LayoutComponent} id="layout" />
 
   <%= @inner_content %>
 </main>

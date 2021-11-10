@@ -15,6 +15,7 @@ defmodule LiveBeats.MediaLibrary.Song do
     field :duration, :integer
     field :status, Ecto.Enum, values: [stopped: 1, playing: 2, paused: 3]
     field :title, :string
+    field :attribution, :string
     field :mp3_url, :string
     field :mp3_filepath, :string
     field :mp3_filename, :string
@@ -31,13 +32,22 @@ defmodule LiveBeats.MediaLibrary.Song do
   @doc false
   def changeset(song, attrs) do
     song
-    |> cast(attrs, [:album_artist, :artist, :title, :date_recorded, :date_released])
+    |> cast(attrs, [:album_artist, :artist, :title, :attribution, :date_recorded, :date_released])
     |> validate_required([:artist, :title])
-    |> validate_number(:duration, greater_than: 0, less_than: 1200)
   end
 
   def put_user(%Ecto.Changeset{} = changeset, %Accounts.User{} = user) do
     put_assoc(changeset, :user, user)
+  end
+
+  def put_duration(%Ecto.Changeset{} = changeset, duration) when is_integer(duration) do
+    changeset
+    |> Ecto.Changeset.change(%{duration: duration})
+    |> Ecto.Changeset.validate_number(:duration,
+      greater_than: 0,
+      less_than: 1200,
+      message: "must be less than 20 minutes"
+    )
   end
 
   def put_mp3_path(%Ecto.Changeset{} = changeset) do

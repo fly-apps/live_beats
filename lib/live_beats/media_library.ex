@@ -49,7 +49,7 @@ defmodule LiveBeats.MediaLibrary do
 
     stopped_query =
       from s in Song,
-        where: s.user_id == ^song.user_id and s.status == :playing,
+        where: s.user_id == ^song.user_id and s.status in [:playing, :paused],
         update: [set: [status: :stopped]]
 
     {:ok, %{now_playing: new_song}} =
@@ -89,7 +89,12 @@ defmodule LiveBeats.MediaLibrary do
   end
 
   def put_stats(%Ecto.Changeset{} = changeset, %MP3Stat{} = stat) do
-    Ecto.Changeset.put_change(changeset, :duration, stat.duration)
+    chset = Song.put_duration(changeset, stat.duration)
+    if error = chset.errors[:duration] do
+      {:error, %{duration: error}}
+    else
+      {:ok, chset}
+    end
   end
 
   def import_songs(%Accounts.User{} = user, changesets, consume_file)

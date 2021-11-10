@@ -46,16 +46,24 @@ defmodule LiveBeatsWeb.SongLive.UploadFormComponent do
     %{current_user: current_user} = socket.assigns
     changesets = socket.assigns.changesets
 
-    case MediaLibrary.import_songs(current_user, changesets, &consume_entry(socket, &1, &2)) do
-      {:ok, songs} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "#{map_size(songs)} song(s) uploaded")
-         |> push_redirect(to: Routes.song_index_path(socket, :index))}
+    if pending_stats?(socket) do
+      {:noreply, socket}
+    else
+      case MediaLibrary.import_songs(current_user, changesets, &consume_entry(socket, &1, &2)) do
+        {:ok, songs} ->
+          {:noreply,
+          socket
+          |> put_flash(:info, "#{map_size(songs)} song(s) uploaded")
+          |> push_redirect(to: home_path(socket))}
 
-      {:error, _reason} ->
-        {:noreply, socket}
+        {:error, _reason} ->
+          {:noreply, socket}
+      end
     end
+  end
+
+  defp pending_stats?(socket) do
+    Enum.find(socket.assigns.changesets, fn {_ref, chset} -> !chset.changes[:duration] end)
   end
 
   defp consume_entry(socket, ref, store_func) when is_function(store_func) do
@@ -121,6 +129,7 @@ defmodule LiveBeatsWeb.SongLive.UploadFormComponent do
 
     consume_uploaded_entry(socket, entry, fn %{path: path} ->
       Task.Supervisor.start_child(LiveBeats.TaskSupervisor, fn ->
+        Process.sleep(5000)
         send_update(lv, __MODULE__,
           id: socket.assigns.id,
           action: {:duration, entry.ref, LiveBeats.MP3Stat.parse(path)}
@@ -136,9 +145,20 @@ defmodule LiveBeatsWeb.SongLive.UploadFormComponent do
   defp file_error(%{kind: :not_accepted} = assigns), do: ~H|not a valid MP3 file|
   defp file_error(%{kind: :too_many_files} = assigns), do: ~H|too many files|
 
+  defp file_error(%{kind: {msg, opts}} = assigns) when is_binary(msg) and is_list(opts) do
+    ~H|<%= LiveBeatsWeb.ErrorHelpers.translate_error(@kind) %>|
+  end
+
   defp put_stats(socket, entry_ref, %MP3Stat{} = stat) do
     if changeset = get_changeset(socket, entry_ref) do
-      update_changeset(socket, MediaLibrary.put_stats(changeset, stat), entry_ref)
+      case MediaLibrary.put_stats(changeset, stat) do
+        {:ok, new_changeset} ->
+          update_changeset(socket, new_changeset, entry_ref)
+
+        {:error, %{duration: error}} ->
+          IO.inspect({:duration, error})
+          cancel_changeset_upload(socket, entry_ref, error)
+      end
     else
       socket
     end

@@ -16,7 +16,7 @@ defmodule LiveBeatsWeb.PlayerLive do
       <div class="bg-white dark:bg-gray-800 p-4">
         <div class="flex items-center space-x-3.5 sm:space-x-5 lg:space-x-3.5 xl:space-x-5">
           <div class="pr-5">
-            <div class="min-w-0 flex-col space-y-0.5">
+            <div class="min-w-0 max-w-xs flex-col space-y-0.5">
                 <h2 class="text-black dark:text-white text-sm sm:text-sm lg:text-sm xl:text-sm font-semibold truncate">
                   <%= if @song, do: @song.title, else: raw("&nbsp;") %>
                 </h2>

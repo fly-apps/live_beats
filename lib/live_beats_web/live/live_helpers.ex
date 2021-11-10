@@ -315,7 +315,7 @@ defmodule LiveBeatsWeb.LiveHelpers do
             <%= for {row, i} <- Enum.with_index(@rows) do %>
               <tr id={@row_id && @row_id.(row)} class="hover:bg-gray-50">
                 <%= for col <- @col do %>
-                  <td class={"px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900 #{if i == 0, do: "max-w-0 w-full"}"}>
+                  <td class={"px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900 #{if i == 0, do: "max-w-0 w-full"} #{col[:class]}"}>
                     <div class="flex items-center space-x-3 lg:pl-2">
                       <%= render_slot(col, row) %>
                     </div>

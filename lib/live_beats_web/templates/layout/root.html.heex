@@ -301,9 +301,6 @@
         </div>
 
         <main class="flex-1 relative z-0 overflow-y-auto focus:outline-none">
-          <%= if @current_user do %>
-            <%= live_render(@conn, LiveBeatsWeb.PlayerLive, session: %{}) %>
-          <% end %>
           <%= @inner_content %>
         </main>
       </div>
