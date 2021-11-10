@@ -12,7 +12,14 @@ defmodule LiveBeatsWeb.LiveHelpers do
   def flash(%{kind: :error} = assigns) do
     ~H"""
     <%= if live_flash(@flash, @kind) do %>
-      <div class="rounded-md bg-green-50 p-4 top-0 right-0 fade-in-scale w-96" phx-click="lv:clear-flash" phx-value-key="error">
+      <div
+        id="flash"
+        class="rounded-md bg-green-50 p-4 top-0 right-0 w-96 fade-in-scale"
+        phx-click="lv:clear-flash"
+        phx-value-key="error"
+        phx-remove={JS.remove_class("fade-in-scale", to: "#flash") |> hide("#flash")}
+        phx-hook="Flash"
+      >
         <div class="flex">
           <div class="flex-shrink-0">
             <.icon name={:check_circle} solid />
@@ -25,7 +32,6 @@ defmodule LiveBeatsWeb.LiveHelpers do
           <div class="ml-auto pl-3">
             <div class="-mx-1.5 -my-1.5">
               <button type="button" class="inline-flex bg-red-50 rounded-md p-1.5 text-red-500 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-red-50 focus:ring-red-600">
-                <span class="sr-only">Dismiss</span>
                 <.icon name={:x} solid />
               </button>
             </div>
@@ -39,7 +45,14 @@ defmodule LiveBeatsWeb.LiveHelpers do
   def flash(%{kind: :info} = assigns) do
     ~H"""
     <%= if live_flash(@flash, @kind) do %>
-      <div class="rounded-md bg-green-50 p-4 fade-in-scale fixed top-1 right-1 w-96" phx-click="lv:clear-flash" phx-value-key="info">
+      <div
+        id="flash"
+        class="rounded-md bg-green-50 p-4 fixed top-1 right-1 w-96 fade-in-scale"
+        phx-click="lv:clear-flash"
+        phx-value-key="info"
+        phx-remove={JS.remove_class("fade-in-scale", to: "#flash") |> hide("#flash")}
+        phx-hook="Flash"
+      >
         <div class="flex">
           <div class="flex-shrink-0">
             <.icon name={:check_circle} solid />
@@ -52,7 +65,6 @@ defmodule LiveBeatsWeb.LiveHelpers do
           <div class="ml-auto pl-3">
             <div class="-mx-1.5 -my-1.5">
               <button type="button" class="inline-flex bg-green-50 rounded-md p-1.5 text-green-500 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-green-50 focus:ring-green-600">
-                <span class="sr-only">Dismiss</span>
                 <.icon name={:x} solid />
               </button>
             </div>

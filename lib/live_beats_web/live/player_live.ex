@@ -1,5 +1,5 @@
 defmodule LiveBeatsWeb.PlayerLive do
-  use LiveBeatsWeb, :live_view
+  use LiveBeatsWeb, {:live_view, container: {:div, []}}
 
   alias LiveBeats.MediaLibrary
   alias LiveBeats.MediaLibrary.Song

@@ -12,15 +12,14 @@ let execJS = (selector, attr) => {
 
 let Hooks = {}
 
-Hooks.Progress = {
-	setWidth(at){
-		this.el.style.width = `${Math.floor((at / (this.max - this.min)) * 100)}%`
-	},
+Hooks.Flash = {
 	mounted(){
-		this.min = parseInt(this.el.dataset.min)
-		this.max = parseInt(this.el.dataset.max)
-		this.val = parseInt(this.el.dataset.val)
-		setInterval(() => this.setWidth(this.val++), 1000)
+    let hide = () => this.el.click()
+    let timer = setTimeout(() => hide(), 8000)
+    this.el.addEventListener("mouseover", () => {
+      clearTimeout(timer)
+      timer = setTimeout(() => hide(), 8000)
+    })
 	}
 }
 
