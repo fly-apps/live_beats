@@ -41,6 +41,10 @@ defmodule LiveBeatsWeb.SongLive.UploadFormComponent do
     {:noreply, apply_params(socket, params, :validate)}
   end
 
+  def handle_event("validate", %{"_target" => ["mp3"]}, socket) do
+    {:noreply, drop_invalid_uploads(socket)}
+  end
+
   def handle_event("save", %{"songs" => params}, socket) do
     socket = apply_params(socket, params, :insert)
     %{current_user: current_user} = socket.assigns
@@ -60,6 +64,10 @@ defmodule LiveBeatsWeb.SongLive.UploadFormComponent do
           {:noreply, socket}
       end
     end
+  end
+
+  def handle_event("save", %{} = _params, socket) do
+    {:noreply, socket}
   end
 
   defp pending_stats?(socket) do

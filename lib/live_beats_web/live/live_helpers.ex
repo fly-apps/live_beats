@@ -9,6 +9,60 @@ defmodule LiveBeatsWeb.LiveHelpers do
     Routes.song_index_path(socket, :index, socket.assigns.current_user.username)
   end
 
+  def flash(%{kind: :error} = assigns) do
+    ~H"""
+    <%= if live_flash(@flash, @kind) do %>
+      <div class="rounded-md bg-green-50 p-4 top-0 right-0 fade-in-scale w-96" phx-click="lv:clear-flash" phx-value-key="error">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <.icon name={:check_circle} solid />
+          </div>
+          <div class="ml-3">
+            <p class="text-sm font-medium text-red-800">
+              <%= live_flash(@flash, @kind) %>
+            </p>
+          </div>
+          <div class="ml-auto pl-3">
+            <div class="-mx-1.5 -my-1.5">
+              <button type="button" class="inline-flex bg-red-50 rounded-md p-1.5 text-red-500 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-red-50 focus:ring-red-600">
+                <span class="sr-only">Dismiss</span>
+                <.icon name={:x} solid />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+    """
+  end
+
+  def flash(%{kind: :info} = assigns) do
+    ~H"""
+    <%= if live_flash(@flash, @kind) do %>
+      <div class="rounded-md bg-green-50 p-4 fade-in-scale fixed top-1 right-1 w-96" phx-click="lv:clear-flash" phx-value-key="info">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <.icon name={:check_circle} solid />
+          </div>
+          <div class="ml-3">
+            <p class="text-sm font-medium text-green-800">
+              <%= live_flash(@flash, @kind) %>
+            </p>
+          </div>
+          <div class="ml-auto pl-3">
+            <div class="-mx-1.5 -my-1.5">
+              <button type="button" class="inline-flex bg-green-50 rounded-md p-1.5 text-green-500 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-green-50 focus:ring-green-600">
+                <span class="sr-only">Dismiss</span>
+                <.icon name={:x} solid />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+    """
+  end
+
   def spinner(assigns) do
     ~H"""
     <svg class="inline-block animate-spin h-2.5 w-2.5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
