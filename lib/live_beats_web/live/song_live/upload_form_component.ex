@@ -195,7 +195,7 @@ defmodule LiveBeatsWeb.SongLive.UploadFormComponent do
     socket
     |> cancel_upload(:mp3, entry.ref)
     |> drop_changeset(entry.ref)
-    |> update(:error_messages, &(&1 ++ [{entry.client_name, reason}]))
+    |> update(:error_messages, &(Enum.take(&1 ++ [{entry.client_name, reason}], -10)))
   end
 
   defp get_entry!(socket, entry_ref) do
