@@ -137,7 +137,6 @@ defmodule LiveBeatsWeb.SongLive.UploadFormComponent do
 
     consume_uploaded_entry(socket, entry, fn %{path: path} ->
       Task.Supervisor.start_child(LiveBeats.TaskSupervisor, fn ->
-        Process.sleep(5000)
         send_update(lv, __MODULE__,
           id: socket.assigns.id,
           action: {:duration, entry.ref, LiveBeats.MP3Stat.parse(path)}
