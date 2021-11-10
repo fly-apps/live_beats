@@ -78,6 +78,11 @@ Hooks.AudioPlayer = {
 
   updateProgress(){
     if(isNaN(this.player.duration)){ return false }
+    if(this.player.currentTime >= this.player.duration){
+      this.pushEvent("next-song-auto")
+      clearInterval(this.progressTimer)
+      return
+    }
 		this.progress.style.width = `${(this.player.currentTime / (this.player.duration) * 100)}%`
     this.duration.innerText = this.formatTime(this.player.duration)
     this.currentTime.innerText = this.formatTime(this.player.currentTime)

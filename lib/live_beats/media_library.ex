@@ -10,6 +10,7 @@ defmodule LiveBeats.MediaLibrary do
   alias Ecto.{Multi, Changeset}
 
   @pubsub LiveBeats.PubSub
+  @auto_next_threshold_seconds 5
 
   defdelegate stopped?(song), to: Song
   defdelegate playing?(song), to: Song
@@ -81,6 +82,16 @@ defmodule LiveBeats.MediaLibrary do
     Phoenix.PubSub.broadcast!(@pubsub, topic(song.user_id), {:pause, song})
   end
 
+  def play_next_song_auto(user_id) do
+    song = get_current_active_song(user_id) || get_first_song(user_id)
+
+    if song && elapsed_playback(song) >= song.duration - @auto_next_threshold_seconds do
+      song
+      |> get_next_song()
+      |> play_song()
+    end
+  end
+
   defp topic(user_id), do: "room:#{user_id}"
 
   def store_mp3(%Song{} = song, tmp_path) do
@@ -90,6 +101,7 @@ defmodule LiveBeats.MediaLibrary do
 
   def put_stats(%Ecto.Changeset{} = changeset, %MP3Stat{} = stat) do
     chset = Song.put_duration(changeset, stat.duration)
+
     if error = chset.errors[:duration] do
       {:error, %{duration: error}}
     else
@@ -165,6 +177,24 @@ defmodule LiveBeats.MediaLibrary do
   end
 
   def get_song!(id), do: Repo.get!(Song, id)
+
+  def get_first_song(user_id) do
+    Repo.one(
+      from s in Song,
+        where: s.user_id == ^user_id,
+        order_by: [asc: s.inserted_at, asc: s.id],
+        limit: 1
+    )
+  end
+
+  def get_next_song(%Song{} = song) do
+    Repo.one(
+      from s in Song,
+        where: s.user_id == ^song.user_id and s.id > ^song.id,
+        order_by: [asc: s.inserted_at, asc: s.id],
+        limit: 1
+    ) || get_first_song(song.user_id)
+  end
 
   def create_song(attrs \\ %{}) do
     %Song{}

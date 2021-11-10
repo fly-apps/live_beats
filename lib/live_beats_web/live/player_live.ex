@@ -135,6 +135,13 @@ defmodule LiveBeatsWeb.PlayerLive do
     end
   end
 
+  def handle_event("next-song-auto", _, socket) do
+    if socket.assigns.song do
+      MediaLibrary.play_next_song_auto(socket.assigns.song.user_id)
+    end
+    {:noreply, socket}
+  end
+
   def handle_info(:play_current, socket) do
     # we raced a pubsub, noop
     if socket.assigns.song do
