@@ -159,7 +159,6 @@ defmodule LiveBeatsWeb.SongLive.UploadFormComponent do
           update_changeset(socket, new_changeset, entry_ref)
 
         {:error, %{duration: error}} ->
-          IO.inspect({:duration, error})
           cancel_changeset_upload(socket, entry_ref, error)
       end
     else
