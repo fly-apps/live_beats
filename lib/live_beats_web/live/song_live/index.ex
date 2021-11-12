@@ -32,7 +32,7 @@ defmodule LiveBeatsWeb.SongLive.Index do
       </:actions>
     </.title_bar>
 
-    <%= for song <- @songs, id = "delete-modal-#{song.id}" do %>
+    <%= for song <- if(@owns_profile?, do: @songs, else: []), id = "delete-modal-#{song.id}" do %>
       <.modal
         id={id}
         on_confirm={JS.push("delete", value: %{id: song.id}) |> hide_modal(id) |> hide("#song-#{song.id}")}
@@ -52,7 +52,7 @@ defmodule LiveBeatsWeb.SongLive.Index do
       <:col let={%{song: song}} label="Artist"><%= song.artist %></:col>
       <:col let={%{song: song}} label="Attribution" class="max-w-5xl break-words text-gray-600 font-light"><%= song.attribution %></:col>
       <:col let={%{song: song}} label="Duration"><%= MP3Stat.to_mmss(song.duration) %></:col>
-      <:col let={%{song: song}} label="">
+      <:col let={%{song: song}} label="" if={@owns_profile?}>
         <.link phx-click={show_modal("delete-modal-#{song.id}")} class="inline-flex items-center px-3 py-2 text-sm leading-4 font-medium">
           <.icon name={:trash} class="-ml-0.5 mr-2 h-4 w-4"/>
           Delete
@@ -70,7 +70,7 @@ defmodule LiveBeatsWeb.SongLive.Index do
       |> MediaLibrary.get_profile!()
 
     if connected?(socket) do
-      MediaLibrary.subscribe_to_profile(profile, __MODULE__)
+      MediaLibrary.subscribe_to_profile(profile)
       Accounts.subscribe(current_user.id)
     end
 

@@ -361,7 +361,10 @@ defmodule LiveBeatsWeb.LiveHelpers do
   end
 
   def table(assigns) do
-    assigns = assign_new(assigns, :row_id, fn -> false end)
+    assigns =
+      assigns
+      |> assign_new(:row_id, fn -> false end)
+      |> assign(:col, for(col <- assigns.col, col[:if] != false, do: col))
 
     ~H"""
     <div class="hidden mt-8 sm:block">
@@ -401,6 +404,7 @@ defmodule LiveBeatsWeb.LiveHelpers do
       assigns
       |> assign_new(:row_id, fn -> false end)
       |> assign_new(:active_id, fn -> nil end)
+      |> assign(:col, for(col <- assigns.col, col[:if] != false, do: col))
 
     ~H"""
     <div class="hidden mt-8 sm:block">

@@ -138,9 +138,8 @@ defmodule LiveBeatsWeb.PlayerLive do
   defp switch_profile(socket, profile_user_id) do
     profile = get_profile(profile_user_id)
 
-    if connected?(socket) and profile do
+    if profile && connected?(socket) do
       current_user = Accounts.update_active_profile(socket.assigns.current_user, profile.user_id)
-
       send(self(), :play_current)
 
       socket
@@ -151,24 +150,19 @@ defmodule LiveBeatsWeb.PlayerLive do
     end
   end
 
-  defp assign_profile(socket, profile) do
-    if prev_profile = connected?(socket) && socket.assigns.profile do
-      MediaLibrary.unsubscribe_to_profile(prev_profile)
+  defp assign_profile(socket, profile)
+       when is_struct(profile, MediaLibrary.Profile) or is_nil(profile) do
+    %{profile: prev_profile, current_user: current_user} = socket.assigns
+
+    if connected?(socket) do
+      prev_profile && MediaLibrary.unsubscribe_to_profile(prev_profile)
+      profile && MediaLibrary.subscribe_to_profile(profile)
     end
-    if profile, do: MediaLibrary.subscribe_to_profile(profile)
 
     assign(socket,
       profile: profile,
-      own_profile?: profile && MediaLibrary.owns_profile?(socket.assigns.current_user, profile)
+      own_profile?: !!profile && MediaLibrary.owns_profile?(current_user, profile)
     )
-  end
-
-  defp assign_inactive_profile(socket, %Song{} = song) do
-    if socket.assigns.profile && MediaLibrary.owns_song?(socket.assigns.profile, song) do
-      socket
-    else
-      switch_profile(socket, song.user_id)
-    end
   end
 
   def handle_event("play_pause", _, socket) do
@@ -245,7 +239,6 @@ defmodule LiveBeatsWeb.PlayerLive do
     socket
     |> push_play(song, elapsed)
     |> assign(song: song, playing: true)
-    |> assign_inactive_profile(song)
   end
 
   defp stop_song(socket) do

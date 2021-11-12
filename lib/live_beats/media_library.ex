@@ -16,7 +16,7 @@ defmodule LiveBeats.MediaLibrary do
   defdelegate playing?(song), to: Song
   defdelegate paused?(song), to: Song
 
-  def subscribe_to_profile(%Profile{} = profile, from \\ nil) do
+  def subscribe_to_profile(%Profile{} = profile) do
     Phoenix.PubSub.subscribe(@pubsub, topic(profile.user_id))
   end
 
