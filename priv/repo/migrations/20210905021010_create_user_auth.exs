@@ -11,6 +11,7 @@ defmodule LiveBeats.Repo.Migrations.CreateUserAuth do
       add :role, :string, null: false
       add :confirmed_at, :naive_datetime
       add :profile_tagline, :string
+      add :active_profile_user_id, references(:users, on_delete: :nilify_all)
 
       timestamps()
     end

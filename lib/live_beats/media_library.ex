@@ -6,7 +6,7 @@ defmodule LiveBeats.MediaLibrary do
   require Logger
   import Ecto.Query, warn: false
   alias LiveBeats.{Repo, MP3Stat, Accounts}
-  alias LiveBeats.MediaLibrary.{Song, Genre}
+  alias LiveBeats.MediaLibrary.{Profile, Song, Genre}
   alias Ecto.{Multi, Changeset}
 
   @pubsub LiveBeats.PubSub
@@ -16,15 +16,25 @@ defmodule LiveBeats.MediaLibrary do
   defdelegate playing?(song), to: Song
   defdelegate paused?(song), to: Song
 
-  def subscribe(%Accounts.User{} = user) do
-    Phoenix.PubSub.subscribe(@pubsub, topic(user.id))
+  def subscribe_to_profile(%Profile{} = profile, from \\ nil) do
+    Phoenix.PubSub.subscribe(@pubsub, topic(profile.user_id))
+  end
+
+  def unsubscribe_to_profile(%Profile{} = profile) do
+    Phoenix.PubSub.unsubscribe(@pubsub, topic(profile.user_id))
   end
 
   def local_filepath(filename_uuid) when is_binary(filename_uuid) do
     Path.join("priv/uploads/songs", filename_uuid)
   end
 
-  def play_song(%Song{id: id}), do: play_song(id)
+  def can_control_playback?(%Accounts.User{} = user, %Song{} = song) do
+    user.id == song.user_id
+  end
+
+  def play_song(%Song{id: id}) do
+    play_song(id)
+  end
 
   def play_song(id) do
     song = get_song!(id)
@@ -60,7 +70,14 @@ defmodule LiveBeats.MediaLibrary do
       |> Repo.transaction()
 
     elapsed = elapsed_playback(new_song)
-    Phoenix.PubSub.broadcast!(@pubsub, topic(song.user_id), {:play, song, %{elapsed: elapsed}})
+
+    Phoenix.PubSub.broadcast!(
+      @pubsub,
+      topic(song.user_id),
+      {__MODULE__, :play, song, %{elapsed: elapsed}}
+    )
+
+    new_song
   end
 
   def pause_song(%Song{} = song) do
@@ -79,36 +96,36 @@ defmodule LiveBeats.MediaLibrary do
       |> Multi.update_all(:now_paused, fn _ -> pause_query end, [])
       |> Repo.transaction()
 
-    Phoenix.PubSub.broadcast!(@pubsub, topic(song.user_id), {:pause, song})
+    Phoenix.PubSub.broadcast!(@pubsub, topic(song.user_id), {__MODULE__, :pause, song})
   end
 
-  def play_next_song_auto(user_id) do
-    song = get_current_active_song(user_id) || get_first_song(user_id)
+  def play_next_song_auto(%Profile{} = profile) do
+    song = get_current_active_song(profile) || get_first_song(profile)
 
     if song && elapsed_playback(song) >= song.duration - @auto_next_threshold_seconds do
       song
-      |> get_next_song()
+      |> get_next_song(profile)
       |> play_song()
     end
   end
 
-  def play_prev_song(user_id) do
-    song = get_current_active_song(user_id) || get_first_song(user_id)
+  def play_prev_song(%Profile{} = profile) do
+    song = get_current_active_song(profile) || get_first_song(profile)
 
-    if prev_song = get_prev_song(song) do
+    if prev_song = get_prev_song(song, profile) do
       play_song(prev_song)
     end
   end
 
-  def play_next_song(user_id) do
-    song = get_current_active_song(user_id) || get_first_song(user_id)
+  def play_next_song(%Profile{} = profile) do
+    song = get_current_active_song(profile) || get_first_song(profile)
 
-    if next_song = get_next_song(song) do
+    if next_song = get_next_song(song, profile) do
       play_song(next_song)
     end
   end
 
-  defp topic(user_id), do: "room:#{user_id}"
+  defp topic(user_id) when is_integer(user_id), do: "profile:#{user_id}"
 
   def store_mp3(%Song{} = song, tmp_path) do
     File.mkdir_p!(Path.dirname(song.mp3_filepath))
@@ -170,14 +187,26 @@ defmodule LiveBeats.MediaLibrary do
     Repo.all(Genre, order_by: [asc: :title])
   end
 
-  def list_songs(limit \\ 100) do
-    from(s in Song, limit: ^limit)
+  def list_profile_songs(%Profile{} = profile, limit \\ 100) do
+    from(s in Song, where: s.user_id == ^profile.user_id, limit: ^limit)
     |> order_by_playlist(:asc)
     |> Repo.all()
   end
 
-  def get_current_active_song(user_id) do
+  def get_current_active_song(%Profile{user_id: user_id}) do
     Repo.one(from s in Song, where: s.user_id == ^user_id and s.status in [:playing, :paused])
+  end
+
+  def get_profile!(%Accounts.User{} = user) do
+    %Profile{user_id: user.id, username: user.username, tagline: user.profile_tagline}
+  end
+
+  def owns_profile?(%Accounts.User{} = user, %Profile{} = profile) do
+    user.id == profile.user_id
+  end
+
+  def owns_song?(%Profile{} = profile, %Song{} = song) do
+    profile.user_id == song.user_id
   end
 
   def elapsed_playback(%Song{} = song) do
@@ -196,7 +225,7 @@ defmodule LiveBeats.MediaLibrary do
 
   def get_song!(id), do: Repo.get!(Song, id)
 
-  def get_first_song(user_id) do
+  def get_first_song(%Profile{user_id: user_id}) do
     from(s in Song,
       where: s.user_id == ^user_id,
       limit: 1
@@ -205,7 +234,7 @@ defmodule LiveBeats.MediaLibrary do
     |> Repo.one()
   end
 
-  def get_last_song(user_id) do
+  def get_last_song(%Profile{user_id: user_id}) do
     from(s in Song,
       where: s.user_id == ^user_id,
       limit: 1
@@ -214,7 +243,7 @@ defmodule LiveBeats.MediaLibrary do
     |> Repo.one()
   end
 
-  def get_next_song(%Song{} = song) do
+  def get_next_song(%Song{} = song, %Profile{} = profile) do
     next =
       from(s in Song,
         where: s.user_id == ^song.user_id and s.id > ^song.id,
@@ -223,10 +252,10 @@ defmodule LiveBeats.MediaLibrary do
       |> order_by_playlist(:asc)
       |> Repo.one()
 
-    next || get_first_song(song.user_id)
+    next || get_first_song(profile)
   end
 
-  def get_prev_song(%Song{} = song) do
+  def get_prev_song(%Song{} = song, %Profile{} = profile) do
     prev =
       from(s in Song,
         where: s.user_id == ^song.user_id and s.id < ^song.id,
@@ -236,7 +265,7 @@ defmodule LiveBeats.MediaLibrary do
       |> order_by_playlist(:desc)
       |> Repo.one()
 
-    prev || get_last_song(song.user_id)
+    prev || get_last_song(profile)
   end
 
   def create_song(attrs \\ %{}) do

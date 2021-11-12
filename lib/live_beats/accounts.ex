@@ -6,6 +6,17 @@ defmodule LiveBeats.Accounts do
   alias LiveBeats.Accounts.{User, Identity}
 
   @admin_emails ["chris@chrismccord.com"]
+  @pubsub LiveBeats.PubSub
+
+  def subscribe(user_id) do
+    Phoenix.PubSub.subscribe(@pubsub, topic(user_id))
+  end
+
+  def unsubscribe(user_id) do
+    Phoenix.PubSub.unsubscribe(@pubsub, topic(user_id))
+  end
+
+  defp topic(user_id), do: "user:#{user_id}"
 
   def list_users(opts) do
     Repo.all(from u in User, limit: ^Keyword.fetch!(opts, :limit))
@@ -46,6 +57,27 @@ defmodule LiveBeats.Accounts do
 
   """
   def get_user!(id), do: Repo.get!(User, id)
+
+  def get_user_by!(fields), do: Repo.get_by!(User, fields)
+
+  def update_active_profile(%User{active_profile_user_id: same_id} = current_user, same_id) do
+    current_user
+  end
+
+  def update_active_profile(%User{} = current_user, profile_user_id) do
+    {1, _} =
+      Repo.update_all(from(u in User, where: u.id == ^current_user.id),
+        set: [active_profile_user_id: profile_user_id]
+      )
+
+    Phoenix.PubSub.broadcast!(
+      @pubsub,
+      topic(current_user.id),
+      {__MODULE__, :active_profile_changed, current_user, %{user_id: profile_user_id}}
+    )
+
+    %User{current_user | active_profile_user_id: profile_user_id}
+  end
 
   ## User registration
 

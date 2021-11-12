@@ -1,7 +1,7 @@
 defmodule LiveBeatsWeb.HomeLive do
   use LiveBeatsWeb, :live_view
 
-  alias LiveBeats.MediaLibrary
+  # alias LiveBeats.MediaLibrary
 
   def render(assigns) do
     ~H"""
@@ -346,6 +346,6 @@ defmodule LiveBeatsWeb.HomeLive do
   end
 
   defp fetch_songs(_socket) do
-    MediaLibrary.list_songs()
+    []
   end
 end

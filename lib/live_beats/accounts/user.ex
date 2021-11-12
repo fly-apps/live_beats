@@ -11,6 +11,7 @@ defmodule LiveBeats.Accounts.User do
     field :confirmed_at, :naive_datetime
     field :role, :string, default: "subscriber"
     field :profile_tagline, :string
+    field :active_profile_user_id, :id
 
     has_many :identities, Identity
 

@@ -1,7 +1,7 @@
 defmodule LiveBeatsWeb.PlayerLive do
   use LiveBeatsWeb, {:live_view, container: {:div, []}}
 
-  alias LiveBeats.MediaLibrary
+  alias LiveBeats.{Accounts, MediaLibrary}
   alias LiveBeats.MediaLibrary.Song
 
   on_mount {LiveBeatsWeb.UserAuth, :current_user}
@@ -36,14 +36,20 @@ defmodule LiveBeatsWeb.PlayerLive do
         </div>
       </div>
       <div class="bg-gray-50 text-black dark:bg-gray-900 dark:text-white px-1 sm:px-3 lg:px-1 xl:px-3 grid grid-cols-5 items-center">
-        <button type="button" class="mx-auto scale-75">
-          <svg width="24" height="24" fill="none">
-            <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-          </svg>
-        </button>
+        <%= if @profile do %>
+          <.link
+            redirect_to={Routes.song_index_path(@socket, :index, @profile.username)}
+            class="mx-auto flex outline border-2 border-white border-opacity-20 rounded-md p-1 pr-2"
+          >
+            <span class="mt-1"><.icon name={:user_circle}/></span>
+            <p class="ml-2"><%= @profile.username %></p>
+          </.link>
+        <% else %>
+          <div class="mx-auto flex"></div>
+        <% end %>
 
         <!-- prev -->
-        <button type="button" class="sm:block xl:block mx-auto scale-75" phx-click="prev-song">
+        <button type="button" class="sm:block xl:block mx-auto scale-75" phx-click={js_prev(@own_profile?)}>
           <svg width="17" height="18">
             <path d="M0 0h2v18H0V0zM4 9l13-9v18L4 9z" fill="currentColor" />
           </svg>
@@ -51,7 +57,7 @@ defmodule LiveBeatsWeb.PlayerLive do
         <!-- /prev -->
 
         <!-- pause -->
-        <button type="button" class="mx-auto scale-75" phx-click={JS.push("play_pause") |> js_play_pause()}>
+        <button type="button" class="mx-auto scale-75" phx-click={js_play_pause(@own_profile?)}>
           <%= if @playing do %>
             <svg id="player-pause" width="50" height="50" fill="none">
               <circle class="text-gray-300 dark:text-gray-500" cx="25" cy="25" r="24" stroke="currentColor" stroke-width="1.5" />
@@ -67,7 +73,7 @@ defmodule LiveBeatsWeb.PlayerLive do
         <!-- /pause -->
 
         <!-- next -->
-        <button type="button" class="mx-auto scale-75" phx-click="next-song">
+        <button type="button" class="mx-auto scale-75" phx-click={js_next(@own_profile?)}>
           <svg width="17" height="18" viewBox="0 0 17 18" fill="none">
             <path d="M17 0H15V18H17V0Z" fill="currentColor" />
             <path d="M13 9L0 0V18L13 9Z" fill="currentColor" />
@@ -85,84 +91,153 @@ defmodule LiveBeatsWeb.PlayerLive do
         Your browser needs a click event to enable playback
         <:confirm>Listen Now</:confirm>
       </.modal>
+
+      <%= if @profile do %>
+        <.modal id="not-authorized" on_confirm={hide_modal("not-authorized")}>
+          <:title>You can't do that</:title>
+
+          Only <%= @profile.username %> can control playback
+
+          <:confirm>Ok</:confirm>
+        </.modal>
+      <% end %>
     </div>
     <!-- /player -->
     """
   end
 
   def mount(_parmas, _session, socket) do
-    if connected?(socket) and socket.assigns.current_user do
-      MediaLibrary.subscribe(socket.assigns.current_user)
-      send(self(), :play_current)
+    %{current_user: current_user} = socket.assigns
+
+    if connected?(socket) do
+      Accounts.subscribe(current_user.id)
     end
 
     socket =
-      assign(socket,
+      socket
+      |> assign(
         song: nil,
         playing: false,
-        current_user_id: socket.assigns.current_user.id,
-        # todo use actual room user id
-        room_user_id: socket.assigns.current_user.id
+        profile: nil,
+        current_user_id: current_user.id,
+        own_profile?: false
       )
+      |> switch_profile(current_user.active_profile_user_id || current_user.id)
 
-    {:ok, socket, layout: false, temporary_assigns: [current_user: nil]}
+    {:ok, socket, layout: false, temporary_assigns: []}
+  end
+
+  defp switch_profile(socket, nil) do
+    current_user = Accounts.update_active_profile(socket.assigns.current_user, nil)
+
+    socket
+    |> assign(current_user: current_user)
+    |> assign_profile(nil)
+  end
+
+  defp switch_profile(socket, profile_user_id) do
+    profile = get_profile(profile_user_id)
+
+    if connected?(socket) and profile do
+      current_user = Accounts.update_active_profile(socket.assigns.current_user, profile.user_id)
+
+      send(self(), :play_current)
+
+      socket
+      |> assign(current_user: current_user)
+      |> assign_profile(profile)
+    else
+      assign_profile(socket, nil)
+    end
+  end
+
+  defp assign_profile(socket, profile) do
+    if prev_profile = connected?(socket) && socket.assigns.profile do
+      MediaLibrary.unsubscribe_to_profile(prev_profile)
+    end
+    if profile, do: MediaLibrary.subscribe_to_profile(profile)
+
+    assign(socket,
+      profile: profile,
+      own_profile?: profile && MediaLibrary.owns_profile?(socket.assigns.current_user, profile)
+    )
+  end
+
+  defp assign_inactive_profile(socket, %Song{} = song) do
+    if socket.assigns.profile && MediaLibrary.owns_song?(socket.assigns.profile, song) do
+      socket
+    else
+      switch_profile(socket, song.user_id)
+    end
   end
 
   def handle_event("play_pause", _, socket) do
-    %{song: song, playing: playing} = socket.assigns
+    %{song: song, playing: playing, current_user: current_user} = socket.assigns
+    song = MediaLibrary.get_song!(song.id)
 
     cond do
-      song && playing ->
+      song && playing and MediaLibrary.can_control_playback?(current_user, song) ->
         MediaLibrary.pause_song(song)
         {:noreply, assign(socket, playing: false)}
 
-      song ->
+      song && MediaLibrary.can_control_playback?(current_user, song) ->
         MediaLibrary.play_song(song)
         {:noreply, assign(socket, playing: true)}
 
       true ->
-        {:noreply, assign(socket, playing: false)}
+        {:noreply, socket}
     end
   end
 
-  def handle_event("next-song", _, socket) do
-    if socket.assigns.song do
-      MediaLibrary.play_next_song(socket.assigns.song.user_id)
+  def handle_event("switch_profile", %{"user_id" => user_id}, socket) do
+    {:noreply, switch_profile(socket, user_id)}
+  end
+
+  def handle_event("next_song", _, socket) do
+    %{song: song, current_user: current_user} = socket.assigns
+
+    if song && MediaLibrary.can_control_playback?(current_user, song) do
+      MediaLibrary.play_next_song(socket.assigns.profile)
     end
+
     {:noreply, socket}
   end
 
-  def handle_event("prev-song", _, socket) do
-    if socket.assigns.song do
-      MediaLibrary.play_prev_song(socket.assigns.song.user_id)
+  def handle_event("prev_song", _, socket) do
+    %{song: song, current_user: current_user} = socket.assigns
+
+    if song && MediaLibrary.can_control_playback?(current_user, song) do
+      MediaLibrary.play_prev_song(socket.assigns.profile)
     end
+
     {:noreply, socket}
   end
 
-  def handle_event("next-song-auto", _, socket) do
+  def handle_event("next_song_auto", _, socket) do
     if socket.assigns.song do
-      MediaLibrary.play_next_song_auto(socket.assigns.song.user_id)
+      MediaLibrary.play_next_song_auto(socket.assigns.profile)
     end
+
     {:noreply, socket}
+  end
+
+  def handle_info({Accounts, :active_profile_changed, _cur_user, %{user_id: user_id}}, socket) do
+    if user_id do
+      {:noreply, assign(socket, profile: get_profile(user_id))}
+    else
+      {:noreply, socket |> assign_profile(nil) |> stop_song()}
+    end
   end
 
   def handle_info(:play_current, socket) do
-    # we raced a pubsub, noop
-    if socket.assigns.song do
-      {:noreply, socket}
-    else
-      {:noreply, play_current_song(socket)}
-    end
+    {:noreply, play_current_song(socket)}
   end
 
-  def handle_info({:pause, _}, socket) do
-    {:noreply,
-     socket
-     |> push_event("pause", %{})
-     |> assign(playing: false)}
+  def handle_info({MediaLibrary, :pause, _}, socket) do
+    {:noreply, push_pause(socket)}
   end
 
-  def handle_info({:play, %Song{} = song, %{elapsed: elapsed}}, socket) do
+  def handle_info({MediaLibrary, :play, %Song{} = song, %{elapsed: elapsed}}, socket) do
     {:noreply, play_song(socket, song, elapsed)}
   end
 
@@ -170,18 +245,17 @@ defmodule LiveBeatsWeb.PlayerLive do
     socket
     |> push_play(song, elapsed)
     |> assign(song: song, playing: true)
+    |> assign_inactive_profile(song)
   end
 
-  defp js_play_pause(%JS{} = js) do
-    JS.dispatch(js, "js:play_pause", to: "#audio-player")
-  end
-
-  defp js_listen_now(js \\ %JS{}) do
-    JS.dispatch(js, "js:listen_now", to: "#audio-player")
+  defp stop_song(socket) do
+    socket
+    |> push_event("stop", %{})
+    |> assign(song: nil, playing: false)
   end
 
   defp play_current_song(socket) do
-    song = MediaLibrary.get_current_active_song(socket.assigns.room_user_id)
+    song = MediaLibrary.get_current_active_song(socket.assigns.profile)
 
     cond do
       song && MediaLibrary.playing?(song) ->
@@ -197,11 +271,51 @@ defmodule LiveBeatsWeb.PlayerLive do
 
   defp push_play(socket, %Song{} = song, elapsed) do
     token = Phoenix.Token.sign(socket.endpoint, "file", song.mp3_filename)
+
     push_event(socket, "play", %{
       paused: Song.paused?(song),
       elapsed: elapsed,
       token: token,
       url: song.mp3_url
     })
+  end
+
+  defp push_pause(socket) do
+    socket
+    |> push_event("pause", %{})
+    |> assign(playing: false)
+  end
+
+  defp js_play_pause(own_profile?) do
+    if own_profile? do
+      JS.push("play_pause")
+      |> JS.dispatch("js:play_pause", to: "#audio-player")
+    else
+      show_modal("not-authorized")
+    end
+  end
+
+  defp js_prev(own_profile?) do
+    if own_profile? do
+      JS.push("prev_song")
+    else
+      show_modal("not-authorized")
+    end
+  end
+
+  defp js_next(own_profile?) do
+    if own_profile? do
+      JS.push("next_song")
+    else
+      show_modal("not-authorized")
+    end
+  end
+
+  defp js_listen_now(js \\ %JS{}) do
+    JS.dispatch(js, "js:listen_now", to: "#audio-player")
+  end
+
+  defp get_profile(user_id) do
+    user_id && Accounts.get_user!(user_id) |> MediaLibrary.get_profile!()
   end
 end

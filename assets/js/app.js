@@ -1,7 +1,7 @@
 import "phoenix_html"
 import {Socket} from "phoenix"
-// import {LiveSocket} from "./phoenix_live_view"
-import {LiveSocket} from "phoenix_live_view"
+import {LiveSocket} from "./phoenix_live_view"
+// import {LiveSocket} from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 
 let nowSeconds = () => Math.round(Date.now() / 1000)
@@ -54,9 +54,8 @@ Hooks.AudioPlayer = {
         this.play({sync: true})
       }
     })
-    this.handleEvent("pause", () => {
-      this.pause()
-    })
+    this.handleEvent("pause", () => this.pause())
+    this.handleEvent("stop", () => this.stop())
   },
 
   play(opts = {}){
@@ -76,10 +75,19 @@ Hooks.AudioPlayer = {
     this.player.pause()
   },
 
+  stop(){
+    clearInterval(this.progressTimer)
+    this.player.pause()
+    this.player.currentTime = 0
+    this.updateProgress()
+    this.duration.innerText = ""
+    this.currentTime.innerText = ""
+  },
+
   updateProgress(){
     if(isNaN(this.player.duration)){ return false }
     if(this.player.currentTime >= this.player.duration){
-      this.pushEvent("next-song-auto")
+      this.pushEvent("next_song_auto")
       clearInterval(this.progressTimer)
       return
     }
