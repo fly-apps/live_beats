@@ -97,13 +97,12 @@ defmodule LiveBeatsWeb.LayoutView do
             redirect_to={profile_path(@current_user)}
             class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
           >View Profile</.link>
-          <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Settings</a>
-          <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Notifications</a>
+          <.link
+            redirect_to={Routes.settings_path(LiveBeatsWeb.Endpoint, :edit)}
+            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem"
+          >Settings</.link>
         </div>
-        <div class="py-1" role="none">
-          <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Get desktop app</a>
-          <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Support</a>
-        </div>
+
         <div class="py-1" role="none">
           <.link
             href={Routes.o_auth_callback_path(LiveBeatsWeb.Endpoint, :sign_out)}

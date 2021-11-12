@@ -50,8 +50,8 @@ defmodule LiveBeats.Accounts.User do
 
   def settings_changeset(%User{} = user, params) do
     user
-    |> cast(params, [:username])
-    |> validate_required([:username])
+    |> cast(params, [:username, :profile_tagline])
+    |> validate_required([:username, :profile_tagline])
     |> validate_username()
   end
 

@@ -70,9 +70,8 @@ defmodule LiveBeats.Accounts do
         set: [active_profile_user_id: profile_uid]
       )
 
-    Phoenix.PubSub.broadcast!(
-      @pubsub,
-      topic(current_user.id),
+    broadcast!(
+      current_user,
       %Events.ActiveProfileChanged{current_user: current_user, new_profile_user_id: profile_uid}
     )
 
@@ -114,6 +113,14 @@ defmodule LiveBeats.Accounts do
     user
     |> change_settings(attrs)
     |> Repo.update()
+    |> case do
+      {:ok, new_user} ->
+        LiveBeats.execute(__MODULE__, %Events.PublicSettingsChanged{user: new_user})
+        {:ok, new_user}
+
+      {:error, _} = error ->
+        error
+    end
   end
 
   defp update_github_token(%User{} = user, new_token) do
@@ -127,5 +134,9 @@ defmodule LiveBeats.Accounts do
       |> Repo.update()
 
     {:ok, Repo.preload(user, :identities, force: true)}
+  end
+
+  defp broadcast!(%User{} = user, msg) do
+    Phoenix.PubSub.broadcast!(@pubsub, topic(user.id), {__MODULE__, msg})
   end
 end

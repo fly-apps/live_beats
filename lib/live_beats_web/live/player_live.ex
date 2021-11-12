@@ -154,7 +154,9 @@ defmodule LiveBeatsWeb.PlayerLive do
        when is_struct(profile, MediaLibrary.Profile) or is_nil(profile) do
     %{profile: prev_profile, current_user: current_user} = socket.assigns
 
-    if connected?(socket) do
+    profile_changed? = profile_changed?(prev_profile, profile)
+
+    if connected?(socket) and profile_changed? do
       prev_profile && MediaLibrary.unsubscribe_to_profile(prev_profile)
       profile && MediaLibrary.subscribe_to_profile(profile)
     end
@@ -215,7 +217,11 @@ defmodule LiveBeatsWeb.PlayerLive do
     {:noreply, socket}
   end
 
-  def handle_info(%Accounts.Events.ActiveProfileChanged{new_profile_user_id: user_id}, socket) do
+  def handle_info(:play_current, socket) do
+    {:noreply, play_current_song(socket)}
+  end
+
+  def handle_info({Accounts, %Accounts.Events.ActiveProfileChanged{new_profile_user_id: user_id}}, socket) do
     if user_id do
       {:noreply, assign(socket, profile: get_profile(user_id))}
     else
@@ -223,17 +229,19 @@ defmodule LiveBeatsWeb.PlayerLive do
     end
   end
 
-  def handle_info(:play_current, socket) do
-    {:noreply, play_current_song(socket)}
+  def handle_info({MediaLibrary, %MediaLibrary.Events.PublicProfileUpdated{} = update}, socket) do
+    {:noreply, assign_profile(socket, update.profile)}
   end
 
-  def handle_info(%MediaLibrary.Events.Pause{}, socket) do
+  def handle_info({MediaLibrary, %MediaLibrary.Events.Pause{}}, socket) do
     {:noreply, push_pause(socket)}
   end
 
-  def handle_info(%MediaLibrary.Events.Play{song: song, elapsed: elapsed}, socket) do
-    {:noreply, play_song(socket, song, elapsed)}
+  def handle_info({MediaLibrary, %MediaLibrary.Events.Play{} = play}, socket) do
+    {:noreply, play_song(socket, play.song, play.elapsed)}
   end
+
+  def handle_info({MediaLibrary, _}, socket), do: {:noreply, socket}
 
   defp play_song(socket, %Song{} = song, elapsed) do
     socket
@@ -311,4 +319,11 @@ defmodule LiveBeatsWeb.PlayerLive do
   defp get_profile(user_id) do
     user_id && Accounts.get_user!(user_id) |> MediaLibrary.get_profile!()
   end
+
+  defp profile_changed?(nil = _prev_profile, nil = _new_profile), do: false
+  defp profile_changed?(nil = _prev_profile, %MediaLibrary.Profile{}), do: true
+  defp profile_changed?(%MediaLibrary.Profile{}, nil = _new_profile), do: true
+
+  defp profile_changed?(%MediaLibrary.Profile{} = prev, %MediaLibrary.Profile{} = new),
+    do: prev.user_id != new.user_id
 end

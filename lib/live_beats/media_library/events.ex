@@ -6,4 +6,8 @@ defmodule LiveBeats.MediaLibrary.Events do
   defmodule Pause do
     defstruct song: nil
   end
+
+  defmodule PublicProfileUpdated do
+    defstruct profile: nil
+  end
 end

@@ -16,6 +16,15 @@ defmodule LiveBeats.MediaLibrary do
   defdelegate playing?(song), to: Song
   defdelegate paused?(song), to: Song
 
+  def attach do
+    LiveBeats.attach(LiveBeats.MediaLibrary, to: {Accounts, Accounts.Events.PublicSettingsChanged})
+  end
+
+  def handle_execute({Accounts, %Accounts.Events.PublicSettingsChanged{user: user}}) do
+    profile = get_profile!(user)
+    broadcast!(user.id, %Events.PublicProfileUpdated{profile: profile})
+  end
+
   def subscribe_to_profile(%Profile{} = profile) do
     Phoenix.PubSub.subscribe(@pubsub, topic(profile.user_id))
   end
@@ -71,10 +80,7 @@ defmodule LiveBeats.MediaLibrary do
 
     elapsed = elapsed_playback(new_song)
 
-    Phoenix.PubSub.broadcast!(@pubsub, topic(song.user_id), %Events.Play{
-      song: song,
-      elapsed: elapsed
-    })
+    broadcast!(song.user_id, %Events.Play{song: song, elapsed: elapsed})
 
     new_song
   end
@@ -95,7 +101,7 @@ defmodule LiveBeats.MediaLibrary do
       |> Multi.update_all(:now_paused, fn _ -> pause_query end, [])
       |> Repo.transaction()
 
-    Phoenix.PubSub.broadcast!(@pubsub, topic(song.user_id), %Events.Pause{song: song})
+    broadcast!(song.user_id, %Events.Pause{song: song})
   end
 
   def play_next_song_auto(%Profile{} = profile) do
@@ -320,5 +326,9 @@ defmodule LiveBeats.MediaLibrary do
 
   defp order_by_playlist(%Ecto.Query{} = query, direction) when direction in [:asc, :desc] do
     from(s in query, order_by: [{^direction, s.inserted_at}, {^direction, s.id}])
+  end
+
+  defp broadcast!(user_id, msg) when is_integer(user_id) do
+    Phoenix.PubSub.broadcast!(@pubsub, topic(user_id), {__MODULE__, msg})
   end
 end

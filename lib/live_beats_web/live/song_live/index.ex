@@ -125,17 +125,28 @@ defmodule LiveBeatsWeb.SongLive.Index do
     {:noreply, socket}
   end
 
-  def handle_info(%Accounts.Events.ActiveProfileChanged{new_profile_user_id: user_id}, socket) do
-    {:noreply, assign(socket, active_profile_id: user_id)}
+  def handle_info({Accounts, %Accounts.Events.ActiveProfileChanged{} = event}, socket) do
+    {:noreply, assign(socket, active_profile_id: event.new_profile_user_id)}
   end
 
-  def handle_info(%MediaLibrary.Events.Play{song: song}, socket) do
+  def handle_info({MediaLibrary, %MediaLibrary.Events.PublicProfileUpdated{} = update}, socket) do
+    {:noreply,
+     socket
+     |> assign(profile: update.profile)
+     |> push_patch(to: profile_path(update.profile))}
+  end
+
+  def handle_info({MediaLibrary, %MediaLibrary.Events.Play{song: song}}, socket) do
     {:noreply, play_song(socket, song)}
   end
 
-  def handle_info(%MediaLibrary.Events.Pause{song: song}, socket) do
+  def handle_info({MediaLibrary, %MediaLibrary.Events.Pause{song: song}}, socket) do
     {:noreply, pause_song(socket, song.id)}
   end
+
+  def handle_info({MediaLibrary, _}, socket), do: {:noreply, socket}
+
+  def handle_info({Accounts, _}, socket), do: {:noreply, socket}
 
   defp stop_song(socket, song_id) do
     SongRowComponent.send_status(song_id, :stopped)

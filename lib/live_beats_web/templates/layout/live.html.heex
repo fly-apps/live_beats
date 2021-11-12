@@ -22,10 +22,14 @@
         alt="Workflow">
     </div>
     <div class="mt-5 flex-1 h-0 overflow-y-auto">
-      <.sidebar_account_dropdown id="mobile-account-dropdown" current_user={@current_user}/>
+      <%= if @current_user do %>
+        <.sidebar_account_dropdown id="mobile-account-dropdown" current_user={@current_user}/>
+      <% end %>
 
       <nav class="px-2">
-        <.sidebar_nav_links current_user={@current_user}/>
+        <%= if @current_user do %>
+          <.sidebar_nav_links current_user={@current_user}/>
+        <% end %>
         <.sidebar_active_users id="desktop-active-users" users={@active_users}/>
       </nav>
     </div>
@@ -46,7 +50,9 @@
     </div>
     <!-- Sidebar component, swap this element with another sidebar if you like -->
     <div class="h-0 flex-1 flex flex-col overflow-y-auto">
-      <.sidebar_account_dropdown id="account-dropdown" current_user={@current_user}/>
+      <%= if @current_user do %>
+        <.sidebar_account_dropdown id="account-dropdown" current_user={@current_user}/>
+      <% end %>
       <!-- Sidebar Search -->
       <div class="px-3 mt-5">
         <label for="search" class="sr-only">Search</label>
@@ -66,7 +72,9 @@
       </div>
       <!-- Navigation -->
       <nav class="px-3 mt-6">
-        <.sidebar_nav_links current_user={@current_user}/>
+        <%= if @current_user do %>
+          <.sidebar_nav_links current_user={@current_user}/>
+        <% end %>
         <!-- Secondary navigation -->
         <.sidebar_active_users id="mobile-active-users" users={@active_users}/>
       </nav>

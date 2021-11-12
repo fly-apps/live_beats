@@ -7,6 +7,8 @@ defmodule LiveBeats.Application do
 
   @impl true
   def start(_type, _args) do
+    LiveBeats.MediaLibrary.attach()
+
     children = [
       {Task.Supervisor, name: LiveBeats.TaskSupervisor},
       # Start the Ecto repository
