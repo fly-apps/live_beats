@@ -178,7 +178,7 @@ defmodule LiveBeatsWeb.SongLive.Index do
       LayoutComponent.show_modal(UploadFormComponent, %{
         id: :new,
         confirm: {"Save", type: "submit", form: "song-form"},
-        patch_to: home_path(socket),
+        patch_to: profile_path(socket.assigns.current_user),
         song: socket.assigns.song,
         title: socket.assigns.page_title,
         current_user: socket.assigns.current_user

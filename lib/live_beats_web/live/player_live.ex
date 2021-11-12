@@ -38,7 +38,7 @@ defmodule LiveBeatsWeb.PlayerLive do
       <div class="bg-gray-50 text-black dark:bg-gray-900 dark:text-white px-1 sm:px-3 lg:px-1 xl:px-3 grid grid-cols-5 items-center">
         <%= if @profile do %>
           <.link
-            redirect_to={Routes.song_index_path(@socket, :index, @profile.username)}
+            redirect_to={profile_path(@profile)}
             class="mx-auto flex outline border-2 border-white border-opacity-20 rounded-md p-1 pr-2"
           >
             <span class="mt-1"><.icon name={:user_circle}/></span>

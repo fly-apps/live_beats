@@ -5,8 +5,15 @@ defmodule LiveBeatsWeb.LiveHelpers do
   alias LiveBeatsWeb.Router.Helpers, as: Routes
   alias Phoenix.LiveView.JS
 
-  def home_path(socket) do
-    Routes.song_index_path(socket, :index, socket.assigns.current_user.username)
+  alias LiveBeats.Accounts
+  alias LiveBeats.MediaLibrary
+
+  def profile_path(%Accounts.User{} = current_user) do
+    Routes.song_index_path(LiveBeatsWeb.Endpoint, :index, current_user.username)
+  end
+
+  def profile_path(%MediaLibrary.Profile{} = profile) do
+    Routes.song_index_path(LiveBeatsWeb.Endpoint, :index, profile.username)
   end
 
   def flash(%{kind: :error} = assigns) do

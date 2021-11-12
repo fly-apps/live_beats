@@ -192,6 +192,19 @@ defmodule LiveBeats.MediaLibrary do
     |> Repo.all()
   end
 
+  def list_active_profiles(opts) do
+    from(s in Song,
+      inner_join: u in LiveBeats.Accounts.User,
+      on: s.user_id == u.id,
+      where: s.status in [:playing],
+      limit: ^Keyword.fetch!(opts, :limit),
+      order_by: [desc: s.updated_at],
+      select: struct(u, [:id, :username, :profile_tagline])
+    )
+    |> Repo.all()
+    |> Enum.map(&get_profile!/1)
+  end
+
   def get_current_active_song(%Profile{user_id: user_id}) do
     Repo.one(from s in Song, where: s.user_id == ^user_id and s.status in [:playing, :paused])
   end

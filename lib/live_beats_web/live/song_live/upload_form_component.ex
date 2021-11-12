@@ -54,7 +54,7 @@ defmodule LiveBeatsWeb.SongLive.UploadFormComponent do
           {:noreply,
           socket
           |> put_flash(:info, "#{map_size(songs)} song(s) uploaded")
-          |> push_redirect(to: home_path(socket))}
+          |> push_redirect(to: profile_path(current_user))}
 
         {:error, _reason} ->
           {:noreply, socket}

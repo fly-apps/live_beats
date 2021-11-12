@@ -135,5 +135,7 @@ defmodule LiveBeatsWeb.UserAuth do
 
   defp maybe_store_return_to(conn), do: conn
 
-  def signed_in_path(conn), do: Routes.song_index_path(conn, :index, conn.assigns.current_user.username)
+  def signed_in_path(conn) do
+    LiveBeatsWeb.LiveHelpers.profile_path(conn.assigns.current_user)
+  end
 end
