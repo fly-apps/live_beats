@@ -17,7 +17,7 @@ defmodule LiveBeats.MediaLibrary do
   defdelegate paused?(song), to: Song
 
   def attach do
-    LiveBeats.attach(LiveBeats.MediaLibrary, to: {Accounts, Accounts.Events.PublicSettingsChanged})
+    LiveBeats.attach(__MODULE__, to: {Accounts, Accounts.Events.PublicSettingsChanged})
   end
 
   def handle_execute({Accounts, %Accounts.Events.PublicSettingsChanged{user: user}}) do
