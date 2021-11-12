@@ -117,21 +117,23 @@ defmodule LiveBeatsWeb.SongLive.Index do
 
   def handle_event("delete", %{"id" => id}, socket) do
     song = MediaLibrary.get_song!(id)
+
     if song.user_id == socket.assigns.current_user.id do
       {:ok, _} = MediaLibrary.delete_song(song)
     end
+
     {:noreply, socket}
   end
 
-  def handle_info({Accounts, :active_profile_changed, _cur_user, %{user_id: user_id}}, socket) do
+  def handle_info(%Accounts.Events.ActiveProfileChanged{new_profile_user_id: user_id}, socket) do
     {:noreply, assign(socket, active_profile_id: user_id)}
   end
 
-  def handle_info({MediaLibrary, :play, %MediaLibrary.Song{} = song, _meta}, socket) do
+  def handle_info(%MediaLibrary.Events.Play{song: song}, socket) do
     {:noreply, play_song(socket, song)}
   end
 
-  def handle_info({MediaLibrary, :pause, %MediaLibrary.Song{} = song}, socket) do
+  def handle_info(%MediaLibrary.Events.Pause{song: song}, socket) do
     {:noreply, pause_song(socket, song.id)}
   end
 

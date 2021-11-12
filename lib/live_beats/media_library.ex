@@ -6,7 +6,7 @@ defmodule LiveBeats.MediaLibrary do
   require Logger
   import Ecto.Query, warn: false
   alias LiveBeats.{Repo, MP3Stat, Accounts}
-  alias LiveBeats.MediaLibrary.{Profile, Song, Genre}
+  alias LiveBeats.MediaLibrary.{Profile, Song, Events, Genre}
   alias Ecto.{Multi, Changeset}
 
   @pubsub LiveBeats.PubSub
@@ -71,11 +71,10 @@ defmodule LiveBeats.MediaLibrary do
 
     elapsed = elapsed_playback(new_song)
 
-    Phoenix.PubSub.broadcast!(
-      @pubsub,
-      topic(song.user_id),
-      {__MODULE__, :play, song, %{elapsed: elapsed}}
-    )
+    Phoenix.PubSub.broadcast!(@pubsub, topic(song.user_id), %Events.Play{
+      song: song,
+      elapsed: elapsed
+    })
 
     new_song
   end
@@ -96,7 +95,7 @@ defmodule LiveBeats.MediaLibrary do
       |> Multi.update_all(:now_paused, fn _ -> pause_query end, [])
       |> Repo.transaction()
 
-    Phoenix.PubSub.broadcast!(@pubsub, topic(song.user_id), {__MODULE__, :pause, song})
+    Phoenix.PubSub.broadcast!(@pubsub, topic(song.user_id), %Events.Pause{song: song})
   end
 
   def play_next_song_auto(%Profile{} = profile) do

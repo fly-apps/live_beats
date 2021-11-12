@@ -215,7 +215,7 @@ defmodule LiveBeatsWeb.PlayerLive do
     {:noreply, socket}
   end
 
-  def handle_info({Accounts, :active_profile_changed, _cur_user, %{user_id: user_id}}, socket) do
+  def handle_info(%Accounts.Events.ActiveProfileChanged{new_profile_user_id: user_id}, socket) do
     if user_id do
       {:noreply, assign(socket, profile: get_profile(user_id))}
     else
@@ -227,11 +227,11 @@ defmodule LiveBeatsWeb.PlayerLive do
     {:noreply, play_current_song(socket)}
   end
 
-  def handle_info({MediaLibrary, :pause, _}, socket) do
+  def handle_info(%MediaLibrary.Events.Pause{}, socket) do
     {:noreply, push_pause(socket)}
   end
 
-  def handle_info({MediaLibrary, :play, %Song{} = song, %{elapsed: elapsed}}, socket) do
+  def handle_info(%MediaLibrary.Events.Play{song: song, elapsed: elapsed}, socket) do
     {:noreply, play_song(socket, song, elapsed)}
   end
 

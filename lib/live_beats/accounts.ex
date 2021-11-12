@@ -3,7 +3,7 @@ defmodule LiveBeats.Accounts do
   import Ecto.Changeset
 
   alias LiveBeats.Repo
-  alias LiveBeats.Accounts.{User, Identity}
+  alias LiveBeats.Accounts.{User, Identity, Events}
 
   @admin_emails ["chris@chrismccord.com"]
   @pubsub LiveBeats.PubSub
@@ -64,19 +64,19 @@ defmodule LiveBeats.Accounts do
     current_user
   end
 
-  def update_active_profile(%User{} = current_user, profile_user_id) do
+  def update_active_profile(%User{} = current_user, profile_uid) do
     {1, _} =
       Repo.update_all(from(u in User, where: u.id == ^current_user.id),
-        set: [active_profile_user_id: profile_user_id]
+        set: [active_profile_user_id: profile_uid]
       )
 
     Phoenix.PubSub.broadcast!(
       @pubsub,
       topic(current_user.id),
-      {__MODULE__, :active_profile_changed, current_user, %{user_id: profile_user_id}}
+      %Events.ActiveProfileChanged{current_user: current_user, new_profile_user_id: profile_uid}
     )
 
-    %User{current_user | active_profile_user_id: profile_user_id}
+    %User{current_user | active_profile_user_id: profile_uid}
   end
 
   ## User registration
