@@ -130,8 +130,6 @@ defmodule LiveBeats.MediaLibrary do
     end
   end
 
-  defp topic(user_id) when is_integer(user_id), do: "profile:#{user_id}"
-
   def store_mp3(%Song{} = song, tmp_path) do
     File.mkdir_p!(Path.dirname(song.mp3_filepath))
     File.cp!(tmp_path, song.mp3_filepath)
@@ -331,4 +329,6 @@ defmodule LiveBeats.MediaLibrary do
   defp broadcast!(user_id, msg) when is_integer(user_id) do
     Phoenix.PubSub.broadcast!(@pubsub, topic(user_id), {__MODULE__, msg})
   end
+
+  defp topic(user_id) when is_integer(user_id), do: "profile:#{user_id}"
 end
