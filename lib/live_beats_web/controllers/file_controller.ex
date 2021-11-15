@@ -1,4 +1,7 @@
 defmodule LiveBeatsWeb.FileController do
+  @moduledoc """
+  Serves files based on short-term token grants.
+  """
   use LiveBeatsWeb, :controller
 
   alias LiveBeats.MediaLibrary
@@ -14,7 +17,7 @@ defmodule LiveBeatsWeb.FileController do
   defp do_send_file(conn, path) do
     # accept-ranges headers required for chrome to seek via currentTime
     conn
-    |> put_resp_header("content-type", "audio/mp3")
+    |> put_resp_header("content-type", MIME.from_path(path))
     |> put_resp_header("accept-ranges", "bytes")
     |> send_file(200, path)
   end

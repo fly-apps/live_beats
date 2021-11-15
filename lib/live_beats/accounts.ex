@@ -5,7 +5,6 @@ defmodule LiveBeats.Accounts do
   alias LiveBeats.Repo
   alias LiveBeats.Accounts.{User, Identity, Events}
 
-  @admin_emails ["chris@chrismccord.com"]
   @pubsub LiveBeats.PubSub
 
   def subscribe(user_id) do
@@ -22,7 +21,26 @@ defmodule LiveBeats.Accounts do
     Repo.all(from u in User, limit: ^Keyword.fetch!(opts, :limit))
   end
 
-  def admin?(%User{} = user), do: user.email in @admin_emails
+  def admin?(%User{} = user) do
+    user.email in Application.fetch_env!(:live_beats, :admin_emails)
+  end
+
+  @doc """
+  Updates a user public's settings and exectes event.
+  """
+  def update_public_settings(%User{} = user, attrs) do
+    user
+    |> change_settings(attrs)
+    |> Repo.update()
+    |> case do
+      {:ok, new_user} ->
+        LiveBeats.execute(__MODULE__, %Events.PublicSettingsChanged{user: new_user})
+        {:ok, new_user}
+
+      {:error, _} = error ->
+        error
+    end
+  end
 
   ## Database getters
 
@@ -107,20 +125,6 @@ defmodule LiveBeats.Accounts do
 
   def change_settings(%User{} = user, attrs) do
     User.settings_changeset(user, attrs)
-  end
-
-  def update_settings(%User{} = user, attrs) do
-    user
-    |> change_settings(attrs)
-    |> Repo.update()
-    |> case do
-      {:ok, new_user} ->
-        LiveBeats.execute(__MODULE__, %Events.PublicSettingsChanged{user: new_user})
-        {:ok, new_user}
-
-      {:error, _} = error ->
-        error
-    end
   end
 
   defp update_github_token(%User{} = user, new_token) do

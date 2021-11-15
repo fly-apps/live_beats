@@ -79,7 +79,7 @@ defmodule LiveBeatsWeb.SettingsLive do
   end
 
   def handle_event("save", %{"user" => params}, socket) do
-    case Accounts.update_settings(socket.assigns.current_user, params) do
+    case Accounts.update_public_settings(socket.assigns.current_user, params) do
       {:ok, user} ->
         {:noreply,
          socket
