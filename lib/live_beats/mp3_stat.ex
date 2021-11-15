@@ -55,14 +55,14 @@ defmodule LiveBeats.MP3Stat do
        >>) do
     tag_size = decode_synchsafe_integer(tag_size_synchsafe)
 
-    {rest, _ext_header_size} =
+    {rest, ext_header_size} =
       if extended_header == 1 do
         skip_extended_header(major_version, rest)
       else
         {rest, 0}
       end
 
-    parse_frames(major_version, rest, tag_size - extended_header)
+    parse_frames(major_version, rest, tag_size - ext_header_size, [])
   end
 
   defp parse_tag(_), do: %{}
@@ -100,7 +100,10 @@ defmodule LiveBeats.MP3Stat do
     {rest, ext_header_size}
   end
 
-  defp parse_frames(major_version, data, tag_length_remaining, frames \\ [])
+  defp parse_frames(_, data, tag_length_remaining, frames)
+       when tag_length_remaining <= 0 do
+    {Map.new(frames), data}
+  end
 
   defp parse_frames(
          major_version,
@@ -148,11 +151,6 @@ defmodule LiveBeats.MP3Stat do
       {new_frame, rest} ->
         parse_frames(major_version, rest, next_tag_length_remaining, [new_frame | frames])
     end
-  end
-
-  defp parse_frames(_, data, tag_length_remaining, frames)
-       when tag_length_remaining <= 0 do
-    {Map.new(frames), data}
   end
 
   defp parse_frames(_, data, _, frames) do
