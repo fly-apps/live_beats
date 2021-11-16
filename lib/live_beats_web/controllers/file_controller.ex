@@ -7,7 +7,7 @@ defmodule LiveBeatsWeb.FileController do
   alias LiveBeats.MediaLibrary
 
   def show(conn, %{"id" => filename_uuid, "token" => token}) do
-    case Phoenix.Token.verify(conn, "file", token, max_age: :timer.minutes(10)) do
+    case Phoenix.Token.verify(conn, "file", token, max_age: :timer.minutes(1)) do
       {:ok, ^filename_uuid} -> do_send_file(conn, MediaLibrary.local_filepath(filename_uuid))
       {:ok, _} -> send_resp(conn, :unauthorized, "")
       {:error, _} -> send_resp(conn, :unauthorized, "")

@@ -21,6 +21,12 @@ defmodule LiveBeats.Accounts do
     Repo.all(from u in User, limit: ^Keyword.fetch!(opts, :limit))
   end
 
+  def lists_users_by_active_profile(id, opts) do
+    Repo.all(
+      from u in User, where: u.active_profile_user_id == ^id, limit: ^Keyword.fetch!(opts, :limit)
+    )
+  end
+
   def admin?(%User{} = user) do
     user.email in Application.fetch_env!(:live_beats, :admin_emails)
   end
@@ -75,6 +81,8 @@ defmodule LiveBeats.Accounts do
 
   """
   def get_user!(id), do: Repo.get!(User, id)
+
+  def get_user(id), do: Repo.get(User, id)
 
   def get_user_by!(fields), do: Repo.get_by!(User, fields)
 

@@ -11,6 +11,10 @@ processes = []
   IPV6 = 1
   URL_HOST = "livebeats.fly.dev"
 
+[mounts]
+  source="data"
+  destination="/app/live_beats/lib/live_beats-0.1.0/priv/uploads"
+
 [experimental]
   allowed_public_ports = []
   auto_rollback = true
@@ -25,7 +29,7 @@ processes = []
   [services.concurrency]
     hard_limit = 25
     soft_limit = 20
-    type = "connections"
+    type = "requests"
 
   [[services.ports]]
     handlers = ["http"]

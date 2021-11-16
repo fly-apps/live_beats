@@ -2,7 +2,7 @@ defmodule LiveBeatsWeb.Router do
   use LiveBeatsWeb, :router
 
   import LiveBeatsWeb.UserAuth,
-    only: [fetch_current_user: 2, redirect_if_user_is_authenticated: 2]
+    only: [redirect_if_user_is_authenticated: 2]
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -11,7 +11,6 @@ defmodule LiveBeatsWeb.Router do
     plug :put_root_layout, {LiveBeatsWeb.LayoutView, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
-    plug :fetch_current_user
   end
 
   pipeline :api do

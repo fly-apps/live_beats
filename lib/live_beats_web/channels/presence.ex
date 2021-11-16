@@ -15,7 +15,7 @@ defmodule LiveBeatsWeb.Presence do
     ~H"""
     <!-- users -->
     <div class="px-4 mt-6 sm:px-6 lg:px-8">
-      <h2 class="text-gray-500 text-xs font-medium uppercase tracking-wide">Who's Here</h2>
+      <h2 class="text-gray-500 text-xs font-medium uppercase tracking-wide">Who's Listening</h2>
       <ul role="list" class="grid grid-cols-1 gap-4 sm:gap-4 sm:grid-cols-2 xl:grid-cols-5 mt-3" x-max="1">
         <%= for presence <- @presences do %>
           <li class="relative col-span-1 flex shadow-sm rounded-md overflow-hidden">

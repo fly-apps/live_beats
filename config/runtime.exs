@@ -29,7 +29,6 @@ if config_env() == :prod do
       You can generate one by calling: mix phx.gen.secret
       """
 
-  app_name = System.fetch_env!("FLY_APP_NAME")
   host = System.get_env("URL_HOST") || "example.com"
 
   config :live_beats, LiveBeatsWeb.Endpoint,

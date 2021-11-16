@@ -13,7 +13,7 @@ defmodule LiveBeatsWeb.SongLive.Index do
           <%= @profile.tagline %> <%= if @owns_profile? do %>(you)<% end %>
         </div>
         <.link href={@profile.external_homepage_url} _target="blank" class="block text-sm text-gray-600">
-            <.icon name={:code}/> <span class=""><%= url_text(@profile.external_homepage_url) %></span>
+          <.icon name={:code}/> <span class=""><%= url_text(@profile.external_homepage_url) %></span>
         </.link>
       </div>
 
@@ -40,7 +40,6 @@ defmodule LiveBeatsWeb.SongLive.Index do
     </.title_bar>
 
     <Presence.listening_now presences={@presences}>
-      <:abbrev let={user}><%= String.first(user.username) %></:abbrev>
       <:title let={user}><%= user.username %></:title>
     </Presence.listening_now>
 
@@ -231,8 +230,8 @@ defmodule LiveBeatsWeb.SongLive.Index do
   end
 
   defp assign_presences(socket) do
-    # TODO
-    assign(socket, presences: Accounts.list_users(limit: 10))
+    users = Accounts.lists_users_by_active_profile(socket.assigns.profile.user_id, limit: 10)
+    assign(socket, presences: users)
   end
 
   defp url_text(nil), do: ""
