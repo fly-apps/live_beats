@@ -13,7 +13,7 @@ defmodule LiveBeatsWeb.SongLive.Index do
           <%= @profile.tagline %> <%= if @owns_profile? do %>(you)<% end %>
         </div>
         <.link href={@profile.external_homepage_url} _target="blank" class="block text-sm text-gray-600">
-            <.icon name={:code}/> <span class=""><%= url_text(@profile.external_homepage_url) %></span>
+            <.icon name={:code} aria-hidden="true"/> <span class=""><%= url_text(@profile.external_homepage_url) %></span>
         </.link>
       </div>
 
@@ -22,18 +22,18 @@ defmodule LiveBeatsWeb.SongLive.Index do
           <.button primary
             phx-click={JS.push("switch_profile", value: %{user_id: nil}, target: "#player", loading: "#player")}
           >
-            <.icon name={:stop}/><span class="ml-2">Stop Listening</span>
+            <.icon name={:stop} aria-hidden="true"/><span class="ml-2">Stop Listening</span>
           </.button>
         <% else %>
           <.button primary
             phx-click={JS.push("switch_profile", value: %{user_id: @profile.user_id}, target: "#player", loading: "#player")}
           >
-            <.icon name={:play}/><span class="ml-2">Listen</span>
+            <.icon name={:play} aria-hidden="true"/><span class="ml-2">Listen</span>
           </.button>
         <% end %>
         <%= if @owns_profile? do %>
           <.button primary patch_to={Routes.song_index_path(@socket, :new)}>
-            <.icon name={:upload}/><span class="ml-2">Upload Songs</span>
+            <.icon name={:upload} aria-hidden="true"/><span class="ml-2">Upload Songs</span>
           </.button>
         <% end %>
       </:actions>
@@ -236,6 +236,7 @@ defmodule LiveBeatsWeb.SongLive.Index do
   end
 
   defp url_text(nil), do: ""
+
   defp url_text(url_str) do
     uri = URI.parse(url_str)
     uri.host <> uri.path

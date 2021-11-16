@@ -35,7 +35,7 @@ defmodule LiveBeatsWeb.LayoutView do
           redirect_to={profile_path(@current_user)}
           class="text-gray-700 hover:text-gray-900 hover:bg-gray-50 group flex items-center px-2 py-2 text-sm font-medium rounded-md"
         >
-          <.icon name={:music_note} outlined class="text-gray-400 group-hover:text-gray-500 mr-3 flex-shrink-0 h-6 w-6"/>
+          <.icon name={:music_note} outlined class="text-gray-400 group-hover:text-gray-500 mr-3 flex-shrink-0 h-6 w-6" aria-hidden="true"/>
           My Songs
         </.link>
 
@@ -43,7 +43,7 @@ defmodule LiveBeatsWeb.LayoutView do
           redirect_to={Routes.settings_path(LiveBeatsWeb.Endpoint, :edit)}
           class="text-gray-700 hover:text-gray-900 hover:bg-gray-50 group flex items-center px-2 py-2 text-sm font-medium rounded-md"
         >
-          <.icon name={:adjustments} outlined class="text-gray-400 group-hover:text-gray-500 mr-3 flex-shrink-0 h-6 w-6"/>
+          <.icon name={:adjustments} outlined class="text-gray-400 group-hover:text-gray-500 mr-3 flex-shrink-0 h-6 w-6" aria-hidden="true"/>
           Settings
         </.link>
       <% else %>
