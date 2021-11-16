@@ -5,10 +5,12 @@ Play music together with Phoenix LiveView!
 Visit [todo]() to try it out, or run locally:
 
   * Create a [Github OAuth app](https://docs.github.com/en/developers/apps/building-oauth-apps/creating-an-oauth-app)
-  * Export your GitHub client ID and secret:
+    - Set the app homepage to `http://localhost:4000` and `Authorization callback URL` to `http://localhost:4000/oauth/callbacks/github`
+    - After completing the form, click "Generate a new client secret" to obtain your API secret
+  * Export your GitHub Client ID and secret:
 
-      export LIVE_BEATS_GITHUB_CLIENT_ID="..."
-      export LIVE_BEATS_GITHUB_CLIENT_SECRET="..."
+        export LIVE_BEATS_GITHUB_CLIENT_ID="..."
+        export LIVE_BEATS_GITHUB_CLIENT_SECRET="..."
 
   * Install dependencies with `mix deps.get`
   * Create and migrate your database with `mix ecto.setup`

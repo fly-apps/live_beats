@@ -74,7 +74,7 @@ defmodule LiveBeatsWeb.LayoutView do
           <span class="flex w-full justify-between items-center">
             <span class="flex min-w-0 items-center justify-between space-x-3">
               <img class="w-10 h-10 bg-gray-300 rounded-full flex-shrink-0"
-                src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=facearea&amp;facepad=3&amp;w=256&amp;h=256&amp;q=80"
+                src={@current_user.avatar_url}
                 alt="">
               <span class="flex-1 flex flex-col min-w-0">
                 <span class="text-gray-900 text-sm font-medium truncate"><%= @current_user.name %></span>

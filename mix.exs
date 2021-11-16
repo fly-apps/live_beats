@@ -39,8 +39,8 @@ defmodule LiveBeats.MixProject do
       {:postgrex, ">= 0.0.0"},
       {:phoenix_html, "~> 3.0"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
-      {:phoenix_live_view, path: "~/oss/phoenix_live_view", override: true},
-      # {:phoenix_live_view, github: "phoenixframework/phoenix_live_view", branch: "cm-sticky-live-render", override: true},
+      # {:phoenix_live_view, path: "~/oss/phoenix_live_view", override: true},
+      {:phoenix_live_view, github: "phoenixframework/phoenix_live_view", branch: "cm-sticky-live-render", override: true},
       {:floki, ">= 0.30.0", only: :test},
       {:phoenix_live_dashboard, "~> 0.5"},
       {:esbuild, "~> 0.2", runtime: Mix.env() == :dev},
@@ -51,7 +51,8 @@ defmodule LiveBeats.MixProject do
       {:jason, "~> 1.2"},
       {:plug_cowboy, "~> 2.5"},
       {:mint, "~> 1.0"},
-      {:heroicons, "~> 0.2.2"}
+      {:heroicons, "~> 0.2.2"},
+      {:castore, "~> 0.1.13"}
     ]
   end
 
@@ -63,12 +64,11 @@ defmodule LiveBeats.MixProject do
   # See the documentation for `Mix` for more info on aliases.
   defp aliases do
     [
-      setup: ["deps.get", "ecto.setup", "cmd --cd assets npm install"],
+      setup: ["deps.get", "ecto.setup"],
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
       "assets.deploy": [
-        "cmd --cd assets npm run deploy",
         "esbuild default --minify",
         "phx.digest"
       ]

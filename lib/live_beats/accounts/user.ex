@@ -12,6 +12,8 @@ defmodule LiveBeats.Accounts.User do
     field :role, :string, default: "subscriber"
     field :profile_tagline, :string
     field :active_profile_user_id, :id
+    field :avatar_url, :string
+    field :external_homepage_url, :string
 
     has_many :identities, Identity
 
@@ -22,7 +24,7 @@ defmodule LiveBeats.Accounts.User do
   A user changeset for github registration.
   """
   def github_registration_changeset(info, primary_email, emails, token) do
-    %{"login" => username} = info
+    %{"login" => username, "avatar_url" => avatar_url, "html_url" => external_homepage_url} = info
 
     identity_changeset =
       Identity.github_registration_changeset(info, primary_email, emails, token)
@@ -31,11 +33,13 @@ defmodule LiveBeats.Accounts.User do
       params = %{
         "username" => username,
         "email" => primary_email,
-        "name" => get_change(identity_changeset, :provider_name)
+        "name" => get_change(identity_changeset, :provider_name),
+        "avatar_url" => avatar_url,
+        "external_homepage_url" => external_homepage_url
       }
 
       %User{}
-      |> cast(params, [:email, :name, :username])
+      |> cast(params, [:email, :name, :username, :avatar_url, :external_homepage_url])
       |> validate_required([:email, :name, :username])
       |> validate_username()
       |> validate_email()

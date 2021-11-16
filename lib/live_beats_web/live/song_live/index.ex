@@ -2,13 +2,20 @@ defmodule LiveBeatsWeb.SongLive.Index do
   use LiveBeatsWeb, :live_view
 
   alias LiveBeats.{Accounts, MediaLibrary, MP3Stat}
-  alias LiveBeatsWeb.LayoutComponent
+  alias LiveBeatsWeb.{LayoutComponent, Presence}
   alias LiveBeatsWeb.SongLive.{SongRowComponent, UploadFormComponent}
 
   def render(assigns) do
     ~H"""
     <.title_bar>
-      <%= @profile.tagline %> <%= if @owns_profile? do %>(you)<% end %>
+      <div>
+        <div class="block">
+          <%= @profile.tagline %> <%= if @owns_profile? do %>(you)<% end %>
+        </div>
+        <.link href={@profile.external_homepage_url} _target="blank" class="block text-sm text-gray-600">
+            <.icon name={:code}/> <span class=""><%= url_text(@profile.external_homepage_url) %></span>
+        </.link>
+      </div>
 
       <:actions>
         <%= if @active_profile_id == @profile.user_id do %>
@@ -31,6 +38,11 @@ defmodule LiveBeatsWeb.SongLive.Index do
         <% end %>
       </:actions>
     </.title_bar>
+
+    <Presence.listening_now presences={@presences}>
+      <:abbrev let={user}><%= String.first(user.username) %></:abbrev>
+      <:title let={user}><%= user.username %></:title>
+    </Presence.listening_now>
 
     <%= for song <- if(@owns_profile?, do: @songs, else: []), id = "delete-modal-#{song.id}" do %>
       <.modal
@@ -89,6 +101,7 @@ defmodule LiveBeatsWeb.SongLive.Index do
         owns_profile?: MediaLibrary.owns_profile?(current_user, profile)
       )
       |> list_songs()
+      |> assign_presences()
 
     {:ok, socket, temporary_assigns: [songs: []]}
   end
@@ -215,5 +228,16 @@ defmodule LiveBeatsWeb.SongLive.Index do
 
   defp list_songs(socket) do
     assign(socket, songs: MediaLibrary.list_profile_songs(socket.assigns.profile, 50))
+  end
+
+  defp assign_presences(socket) do
+    # TODO
+    assign(socket, presences: Accounts.list_users(limit: 10))
+  end
+
+  defp url_text(nil), do: ""
+  defp url_text(url_str) do
+    uri = URI.parse(url_str)
+    uri.host <> uri.path
   end
 end

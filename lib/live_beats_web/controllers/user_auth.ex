@@ -70,7 +70,7 @@ defmodule LiveBeatsWeb.UserAuth do
 
     conn
     |> renew_session()
-    |> redirect(to: "/")
+    |> redirect(to: Routes.sign_in_path(conn, :index))
   end
 
   @doc """

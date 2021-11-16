@@ -203,7 +203,7 @@ defmodule LiveBeats.MediaLibrary do
       where: s.status in [:playing],
       limit: ^Keyword.fetch!(opts, :limit),
       order_by: [desc: s.updated_at],
-      select: struct(u, [:id, :username, :profile_tagline])
+      select: struct(u, [:id, :username, :profile_tagline, :avatar_url, :external_homepage_url])
     )
     |> Repo.all()
     |> Enum.map(&get_profile!/1)
@@ -214,7 +214,13 @@ defmodule LiveBeats.MediaLibrary do
   end
 
   def get_profile!(%Accounts.User{} = user) do
-    %Profile{user_id: user.id, username: user.username, tagline: user.profile_tagline}
+    %Profile{
+      user_id: user.id,
+      username: user.username,
+      tagline: user.profile_tagline,
+      avatar_url: user.avatar_url,
+      external_homepage_url: user.external_homepage_url
+    }
   end
 
   def owns_profile?(%Accounts.User{} = user, %Profile{} = profile) do
