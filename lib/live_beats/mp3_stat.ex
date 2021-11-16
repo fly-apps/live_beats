@@ -8,7 +8,7 @@ defmodule LiveBeats.MP3Stat do
   use Bitwise
   alias LiveBeats.MP3Stat
 
-  defstruct duration: 0, path: nil
+  defstruct duration: 0, path: nil, title: nil, tags: nil
 
   @declared_frame_ids ~w(AENC APIC ASPI COMM COMR ENCR EQU2 ETCO GEOB GRID LINK MCDI MLLT OWNE PRIV PCNT POPM POSS RBUF RVA2 RVRB SEEK SIGN SYLT SYTC TALB TBPM TCOM TCON TCOP TDEN TDLY TDOR TDRC TDRL TDTG TENC TEXT TFLT TIPL TIT1 TIT2 TIT3 TKEY TLAN TLEN TMCL TMED TMOO TOAL TOFN TOLY TOPE TOWN TPE1 TPE2 TPE3 TPE4 TPOS TPRO TPUB TRCK TRSN TRSO TSOA TSOP TSOT TSRC TSSE TSST TXXX UFID USER USLT WCOM WCOP WOAF WOAR WOAS WORS WPAY WPUB WXXX)
 
@@ -34,9 +34,9 @@ defmodule LiveBeats.MP3Stat do
   end
 
   def parse(path) do
-    {%{} = _tag_info, rest} = parse_tag(File.read!(path))
+    {tag_info, rest} = parse_tag(File.read!(path))
     duration = parse_frame(rest, 0, 0, 0)
-    {:ok, %MP3Stat{duration: round(duration), path: path}}
+    {:ok, %MP3Stat{duration: round(duration), path: path, tags: tag_info, title: tag_info["TIT2"]}}
   rescue
     _ -> {:error, :bad_file}
   end
@@ -121,6 +121,7 @@ defmodule LiveBeats.MP3Stat do
            _encryption::size(1),
            _unsynchronized::size(1),
            _has_data_length_indicator::size(1),
+           _unused::size(1),
            rest::binary
          >>,
          tag_length_remaining,
@@ -189,7 +190,7 @@ defmodule LiveBeats.MP3Stat do
 
   defp decode_frame(id, frame_size, rest) do
     cond do
-      Regex.match?(~r/^T[0-9A-Z]$/, id) ->
+      Regex.match?(~r/^T[0-9A-Z]+$/, id) ->
         decode_text_frame(id, frame_size, rest)
 
       id in @declared_frame_ids ->
