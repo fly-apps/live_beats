@@ -333,7 +333,19 @@ defmodule LiveBeats.MediaLibrary do
         )
     end
 
-    Repo.delete(song)
+    Ecto.Multi.new()
+    |> Ecto.Multi.delete(:delete, song)
+    |> Ecto.Multi.update(:update_songs_number, fn _ ->
+      user = Accounts.get_user!(song.user_id)
+
+      user_params = %{
+        songs_number: user.songs_number - 1
+      }
+
+      Accounts.User.songs_changeset(user, user_params)
+    end)
+    |> Repo.transaction()
+
   end
 
   def change_song(song_or_changeset, attrs \\ %{})
