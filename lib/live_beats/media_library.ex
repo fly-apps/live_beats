@@ -158,6 +158,7 @@ defmodule LiveBeats.MediaLibrary do
           chset
           |> Song.put_user(user)
           |> Song.put_mp3_path()
+          |> Song.put_server_ip()
 
         Ecto.Multi.insert(acc, {:song, ref}, chset)
       end)

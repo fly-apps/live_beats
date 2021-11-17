@@ -52,7 +52,8 @@ defmodule LiveBeats.MixProject do
       {:plug_cowboy, "~> 2.5"},
       {:mint, "~> 1.0"},
       {:heroicons, "~> 0.2.2"},
-      {:castore, "~> 0.1.13"}
+      {:castore, "~> 0.1.13"},
+      {:ecto_network, "~> 1.3.0"}
     ]
   end
 

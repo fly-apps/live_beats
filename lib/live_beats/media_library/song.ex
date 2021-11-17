@@ -19,6 +19,7 @@ defmodule LiveBeats.MediaLibrary.Song do
     field :mp3_url, :string
     field :mp3_filepath, :string
     field :mp3_filename, :string
+    field :server_ip, EctoNetwork.INET
     belongs_to :user, Accounts.User
     belongs_to :genre, LiveBeats.MediaLibrary.Genre
 
@@ -32,7 +33,7 @@ defmodule LiveBeats.MediaLibrary.Song do
   @doc false
   def changeset(song, attrs) do
     song
-    |> cast(attrs, [:album_artist, :artist, :title, :attribution, :date_recorded, :date_released])
+    |> cast(attrs, [:album_artist, :artist, :title, :attribution, :date_recorded, :date_released, :server_ip])
     |> validate_required([:artist, :title])
     |> unique_constraint(:title,
       message: "is a duplicated from another song",
@@ -66,6 +67,13 @@ defmodule LiveBeats.MediaLibrary.Song do
     else
       changeset
     end
+  end
+
+  def put_server_ip(%Ecto.Changeset{} = changeset) do
+    server_ip = (System.get_env("LIVE_BEATS_SERVER_IP") || "127.0.0.1")
+
+    changeset
+    |> Ecto.Changeset.cast(%{server_ip: server_ip}, [:server_ip])
   end
 
   defp mp3_url(filename) do
