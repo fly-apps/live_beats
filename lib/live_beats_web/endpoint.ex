@@ -6,7 +6,7 @@ defmodule LiveBeatsWeb.Endpoint do
   # Set :encryption_salt if you would also like to encrypt it.
   @session_options [
     store: :cookie,
-    key: "_live_beats_key",
+    key: "_live_beats_key_v1",
     signing_salt: "9OALgV62"
   ]
 
