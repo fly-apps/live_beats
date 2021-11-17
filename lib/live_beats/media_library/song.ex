@@ -65,7 +65,7 @@ defmodule LiveBeats.MediaLibrary.Song do
   end
 
   defp mp3_url(filename) do
-    %{scheme: scheme, host: host, port: port} = Application.fetch_env!(:live_beats, :file_host)
+    %{scheme: scheme, host: host, port: port} = Enum.into(LiveBeats.config([:files, :host]), %{})
     URI.to_string(%URI{scheme: scheme, host: host, port: port, path: "/files/#{filename}"})
   end
 end

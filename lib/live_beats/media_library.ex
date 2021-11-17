@@ -34,7 +34,8 @@ defmodule LiveBeats.MediaLibrary do
   end
 
   def local_filepath(filename_uuid) when is_binary(filename_uuid) do
-    Path.join("priv/uploads/songs", filename_uuid)
+    dir = LiveBeats.config([:files, :uploads_dir])
+    Path.join([dir, "songs", filename_uuid])
   end
 
   def can_control_playback?(%Accounts.User{} = user, %Song{} = song) do

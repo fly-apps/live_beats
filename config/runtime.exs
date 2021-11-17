@@ -45,14 +45,13 @@ if config_env() == :prod do
     secret_key_base: secret_key_base,
     server: true
 
-  config :live_beats, :file_host, %{
-    scheme: "http",
-    host: host,
-    port: 80
-  }
+  config :live_beats, :files, [
+    uploads_dir: "/app/uploads",
+    host: [scheme: "https", host: host, port: 443],
+  ]
 
-  config :live_beats, :github, %{
+  config :live_beats, :github, [
     client_id: System.fetch_env!("LIVE_BEATS_GITHUB_CLIENT_ID"),
     client_secret: System.fetch_env!("LIVE_BEATS_GITHUB_CLIENT_SECRET"),
-  }
+  ]
 end

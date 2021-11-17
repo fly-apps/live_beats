@@ -13,7 +13,7 @@ processes = []
 
 [mounts]
   source="data"
-  destination="/app/live_beats/lib/live_beats-0.1.0/priv/uploads"
+  destination="/app/uploads"
 
 [experimental]
   allowed_public_ports = []

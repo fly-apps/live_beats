@@ -28,7 +28,7 @@ defmodule LiveBeats.Accounts do
   end
 
   def admin?(%User{} = user) do
-    user.email in Application.fetch_env!(:live_beats, :admin_emails)
+    user.email in LiveBeats.config([:admin_emails])
   end
 
   @doc """

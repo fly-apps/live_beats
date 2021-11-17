@@ -81,8 +81,8 @@ defmodule LiveBeats.Github do
     |> String.replace(["/", "+"], "-")
   end
 
-  defp client_id, do: Application.fetch_env!(:live_beats, :github)[:client_id]
-  defp secret, do: Application.fetch_env!(:live_beats, :github)[:client_secret]
+  defp client_id, do: LiveBeats.config([:github, :client_id])
+  defp secret, do: LiveBeats.config([:github, :client_secret])
 
   defp http(host, method, path, query, headers, body \\ "") do
     {:ok, conn} = Mint.HTTP.connect(:https, host, 443)

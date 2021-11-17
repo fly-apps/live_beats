@@ -1,15 +1,14 @@
 import Config
 
-config :live_beats, :file_host, %{
-  scheme: "http",
-  host: "localhost",
-  port: 4000
-}
+config :live_beats, :files, [
+  uploads_dir: Path.expand("../priv/uploads", __DIR__),
+  host: [scheme: "http", host: "localhost", port: 4000],
+]
 
-config :live_beats, :github, %{
+config :live_beats, :github, [
   client_id: System.fetch_env!("LIVE_BEATS_GITHUB_CLIENT_ID"),
   client_secret: System.fetch_env!("LIVE_BEATS_GITHUB_CLIENT_SECRET"),
-}
+]
 
 # Configure your database
 config :live_beats, LiveBeats.Repo,
