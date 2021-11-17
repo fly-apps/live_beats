@@ -41,7 +41,7 @@ defmodule LiveBeatsWeb.PlayerLive do
             redirect_to={profile_path(@profile)}
             class="mx-auto flex outline border-2 border-white border-opacity-20 rounded-md p-1 pr-2"
           >
-            <span class="mt-1"><.icon name={:user_circle}/></span>
+            <span class="mt-1"><.icon name={:user_circle} class="w-4 h-4 block"/></span>
             <p class="ml-2"><%= @profile.username %></p>
           </.link>
         <% else %>
