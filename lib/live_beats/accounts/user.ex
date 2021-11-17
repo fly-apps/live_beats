@@ -4,6 +4,8 @@ defmodule LiveBeats.Accounts.User do
 
   alias LiveBeats.Accounts.{User, Identity}
 
+  @max_songs 30
+
   schema "users" do
     field :email, :string
     field :name, :string
@@ -14,6 +16,7 @@ defmodule LiveBeats.Accounts.User do
     field :active_profile_user_id, :id
     field :avatar_url, :string
     field :external_homepage_url, :string
+    field :songs_number, :integer
 
     has_many :identities, Identity
 
@@ -57,6 +60,13 @@ defmodule LiveBeats.Accounts.User do
     |> cast(params, [:username, :profile_tagline])
     |> validate_required([:username, :profile_tagline])
     |> validate_username()
+  end
+
+  def songs_changeset(%User{} = user, params) do
+    user
+    |> cast(params, [:songs_number])
+    |> validate_required([:songs_number])
+    |> validate_number(:songs_number, less_than_or_equal_to: @max_songs)
   end
 
   defp validate_email(changeset) do

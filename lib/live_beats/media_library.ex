@@ -157,6 +157,16 @@ defmodule LiveBeats.MediaLibrary do
 
         Ecto.Multi.insert(acc, {:song, ref}, chset)
       end)
+      |> Ecto.Multi.update(:update_songs_number, fn acc ->
+        new_songs = acc |> Enum.filter(&match?({{:song, _ref}, _}, &1)) |> Enum.count()
+        user = Accounts.get_user!(user.id)
+
+        user_params = %{
+          songs_number: user.songs_number + new_songs
+        }
+
+        Accounts.User.songs_changeset(user, user_params)
+      end)
 
     case LiveBeats.Repo.transaction(multi) do
       {:ok, results} ->
@@ -169,8 +179,17 @@ defmodule LiveBeats.MediaLibrary do
          end)
          |> Enum.into(%{})}
 
-      {:error, _failed_op, _failed_val, _changes} ->
-        {:error, :invalid}
+      {:error, failed_op, failed_val, _changes} ->
+        reason =
+          case {failed_op, format_errors(failed_val)} do
+            {:update_songs_number, %{songs_number: _errors}} ->
+              {:songs_number, :songs_limit_exceeded}
+
+            _ ->
+              {:form, :invalid}
+          end
+
+        {:error, reason}
     end
   end
 
@@ -338,4 +357,12 @@ defmodule LiveBeats.MediaLibrary do
   end
 
   defp topic(user_id) when is_integer(user_id), do: "profile:#{user_id}"
+
+  defp format_errors(changeset) do
+    Changeset.traverse_errors(changeset, fn {message, opts} ->
+      Regex.replace(~r"%{(\w+)}", message, fn _, key ->
+        opts |> Keyword.get(String.to_existing_atom(key), key) |> to_string()
+      end)
+    end)
+  end
 end
