@@ -102,23 +102,25 @@ defmodule LiveBeatsWeb.LayoutView do
         <div class="py-1" role="none">
           <.link
             role="menuitem"
+            tabindex="-1"
             redirect_to={profile_path(@current_user)}
-            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-purple-500"
           >View Profile</.link>
           <.link
             role="menuitem"
+            tabindex="-1"
             redirect_to={Routes.settings_path(LiveBeatsWeb.Endpoint, :edit)}
-            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem"
+            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-purple-500"
           >Settings</.link>
         </div>
 
         <div class="py-1" role="none">
           <.link
             role="menuitem"
+            tabindex="-1"
             href={Routes.o_auth_callback_path(LiveBeatsWeb.Endpoint, :sign_out)}
             method={:delete}
-            role="menuitem"
-            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-purple-500"
           >Sign out</.link>
         </div>
       </div>

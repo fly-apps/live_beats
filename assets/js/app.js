@@ -19,48 +19,59 @@ Hooks.Menu = {
     return val
   },
   reset(){
+    this.enabled = true
     this.activeClass = this.getAttr("data-active-class")
     this.deactivate(this.menuItems())
     this.activeItem = null
+    window.removeEventListener("keydown", this.handleKeyDown)
   },
+  destroyed(){ this.reset() },
   mounted(){
     this.menuItemsContainer = document.querySelector(`[aria-labelledby="${this.el.id}"]`)
     this.reset()
     this.el.addEventListener("click", e => {
-      if(e.currentTarget.isSameNode(this.el)){
-        this.el.focus()
-        this.activate(0)
-      }
-    })
-    this.el.addEventListener("keydown", e => {
-      if(e.key === "Escape"){
-        document.body.click()
+      // disable if button clicked and click was not a keyboard event
+      if(e.currentTarget.isSameNode(this.el) && e.detail !== 0){
         this.reset()
-      } else if(e.key === "Enter" && !this.activeItem){
-        this.activate(0)
-      } else if(e.key === "Enter"){
-        this.activeItem.click()
-      }
-      if(e.key === "ArrowDown"){
-        e.preventDefault()
-        let menuItems = this.menuItems()
-        this.deactivate(menuItems)
-        this.activate(menuItems.indexOf(this.activeItem) + 1, menuItems.length - 1)
-      } else if(e.key === "ArrowUp"){
-        e.preventDefault()
-        let menuItems = this.menuItems()
-        this.deactivate(menuItems)
-        this.activate(menuItems.indexOf(this.activeItem) - 1, 0)
+        this.enabled = false
       }
     })
+    this.handleKeyDown = (e) => this.onKeyDown(e)
+    this.menuItemsContainer.addEventListener("phx:show", () => {
+      if(this.enabled){ this.activate(0) }
+      window.addEventListener("keydown", this.handleKeyDown)
+    })
+    this.menuItemsContainer.addEventListener("phx:hide", () => this.reset())
   },
   activate(index, fallbackIndex){
     let menuItems = this.menuItems()
     this.activeItem = menuItems[index] || menuItems[fallbackIndex]
     this.activeItem.classList.add(this.activeClass)
+    this.activeItem.focus()
   },
   deactivate(items){ items.forEach(item => item.classList.remove(this.activeClass)) },
-  menuItems(){ return Array.from(this.menuItemsContainer.querySelectorAll("[role=menuitem]")) }
+  menuItems(){ return Array.from(this.menuItemsContainer.querySelectorAll("[role=menuitem]")) },
+  onKeyDown(e){
+    if(e.key === "Escape"){
+      document.body.click()
+      this.reset()
+    } else if(e.key === "Enter" && !this.activeItem){
+      this.activate(0)
+    } else if(e.key === "Enter"){
+      this.activeItem.click()
+    }
+    if(e.key === "ArrowDown"){
+      e.preventDefault()
+      let menuItems = this.menuItems()
+      this.deactivate(menuItems)
+      this.activate(menuItems.indexOf(this.activeItem) + 1, menuItems.length - 1)
+    } else if(e.key === "ArrowUp"){
+      e.preventDefault()
+      let menuItems = this.menuItems()
+      this.deactivate(menuItems)
+      this.activate(menuItems.indexOf(this.activeItem) - 1, 0)
+    }
+  }
 }
 
 Hooks.Flash = {
