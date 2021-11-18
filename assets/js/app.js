@@ -29,17 +29,19 @@ Hooks.Menu = {
   mounted(){
     this.menuItemsContainer = document.querySelector(`[aria-labelledby="${this.el.id}"]`)
     this.reset()
-    this.el.addEventListener("click", e => {
-      // disable if button clicked and click was not a keyboard event
-      if(e.currentTarget.isSameNode(this.el) && e.detail !== 0){
-        this.reset()
-        this.enabled = false
-      }
-    })
     this.handleKeyDown = (e) => this.onKeyDown(e)
-    this.menuItemsContainer.addEventListener("phx:show", () => {
-      if(this.enabled){ this.activate(0) }
+    this.el.addEventListener("click", e => {
+      if(!e.currentTarget.isSameNode(this.el)){ return }
+
       window.addEventListener("keydown", this.handleKeyDown)
+      // disable if button clicked and click was not a keyboard event
+      if(e.detail !== 0){
+        this.enabled = false
+      } else {
+        if(this.enabled){
+          window.requestAnimationFrame(() => this.activate(0))
+        }
+      }
     })
     this.menuItemsContainer.addEventListener("phx:hide", () => this.reset())
   },
@@ -64,12 +66,12 @@ Hooks.Menu = {
       e.preventDefault()
       let menuItems = this.menuItems()
       this.deactivate(menuItems)
-      this.activate(menuItems.indexOf(this.activeItem) + 1, menuItems.length - 1)
+      this.activate(menuItems.indexOf(this.activeItem) + 1, 0)
     } else if(e.key === "ArrowUp"){
       e.preventDefault()
       let menuItems = this.menuItems()
       this.deactivate(menuItems)
-      this.activate(menuItems.indexOf(this.activeItem) - 1, 0)
+      this.activate(menuItems.indexOf(this.activeItem) - 1, menuItems.length - 1)
     }
   }
 }
