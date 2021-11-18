@@ -161,12 +161,7 @@ defmodule LiveBeats.MediaLibrary do
       |> Ecto.Multi.run(:valid_songs_number, fn _repo, changes ->
         user = Accounts.get_user!(user.id)
         new_songs_count = changes |> Enum.filter(&match?({{:song, _ref}, _}, &1)) |> Enum.count()
-
-        if user.songs_number + new_songs_count <= @max_songs do
-          {:ok, new_songs_count}
-        else
-          {:error, :songs_limit_exceeded}
-        end
+        validate_songs_limit(user.songs_number, new_songs_count)
       end)
       |> Ecto.Multi.update_all(
         :update_songs_number,
@@ -199,7 +194,7 @@ defmodule LiveBeats.MediaLibrary do
       {:error, failed_op, failed_val, _changes} ->
         failed_op =
           case failed_op do
-            {:song, number} -> "Song ##{String.to_integer(number) + 1}"
+            {:song, _number} -> :invalid_song
             :is_songs_number_updated? -> :invalid
             failed_op -> failed_op
           end
@@ -350,15 +345,16 @@ defmodule LiveBeats.MediaLibrary do
 
     Ecto.Multi.new()
     |> Ecto.Multi.delete(:delete, song)
-    |> Ecto.Multi.update(:update_songs_number, fn _ ->
-      user = Accounts.get_user!(song.user_id)
-
-      user_params = %{
-        songs_number: user.songs_number - 1
-      }
-
-      Accounts.User.songs_changeset(user, user_params)
-    end)
+    |> Ecto.Multi.update_all(
+        :update_songs_number,
+        fn _ ->
+          from(u in Accounts.User,
+            where: u.id == ^song.user_id,
+            update: [inc: [songs_number: -1]]
+          )
+        end,
+        []
+      )
     |> Repo.transaction()
 
   end
@@ -384,4 +380,12 @@ defmodule LiveBeats.MediaLibrary do
   end
 
   defp topic(user_id) when is_integer(user_id), do: "profile:#{user_id}"
+
+  defp validate_songs_limit(user_songs, new_songs_count) do
+    if user_songs + new_songs_count <= @max_songs do
+      {:ok, new_songs_count}
+    else
+      {:error, :songs_limit_exceeded}
+    end
+  end
 end
