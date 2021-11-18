@@ -32,7 +32,7 @@ defmodule LiveBeatsWeb.SongLive.Index do
           </.button>
         <% end %>
         <%= if @owns_profile? do %>
-          <.button primary patch_to={Routes.song_index_path(@socket, :new)}>
+          <.button primary patch_to={Routes.song_index_path(@socket, :new, @current_user.username)}>
             <.icon name={:upload}/><span class="ml-2">Upload Songs</span>
           </.button>
         <% end %>
@@ -106,7 +106,8 @@ defmodule LiveBeatsWeb.SongLive.Index do
   end
 
   def handle_params(params, _url, socket) do
-    {:noreply, socket |> apply_action(socket.assigns.live_action, params) |> maybe_show_modal()}
+    LayoutComponent.hide_modal()
+    {:noreply, socket |> apply_action(socket.assigns.live_action, params)}
   end
 
   def handle_event("play_or_pause", %{"id" => id}, socket) do
@@ -196,33 +197,36 @@ defmodule LiveBeatsWeb.SongLive.Index do
     end
   end
 
-  defp maybe_show_modal(socket) do
-    if socket.assigns.live_action in [:new] do
-      LayoutComponent.show_modal(UploadFormComponent, %{
-        id: :new,
-        confirm: {"Save", type: "submit", form: "song-form"},
-        patch_to: profile_path(socket.assigns.current_user),
-        song: socket.assigns.song,
-        title: socket.assigns.page_title,
-        current_user: socket.assigns.current_user
-      })
-    else
-      LayoutComponent.hide_modal()
-    end
-
-    socket
-  end
-
   defp apply_action(socket, :new, _params) do
-    socket
-    |> assign(:page_title, "Add Songs")
-    |> assign(:song, %MediaLibrary.Song{})
+    if socket.assigns.owns_profile? do
+      socket
+      |> assign(:page_title, "Add Songs")
+      |> assign(:song, %MediaLibrary.Song{})
+      |> show_upload_modal()
+    else
+      socket
+      |> put_flash(:error, "You can't do that")
+      |> redirect(to: profile_path(socket.assigns.current_user))
+    end
   end
 
   defp apply_action(socket, :index, _params) do
     socket
     |> assign(:page_title, "Listing Songs")
     |> assign(:song, nil)
+  end
+
+  defp show_upload_modal(socket) do
+    LayoutComponent.show_modal(UploadFormComponent, %{
+      id: :new,
+      confirm: {"Save", type: "submit", form: "song-form"},
+      patch_to: profile_path(socket.assigns.current_user),
+      song: socket.assigns.song,
+      title: socket.assigns.page_title,
+      current_user: socket.assigns.current_user
+    })
+
+    socket
   end
 
   defp list_songs(socket) do
@@ -235,6 +239,7 @@ defmodule LiveBeatsWeb.SongLive.Index do
   end
 
   defp url_text(nil), do: ""
+
   defp url_text(url_str) do
     uri = URI.parse(url_str)
     uri.host <> uri.path
