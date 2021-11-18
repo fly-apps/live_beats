@@ -27,9 +27,9 @@ processes = []
   script_checks = []
 
   [services.concurrency]
-    hard_limit = 25
-    soft_limit = 20
-    type = "requests"
+    hard_limit = 2500
+    soft_limit = 2000
+    type = "connections"
 
   [[services.ports]]
     handlers = ["http"]
