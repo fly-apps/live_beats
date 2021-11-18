@@ -56,6 +56,7 @@ Hooks.Menu = {
   onKeyDown(e){
     if(e.key === "Escape"){
       document.body.click()
+      this.el.focus()
       this.reset()
     } else if(e.key === "Enter" && !this.activeItem){
       this.activate(0)
