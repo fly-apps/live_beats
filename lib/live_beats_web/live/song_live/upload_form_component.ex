@@ -157,6 +157,10 @@ defmodule LiveBeatsWeb.SongLive.UploadFormComponent do
 
   defp file_error(%{kind: :invalid} = assigns), do: ~H|Something went wrong|
 
+  defp file_error(%{kind: %Ecto.Changeset{} = changeset} = assigns)  do
+    ~H|<%=  LiveBeatsWeb.ErrorHelpers.translate_changeset_errors(@kind) %>|
+  end
+
   defp file_error(%{kind: {msg, opts}} = assigns) when is_binary(msg) and is_list(opts) do
     ~H|<%= LiveBeatsWeb.ErrorHelpers.translate_error(@kind) %>|
   end

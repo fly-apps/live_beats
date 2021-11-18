@@ -11,6 +11,7 @@ defmodule LiveBeats.MediaLibrary do
 
   @pubsub LiveBeats.PubSub
   @auto_next_threshold_seconds 5
+  @max_songs 30
 
   defdelegate stopped?(song), to: Song
   defdelegate playing?(song), to: Song
@@ -157,15 +158,31 @@ defmodule LiveBeats.MediaLibrary do
 
         Ecto.Multi.insert(acc, {:song, ref}, chset)
       end)
-      |> Ecto.Multi.update(:update_songs_number, fn acc ->
-        new_songs = acc |> Enum.filter(&match?({{:song, _ref}, _}, &1)) |> Enum.count()
+      |> Ecto.Multi.run(:valid_songs_number, fn _repo, changes ->
         user = Accounts.get_user!(user.id)
+        new_songs_count = changes |> Enum.filter(&match?({{:song, _ref}, _}, &1)) |> Enum.count()
 
-        user_params = %{
-          songs_number: user.songs_number + new_songs
-        }
-
-        Accounts.User.songs_changeset(user, user_params)
+        if user.songs_number + new_songs_count <= @max_songs do
+          {:ok, new_songs_count}
+        else
+          {:error, :songs_limit_exceeded}
+        end
+      end)
+      |> Ecto.Multi.update_all(
+        :update_songs_number,
+        fn %{valid_songs_number: new_songs_count} ->
+          from(u in Accounts.User,
+            where: u.id == ^user.id and u.songs_number == ^user.songs_number,
+            update: [inc: [songs_number: ^new_songs_count]]
+          )
+        end,
+        []
+      )
+      |> Ecto.Multi.run(:is_songs_number_updated?, fn _repo, %{update_songs_number: result} ->
+        case result do
+          {1, _} -> {:ok, user}
+          _ -> {:error, :invalid}
+        end
       end)
 
     case LiveBeats.Repo.transaction(multi) do
@@ -180,16 +197,14 @@ defmodule LiveBeats.MediaLibrary do
          |> Enum.into(%{})}
 
       {:error, failed_op, failed_val, _changes} ->
-        reason =
-          case {failed_op, format_errors(failed_val)} do
-            {:update_songs_number, %{songs_number: _errors}} ->
-              {:songs_number, :songs_limit_exceeded}
-
-            _ ->
-              {:form, :invalid}
+        failed_op =
+          case failed_op do
+            {:song, number} -> "Song ##{String.to_integer(number) + 1}"
+            :is_songs_number_updated? -> :invalid
+            failed_op -> failed_op
           end
 
-        {:error, reason}
+        {:error, {failed_op, failed_val}}
     end
   end
 
@@ -369,12 +384,4 @@ defmodule LiveBeats.MediaLibrary do
   end
 
   defp topic(user_id) when is_integer(user_id), do: "profile:#{user_id}"
-
-  defp format_errors(changeset) do
-    Changeset.traverse_errors(changeset, fn {message, opts} ->
-      Regex.replace(~r"%{(\w+)}", message, fn _, key ->
-        opts |> Keyword.get(String.to_existing_atom(key), key) |> to_string()
-      end)
-    end)
-  end
 end
