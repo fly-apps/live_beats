@@ -173,6 +173,7 @@ defmodule LiveBeatsWeb.LiveHelpers do
         {"transition ease-out duration-120", "transform opacity-0 scale-95",
          "transform opacity-100 scale-100"}
     )
+    |> JS.set_attribute({"aria-expanded", "true"}, to: to)
   end
 
   def hide_dropdown(to) do
@@ -182,6 +183,7 @@ defmodule LiveBeatsWeb.LiveHelpers do
         {"transition ease-in duration-120", "transform opacity-100 scale-100",
          "transform opacity-0 scale-95"}
     )
+    |> JS.remove_attribute("aria-expanded", to: to)
   end
 
   def show_modal(js \\ %JS{}, id) when is_binary(id) do

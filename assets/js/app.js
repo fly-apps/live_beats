@@ -12,6 +12,57 @@ let execJS = (selector, attr) => {
 
 let Hooks = {}
 
+Hooks.Menu = {
+  getAttr(name){
+    let val = this.el.getAttribute(name)
+    if(val === null){ throw(new Error(`no ${name} attribute configured for menu`)) }
+    return val
+  },
+  reset(){
+    this.activeClass = this.getAttr("data-active-class")
+    this.deactivate(this.menuItems())
+    this.activeItem = null
+  },
+  mounted(){
+    this.menuItemsContainer = document.querySelector(`[aria-labelledby="${this.el.id}"]`)
+    this.reset()
+    this.el.addEventListener("click", e => {
+      if(e.currentTarget.isSameNode(this.el)){
+        this.el.focus()
+        this.activate(0)
+      }
+    })
+    this.el.addEventListener("keydown", e => {
+      if(e.key === "Escape"){
+        document.body.click()
+        this.reset()
+      } else if(e.key === "Enter" && !this.activeItem){
+        this.activate(0)
+      } else if(e.key === "Enter"){
+        this.activeItem.click()
+      }
+      if(e.key === "ArrowDown"){
+        e.preventDefault()
+        let menuItems = this.menuItems()
+        this.deactivate(menuItems)
+        this.activate(menuItems.indexOf(this.activeItem) + 1, menuItems.length - 1)
+      } else if(e.key === "ArrowUp"){
+        e.preventDefault()
+        let menuItems = this.menuItems()
+        this.deactivate(menuItems)
+        this.activate(menuItems.indexOf(this.activeItem) - 1, 0)
+      }
+    })
+  },
+  activate(index, fallbackIndex){
+    let menuItems = this.menuItems()
+    this.activeItem = menuItems[index] || menuItems[fallbackIndex]
+    this.activeItem.classList.add(this.activeClass)
+  },
+  deactivate(items){ items.forEach(item => item.classList.remove(this.activeClass)) },
+  menuItems(){ return Array.from(this.menuItemsContainer.querySelectorAll("[role=menuitem]")) }
+}
+
 Hooks.Flash = {
 	mounted(){
     let hide = () => this.el.click()

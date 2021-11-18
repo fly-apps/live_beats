@@ -68,7 +68,7 @@ defmodule LiveBeatsWeb.LayoutView do
     <!-- User account dropdown -->
     <div class="px-3 mt-6 relative inline-block text-left">
       <div>
-        <button type="button"
+        <button id={"#{@id}-menu"} type="button" phx-hook="Menu" data-active-class="bg-gray-100"
           class="group w-full bg-gray-100 rounded-md px-3.5 py-2 text-sm text-left font-medium text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-purple-500"
           phx-click={show_dropdown("##{@id}-dropdown")}>
           <span class="flex w-full justify-between items-center">
@@ -91,13 +91,22 @@ defmodule LiveBeatsWeb.LayoutView do
           </span>
         </button>
       </div>
-      <div id={"#{@id}-dropdown"} phx-click-away={hide_dropdown("##{@id}-dropdown")} class="hidden z-10 mx-3 origin-top absolute right-0 left-0 mt-1 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-200" role="menu" aria-expanded="true">
+      <div
+        id={"#{@id}-dropdown"}
+        phx-click-away={hide_dropdown("##{@id}-dropdown")}
+        class="hidden z-10 mx-3 origin-top absolute right-0 left-0 mt-1 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-200"
+        role="menu"
+        aria-labelledby={"#{@id}-menu"}
+        phx-update="ignore"
+      >
         <div class="py-1" role="none">
           <.link
+            role="menuitem"
             redirect_to={profile_path(@current_user)}
             class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
           >View Profile</.link>
           <.link
+            role="menuitem"
             redirect_to={Routes.settings_path(LiveBeatsWeb.Endpoint, :edit)}
             class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem"
           >Settings</.link>
@@ -105,6 +114,7 @@ defmodule LiveBeatsWeb.LayoutView do
 
         <div class="py-1" role="none">
           <.link
+            role="menuitem"
             href={Routes.o_auth_callback_path(LiveBeatsWeb.Endpoint, :sign_out)}
             method={:delete}
             role="menuitem"
