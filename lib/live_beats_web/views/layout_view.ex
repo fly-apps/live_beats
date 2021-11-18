@@ -68,9 +68,15 @@ defmodule LiveBeatsWeb.LayoutView do
     <!-- User account dropdown -->
     <div class="px-3 mt-6 relative inline-block text-left">
       <div>
-        <button id={"#{@id}-menu"} type="button" phx-hook="Menu" data-active-class="bg-gray-100"
+        <button
+          id={"#{@id}-menu"}
+          type="button"
           class="group w-full bg-gray-100 rounded-md px-3.5 py-2 text-sm text-left font-medium text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-purple-500"
-          phx-click={show_dropdown("##{@id}-dropdown")}>
+          phx-click={show_dropdown("##{@id}-dropdown")}
+          phx-hook="Menu"
+          data-active-class="bg-gray-100"
+          aria-haspopup="true"
+        >
           <span class="flex w-full justify-between items-center">
             <span class="flex min-w-0 items-center justify-between space-x-3">
               <img class="w-10 h-10 bg-gray-300 rounded-full flex-shrink-0"
