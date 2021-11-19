@@ -22,9 +22,8 @@ defmodule LiveBeatsWeb.LiveHelpers do
       <div
         id="flash"
         class="rounded-md bg-green-50 p-4 top-0 right-0 w-96 fade-in-scale"
-        phx-click="lv:clear-flash"
+        phx-click={JS.push("lv:clear-flash") |> JS.remove_class("fade-in-scale", to: "#flash") |> hide("#flash")}
         phx-value-key="error"
-        phx-remove={JS.remove_class("fade-in-scale", to: "#flash") |> hide("#flash")}
         phx-hook="Flash"
       >
         <div class="flex">
@@ -55,9 +54,8 @@ defmodule LiveBeatsWeb.LiveHelpers do
       <div
         id="flash"
         class="rounded-md bg-green-50 p-4 fixed top-1 right-1 w-96 fade-in-scale"
-        phx-click="lv:clear-flash"
+        phx-click={JS.push("lv:clear-flash") |> JS.remove_class("fade-in-scale") |> hide("#flash")}
         phx-value-key="info"
-        phx-remove={JS.remove_class("fade-in-scale", to: "#flash") |> hide("#flash")}
         phx-hook="Flash"
       >
         <div class="flex">

@@ -12,6 +12,19 @@ let execJS = (selector, attr) => {
 
 let Hooks = {}
 
+Hooks.Flash = {
+  mounted(){
+    let hide = () => liveSocket.execJS(this.el, this.el.getAttribute("phx-click"))
+    this.timer = setTimeout(() => hide(), 8000)
+    this.el.addEventListener("phx:hide-start", () => clearTimeout(this.timer))
+    this.el.addEventListener("mouseover", () => {
+      clearTimeout(this.timer)
+      this.timer = setTimeout(() => hide(), 8000)
+    })
+  },
+  destroyed(){ clearTimeout(this.timer) }
+}
+
 Hooks.Menu = {
   getAttr(name){
     let val = this.el.getAttribute(name)
@@ -76,17 +89,6 @@ Hooks.Menu = {
       this.activate(menuItems.indexOf(this.activeItem) - 1, menuItems.length - 1)
     }
   }
-}
-
-Hooks.Flash = {
-	mounted(){
-    let hide = () => this.el.click()
-    let timer = setTimeout(() => hide(), 8000)
-    this.el.addEventListener("mouseover", () => {
-      clearTimeout(timer)
-      timer = setTimeout(() => hide(), 8000)
-    })
-	}
 }
 
 Hooks.AudioPlayer = {
@@ -159,7 +161,7 @@ Hooks.AudioPlayer = {
       clearInterval(this.progressTimer)
       return
     }
-		this.progress.style.width = `${(this.player.currentTime / (this.player.duration) * 100)}%`
+    this.progress.style.width = `${(this.player.currentTime / (this.player.duration) * 100)}%`
     this.duration.innerText = this.formatTime(this.player.duration)
     this.currentTime.innerText = this.formatTime(this.player.currentTime)
   },
@@ -169,7 +171,7 @@ Hooks.AudioPlayer = {
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, {
-	hooks: Hooks,
+  hooks: Hooks,
   params: {_csrf_token: csrfToken}
 })
 
