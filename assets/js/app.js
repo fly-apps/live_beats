@@ -19,7 +19,7 @@ Hooks.Menu = {
     return val
   },
   reset(){
-    this.enabled = true
+    this.enabled = false
     this.activeClass = this.getAttr("data-active-class")
     this.deactivate(this.menuItems())
     this.activeItem = null
@@ -30,17 +30,18 @@ Hooks.Menu = {
     this.menuItemsContainer = document.querySelector(`[aria-labelledby="${this.el.id}"]`)
     this.reset()
     this.handleKeyDown = (e) => this.onKeyDown(e)
+    this.el.addEventListener("keydown", e => {
+      if((e.key === "Enter" || e.key === " ") && e.currentTarget.isSameNode(this.el)){
+        this.enabled = true
+      }
+    })
     this.el.addEventListener("click", e => {
       if(!e.currentTarget.isSameNode(this.el)){ return }
 
       window.addEventListener("keydown", this.handleKeyDown)
       // disable if button clicked and click was not a keyboard event
-      if(e.detail !== 0){
-        this.enabled = false
-      } else {
-        if(this.enabled){
-          window.requestAnimationFrame(() => this.activate(0))
-        }
+      if(this.enabled){
+        window.requestAnimationFrame(() => this.activate(0))
       }
     })
     this.menuItemsContainer.addEventListener("phx:hide", () => this.reset())
