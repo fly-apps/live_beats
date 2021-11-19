@@ -11,6 +11,7 @@ defmodule LiveBeats.MediaLibrary do
 
   @pubsub LiveBeats.PubSub
   @auto_next_threshold_seconds 5
+  @max_songs 30
 
   defdelegate stopped?(song), to: Song
   defdelegate playing?(song), to: Song
@@ -157,6 +158,27 @@ defmodule LiveBeats.MediaLibrary do
 
         Ecto.Multi.insert(acc, {:song, ref}, chset)
       end)
+      |> Ecto.Multi.run(:valid_songs_number, fn _repo, changes ->
+        user = Accounts.get_user!(user.id)
+        new_songs_count = changes |> Enum.filter(&match?({{:song, _ref}, _}, &1)) |> Enum.count()
+        validate_songs_limit(user.songs_number, new_songs_count)
+      end)
+      |> Ecto.Multi.update_all(
+        :update_songs_number,
+        fn %{valid_songs_number: new_songs_count} ->
+          from(u in Accounts.User,
+            where: u.id == ^user.id and u.songs_number == ^user.songs_number,
+            update: [inc: [songs_number: ^new_songs_count]]
+          )
+        end,
+        []
+      )
+      |> Ecto.Multi.run(:is_songs_number_updated?, fn _repo, %{update_songs_number: result} ->
+        case result do
+          {1, _} -> {:ok, user}
+          _ -> {:error, :invalid}
+        end
+      end)
 
     case LiveBeats.Repo.transaction(multi) do
       {:ok, results} ->
@@ -169,8 +191,15 @@ defmodule LiveBeats.MediaLibrary do
          end)
          |> Enum.into(%{})}
 
-      {:error, _failed_op, _failed_val, _changes} ->
-        {:error, :invalid}
+      {:error, failed_op, failed_val, _changes} ->
+        failed_op =
+          case failed_op do
+            {:song, _number} -> :invalid_song
+            :is_songs_number_updated? -> :invalid
+            failed_op -> failed_op
+          end
+
+        {:error, {failed_op, failed_val}}
     end
   end
 
@@ -314,7 +343,20 @@ defmodule LiveBeats.MediaLibrary do
         )
     end
 
-    Repo.delete(song)
+    Ecto.Multi.new()
+    |> Ecto.Multi.delete(:delete, song)
+    |> Ecto.Multi.update_all(
+        :update_songs_number,
+        fn _ ->
+          from(u in Accounts.User,
+            where: u.id == ^song.user_id,
+            update: [inc: [songs_number: -1]]
+          )
+        end,
+        []
+      )
+    |> Repo.transaction()
+
   end
 
   def change_song(song_or_changeset, attrs \\ %{})
@@ -338,4 +380,12 @@ defmodule LiveBeats.MediaLibrary do
   end
 
   defp topic(user_id) when is_integer(user_id), do: "profile:#{user_id}"
+
+  defp validate_songs_limit(user_songs, new_songs_count) do
+    if user_songs + new_songs_count <= @max_songs do
+      {:ok, new_songs_count}
+    else
+      {:error, :songs_limit_exceeded}
+    end
+  end
 end

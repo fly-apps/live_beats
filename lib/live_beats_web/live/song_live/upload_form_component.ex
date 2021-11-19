@@ -52,12 +52,16 @@ defmodule LiveBeatsWeb.SongLive.UploadFormComponent do
       case MediaLibrary.import_songs(current_user, changesets, &consume_entry(socket, &1, &2)) do
         {:ok, songs} ->
           {:noreply,
-          socket
-          |> put_flash(:info, "#{map_size(songs)} song(s) uploaded")
-          |> push_redirect(to: profile_path(current_user))}
+           socket
+           |> put_flash(:info, "#{map_size(songs)} song(s) uploaded")
+           |> push_redirect(to: profile_path(current_user))}
 
-        {:error, _reason} ->
-          {:noreply, socket}
+        {:error, error} ->
+          updated_socket =
+            socket
+            |> update(:error_messages, &Enum.take(&1 ++ [error], -10))
+
+          {:noreply, updated_socket}
       end
     end
   end
@@ -148,6 +152,15 @@ defmodule LiveBeatsWeb.SongLive.UploadFormComponent do
   defp file_error(%{kind: :not_accepted} = assigns), do: ~H|not a valid MP3 file|
   defp file_error(%{kind: :too_many_files} = assigns), do: ~H|too many files|
 
+  defp file_error(%{kind: :songs_limit_exceeded} = assigns),
+    do: ~H|You exceeded the limit of songs per account|
+
+  defp file_error(%{kind: :invalid} = assigns), do: ~H|Something went wrong|
+
+  defp file_error(%{kind: %Ecto.Changeset{} = changeset} = assigns)  do
+    ~H|<%=  LiveBeatsWeb.ErrorHelpers.translate_changeset_errors(@kind) %>|
+  end
+
   defp file_error(%{kind: {msg, opts}} = assigns) when is_binary(msg) and is_list(opts) do
     ~H|<%= LiveBeatsWeb.ErrorHelpers.translate_error(@kind) %>|
   end
@@ -190,7 +203,7 @@ defmodule LiveBeatsWeb.SongLive.UploadFormComponent do
     socket
     |> cancel_upload(:mp3, entry.ref)
     |> drop_changeset(entry.ref)
-    |> update(:error_messages, &(Enum.take(&1 ++ [{entry.client_name, reason}], -10)))
+    |> update(:error_messages, &Enum.take(&1 ++ [{entry.client_name, reason}], -10))
   end
 
   defp get_entry!(socket, entry_ref) do

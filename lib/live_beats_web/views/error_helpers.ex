@@ -63,4 +63,10 @@ defmodule LiveBeatsWeb.ErrorHelpers do
       Gettext.dgettext(LiveBeatsWeb.Gettext, "errors", msg, opts)
     end
   end
+
+  def translate_changeset_errors(changeset) do
+    changeset.errors
+    |> Enum.map(fn {key, value} -> "#{key} #{translate_error(value)}" end)
+    |> Enum.join("\n")
+  end
 end
