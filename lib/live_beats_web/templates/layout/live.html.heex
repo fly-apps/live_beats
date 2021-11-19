@@ -28,7 +28,7 @@
 
       <nav class="px-2">
         <%= if @current_user do %>
-          <.sidebar_nav_links current_user={@current_user}/>
+          <.sidebar_nav_links current_user={@current_user} active_tab={@active_tab}/>
         <% end %>
         <.sidebar_active_users id="desktop-active-users" users={@active_users}/>
       </nav>
@@ -73,7 +73,7 @@
       <!-- Navigation -->
       <nav class="px-3 mt-6">
         <%= if @current_user do %>
-          <.sidebar_nav_links current_user={@current_user}/>
+          <.sidebar_nav_links current_user={@current_user} active_tab={@active_tab}/>
         <% end %>
         <!-- Secondary navigation -->
         <.sidebar_active_users id="mobile-active-users" users={@active_users}/>
