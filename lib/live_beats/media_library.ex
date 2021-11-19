@@ -196,7 +196,7 @@ defmodule LiveBeats.MediaLibrary do
       {:error, failed_op, failed_val, _changes} ->
         failed_op =
           case failed_op do
-            {:song, _number} -> :invalid_song
+            {:song, _number} -> "Invalid song (#{failed_val.changes.title})"
             :is_songs_count_updated? -> :invalid
             failed_op -> failed_op
           end
