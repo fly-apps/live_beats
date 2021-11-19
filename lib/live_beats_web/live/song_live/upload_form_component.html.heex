@@ -30,8 +30,8 @@
                     </h3>
                     <div class="mt-2 text-sm text-red-700">
                       <ul role="list" class="list-disc pl-5 space-y-1">
-                        <%= for {client_name, kind} <- @error_messages do %>
-                          <li><%= client_name %>: <.file_error kind={kind} /></li>
+                        <%= for {label, kind} <- @error_messages do %>
+                          <li><.file_error label={label} kind={kind} /></li>
                         <% end %>
                       </ul>
                     </div>

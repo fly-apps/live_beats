@@ -15,7 +15,7 @@ defmodule LiveBeats.Accounts.User do
     field :active_profile_user_id, :id
     field :avatar_url, :string
     field :external_homepage_url, :string
-    field :songs_number, :integer
+    field :songs_count, :integer
 
     has_many :identities, Identity
 

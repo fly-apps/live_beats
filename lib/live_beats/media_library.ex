@@ -149,6 +149,9 @@ defmodule LiveBeats.MediaLibrary do
 
   def import_songs(%Accounts.User{} = user, changesets, consume_file)
       when is_map(changesets) and is_function(consume_file, 2) do
+    # refetch user for fresh song count
+    user = Accounts.get_user!(user.id)
+
     multi =
       Enum.reduce(changesets, Ecto.Multi.new(), fn {ref, chset}, acc ->
         chset =
@@ -158,22 +161,21 @@ defmodule LiveBeats.MediaLibrary do
 
         Ecto.Multi.insert(acc, {:song, ref}, chset)
       end)
-      |> Ecto.Multi.run(:valid_songs_number, fn _repo, changes ->
-        user = Accounts.get_user!(user.id)
+      |> Ecto.Multi.run(:valid_songs_count, fn _repo, changes ->
         new_songs_count = changes |> Enum.filter(&match?({{:song, _ref}, _}, &1)) |> Enum.count()
-        validate_songs_limit(user.songs_number, new_songs_count)
+        validate_songs_limit(user.songs_count, new_songs_count)
       end)
       |> Ecto.Multi.update_all(
-        :update_songs_number,
-        fn %{valid_songs_number: new_songs_count} ->
+        :update_songs_count,
+        fn %{valid_songs_count: new_count} ->
           from(u in Accounts.User,
-            where: u.id == ^user.id and u.songs_number == ^user.songs_number,
-            update: [inc: [songs_number: ^new_songs_count]]
+            where: u.id == ^user.id and u.songs_count == ^user.songs_count,
+            update: [inc: [songs_count: ^new_count]]
           )
         end,
         []
       )
-      |> Ecto.Multi.run(:is_songs_number_updated?, fn _repo, %{update_songs_number: result} ->
+      |> Ecto.Multi.run(:is_songs_count_updated?, fn _repo, %{update_songs_count: result} ->
         case result do
           {1, _} -> {:ok, user}
           _ -> {:error, :invalid}
@@ -195,7 +197,7 @@ defmodule LiveBeats.MediaLibrary do
         failed_op =
           case failed_op do
             {:song, _number} -> :invalid_song
-            :is_songs_number_updated? -> :invalid
+            :is_songs_count_updated? -> :invalid
             failed_op -> failed_op
           end
 
@@ -346,17 +348,16 @@ defmodule LiveBeats.MediaLibrary do
     Ecto.Multi.new()
     |> Ecto.Multi.delete(:delete, song)
     |> Ecto.Multi.update_all(
-        :update_songs_number,
-        fn _ ->
-          from(u in Accounts.User,
-            where: u.id == ^song.user_id,
-            update: [inc: [songs_number: -1]]
-          )
-        end,
-        []
-      )
+      :update_songs_count,
+      fn _ ->
+        from(u in Accounts.User,
+          where: u.id == ^song.user_id,
+          update: [inc: [songs_count: -1]]
+        )
+      end,
+      []
+    )
     |> Repo.transaction()
-
   end
 
   def change_song(song_or_changeset, attrs \\ %{})

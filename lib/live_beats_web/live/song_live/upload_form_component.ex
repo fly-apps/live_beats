@@ -56,12 +56,8 @@ defmodule LiveBeatsWeb.SongLive.UploadFormComponent do
            |> put_flash(:info, "#{map_size(songs)} song(s) uploaded")
            |> push_redirect(to: profile_path(current_user))}
 
-        {:error, error} ->
-          updated_socket =
-            socket
-            |> update(:error_messages, &Enum.take(&1 ++ [error], -10))
-
-          {:noreply, updated_socket}
+        {:error, {failed_op, reason}} ->
+          {:noreply, put_error(socket, {failed_op, reason})}
       end
     end
   end
@@ -147,23 +143,29 @@ defmodule LiveBeatsWeb.SongLive.UploadFormComponent do
     end)
   end
 
-  defp file_error(%{kind: :dropped} = assigns), do: ~H|dropped (exceeds limit of 10 files)|
-  defp file_error(%{kind: :too_large} = assigns), do: ~H|larger than 10MB|
-  defp file_error(%{kind: :not_accepted} = assigns), do: ~H|not a valid MP3 file|
-  defp file_error(%{kind: :too_many_files} = assigns), do: ~H|too many files|
+  defp file_error(%{kind: :dropped} = assigns),
+    do: ~H|<%= @label %>: dropped (exceeds limit of 10 files)|
+
+  defp file_error(%{kind: :too_large} = assigns),
+    do: ~H|<%= @label %>: larger than 10MB|
+
+  defp file_error(%{kind: :not_accepted} = assigns),
+    do: ~H|<%= @label %>: not a valid MP3 file|
+
+  defp file_error(%{kind: :too_many_files} = assigns),
+    do: ~H|too many files|
 
   defp file_error(%{kind: :songs_limit_exceeded} = assigns),
     do: ~H|You exceeded the limit of songs per account|
 
-  defp file_error(%{kind: :invalid} = assigns), do: ~H|Something went wrong|
+  defp file_error(%{kind: :invalid} = assigns),
+    do: ~H|Something went wrong|
 
-  defp file_error(%{kind: %Ecto.Changeset{} = changeset} = assigns)  do
-    ~H|<%=  LiveBeatsWeb.ErrorHelpers.translate_changeset_errors(@kind) %>|
-  end
+  defp file_error(%{kind: %Ecto.Changeset{}} = assigns),
+    do: ~H|<%= @label %>: <%=  LiveBeatsWeb.ErrorHelpers.translate_changeset_errors(@kind) %>|
 
-  defp file_error(%{kind: {msg, opts}} = assigns) when is_binary(msg) and is_list(opts) do
-    ~H|<%= LiveBeatsWeb.ErrorHelpers.translate_error(@kind) %>|
-  end
+  defp file_error(%{kind: {msg, opts}} = assigns) when is_binary(msg) and is_list(opts),
+    do: ~H|<%= @label %>: <%= LiveBeatsWeb.ErrorHelpers.translate_error(@kind) %>|
 
   defp put_stats(socket, entry_ref, %MP3Stat{} = stat) do
     if changeset = get_changeset(socket, entry_ref) do
@@ -203,11 +205,15 @@ defmodule LiveBeatsWeb.SongLive.UploadFormComponent do
     socket
     |> cancel_upload(:mp3, entry.ref)
     |> drop_changeset(entry.ref)
-    |> update(:error_messages, &Enum.take(&1 ++ [{entry.client_name, reason}], -10))
+    |> put_error({entry.client_name, reason})
   end
 
   defp get_entry!(socket, entry_ref) do
     Enum.find(socket.assigns.uploads.mp3.entries, fn entry -> entry.ref == entry_ref end) ||
       raise "no entry found for ref #{inspect(entry_ref)}"
+  end
+
+  defp put_error(socket, {label, msg}) do
+    update(socket, :error_messages, &Enum.take(&1 ++ [{label, msg}], -10))
   end
 end
