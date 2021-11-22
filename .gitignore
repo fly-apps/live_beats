@@ -23,7 +23,11 @@ erl_crash.dump
 live_beats-*.tar
 
 # Ignore assets that are produced by build tools.
+/priv/static/cache_manifest.json
+/priv/static/favicon*
+/priv/static/images*
 /priv/static/assets/
+/priv/static/robots*
 
 # In case you use Node.js/npm, you want to ignore these.
 npm-debug.log
