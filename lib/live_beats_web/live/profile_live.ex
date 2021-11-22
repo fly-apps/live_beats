@@ -1,9 +1,9 @@
-defmodule LiveBeatsWeb.SongLive.Index do
+defmodule LiveBeatsWeb.ProfileLive do
   use LiveBeatsWeb, :live_view
 
   alias LiveBeats.{Accounts, MediaLibrary, MP3Stat}
   alias LiveBeatsWeb.{LayoutComponent, Presence}
-  alias LiveBeatsWeb.SongLive.{SongRowComponent, UploadFormComponent}
+  alias LiveBeatsWeb.ProfileLive.{SongRowComponent, UploadFormComponent}
 
   def render(assigns) do
     ~H"""
@@ -32,7 +32,7 @@ defmodule LiveBeatsWeb.SongLive.Index do
           </.button>
         <% end %>
         <%= if @owns_profile? do %>
-          <.button primary patch_to={Routes.song_index_path(@socket, :new, @current_user.username)}>
+          <.button primary patch_to={profile_path(@current_user, :new)}>
             <.icon name={:upload}/><span class="ml-2">Upload Songs</span>
           </.button>
         <% end %>

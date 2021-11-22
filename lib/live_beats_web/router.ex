@@ -54,8 +54,8 @@ defmodule LiveBeatsWeb.Router do
 
     live_session :authenticated,
       on_mount: [{LiveBeatsWeb.UserAuth, :ensure_authenticated}, LiveBeatsWeb.Nav] do
-      live "/:profile_username/songs/new", SongLive.Index, :new
-      live "/:profile_username", SongLive.Index, :index
+      live "/:profile_username/songs/new", ProfileLive, :new
+      live "/:profile_username", ProfileLive, :index
       live "/profile/settings", SettingsLive, :edit
     end
   end

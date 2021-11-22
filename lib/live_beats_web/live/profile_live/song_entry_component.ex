@@ -1,4 +1,4 @@
-defmodule LiveBeatsWeb.SongLive.SongEntryComponent do
+defmodule LiveBeatsWeb.ProfileLive.SongEntryComponent do
   use LiveBeatsWeb, :live_component
 
   alias LiveBeats.MP3Stat

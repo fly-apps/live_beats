@@ -1,4 +1,4 @@
-defmodule LiveBeatsWeb.SongLive.SongRowComponent do
+defmodule LiveBeatsWeb.ProfileLive.SongRowComponent do
   use LiveBeatsWeb, :live_component
 
   def send_status(id, status) when status in [:playing, :paused, :stopped] do

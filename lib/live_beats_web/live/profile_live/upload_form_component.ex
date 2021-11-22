@@ -1,8 +1,8 @@
-defmodule LiveBeatsWeb.SongLive.UploadFormComponent do
+defmodule LiveBeatsWeb.ProfileLive.UploadFormComponent do
   use LiveBeatsWeb, :live_component
 
   alias LiveBeats.{MediaLibrary, MP3Stat}
-  alias LiveBeatsWeb.SongLive.SongEntryComponent
+  alias LiveBeatsWeb.ProfileLive.SongEntryComponent
 
   @max_songs 10
 

@@ -8,12 +8,14 @@ defmodule LiveBeatsWeb.LiveHelpers do
   alias LiveBeats.Accounts
   alias LiveBeats.MediaLibrary
 
-  def profile_path(%Accounts.User{} = current_user) do
-    Routes.song_index_path(LiveBeatsWeb.Endpoint, :index, current_user.username)
+  def profile_path(current_user_or_profile, action \\ :index)
+
+  def profile_path(%Accounts.User{} = current_user, action) do
+    Routes.profile_path(LiveBeatsWeb.Endpoint, action, current_user.username)
   end
 
-  def profile_path(%MediaLibrary.Profile{} = profile) do
-    Routes.song_index_path(LiveBeatsWeb.Endpoint, :index, profile.username)
+  def profile_path(%MediaLibrary.Profile{} = profile, action) do
+    Routes.profile_path(LiveBeatsWeb.Endpoint, action, profile.username)
   end
 
   def connection_status(assigns) do
