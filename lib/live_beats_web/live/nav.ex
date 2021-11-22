@@ -4,10 +4,10 @@ defmodule LiveBeatsWeb.Nav do
   alias LiveBeats.MediaLibrary
   alias LiveBeatsWeb.{ProfileLive, SettingsLive}
 
-  def on_mount(:default, params, _session, socket) do
+  def on_mount(:default, _params, _session, socket) do
     active_tab =
-      case {socket.view, params} do
-        {ProfileLive, %{"profile_username" => _profile}} -> :profile
+      case {socket.view, socket.assigns.live_action} do
+        {ProfileLive, _} -> :profile
         {SettingsLive, _} -> :settings
         {_, _} -> nil
       end
