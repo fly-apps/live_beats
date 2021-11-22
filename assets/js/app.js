@@ -177,10 +177,29 @@ let liveSocket = new LiveSocket("/live", Socket, {
   params: {_csrf_token: csrfToken}
 })
 
+let routeUpdated = () => {
+  let target = document.querySelector("main h1") || document.querySelector("main")
+  if (target) {
+    let origTabIndex = target.getAttribute("tabindex")
+    target.setAttribute("tabindex", "-1")
+    target.focus()
+    window.setTimeout(() => {
+      if (origTabIndex) {
+        target.setAttribute("tabindex", origTabIndex)
+      } else {
+        target.removeAttribute("tabindex")
+      }
+    }, 1000)
+  }
+}
+
 // Show progress bar on live navigation and form submits
 topbar.config({barColors: {0: "#29d"}, shadowColor: "rgba(0, 0, 0, .3)"})
 window.addEventListener("phx:page-loading-start", info => topbar.show())
 window.addEventListener("phx:page-loading-stop", info => topbar.hide())
+
+// Accessible routing
+window.addEventListener("phx:page-loading-stop", () => window.requestAnimationFrame(routeUpdated))
 
 window.addEventListener("js:exec", e => e.target[e.detail.call](...e.detail.args))
 
