@@ -50,7 +50,6 @@ defmodule LiveBeatsWeb.LiveHelpers do
         id="flash"
         class="rounded-md bg-red-50 p-4 fixed top-1 right-1 w-96 fade-in-scale"
         phx-click={JS.push("lv:clear-flash") |> JS.remove_class("fade-in-scale", to: "#flash") |> hide("#flash")}
-        phx-value-key="error"
         phx-hook="Flash"
       >
         <div class="flex">
