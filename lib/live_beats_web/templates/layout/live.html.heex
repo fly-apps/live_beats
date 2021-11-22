@@ -144,6 +144,9 @@
 
     <.flash flash={@flash} kind={:info}/>
     <.flash flash={@flash} kind={:error}/>
+    <.connection_status>
+      Re-establishing connection...
+    </.connection_status>
 
     <%= @inner_content %>
   </main>
