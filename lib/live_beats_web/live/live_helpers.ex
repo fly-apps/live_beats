@@ -8,6 +8,9 @@ defmodule LiveBeatsWeb.LiveHelpers do
   alias LiveBeats.Accounts
   alias LiveBeats.MediaLibrary
 
+  def home_path(nil = _current_user), do: "/"
+  def home_path(%Accounts.User{} = current_user), do: profile_path(current_user)
+
   def profile_path(current_user_or_profile, action \\ :index)
 
   def profile_path(%Accounts.User{} = current_user, action) do
