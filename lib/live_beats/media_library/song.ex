@@ -34,6 +34,10 @@ defmodule LiveBeats.MediaLibrary.Song do
     song
     |> cast(attrs, [:album_artist, :artist, :title, :attribution, :date_recorded, :date_released])
     |> validate_required([:artist, :title])
+    |> unique_constraint(:title,
+      message: "is a duplicated from another song",
+      name: "songs_user_id_title_artist_index"
+    )
   end
 
   def put_user(%Ecto.Changeset{} = changeset, %Accounts.User{} = user) do
