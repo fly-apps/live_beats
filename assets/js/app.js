@@ -57,7 +57,7 @@ Hooks.Menu = {
         window.requestAnimationFrame(() => this.activate(0))
       }
     })
-    this.menuItemsContainer.addEventListener("phx:hide", () => this.reset())
+    this.menuItemsContainer.addEventListener("phx:hide-start", () => this.reset())
   },
   activate(index, fallbackIndex){
     let menuItems = this.menuItems()
