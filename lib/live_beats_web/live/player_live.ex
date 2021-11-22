@@ -49,15 +49,15 @@ defmodule LiveBeatsWeb.PlayerLive do
         <% end %>
 
         <!-- prev -->
-        <button type="button" class="sm:block xl:block mx-auto scale-75" phx-click={js_prev(@own_profile?)}>
+        <button type="button" class="sm:block xl:block mx-auto scale-75" phx-click={js_prev(@own_profile?)} aria-label="Previous">
           <svg width="17" height="18">
             <path d="M0 0h2v18H0V0zM4 9l13-9v18L4 9z" fill="currentColor" />
           </svg>
         </button>
         <!-- /prev -->
 
-        <!-- pause -->
-        <button type="button" class="mx-auto scale-75" phx-click={js_play_pause(@own_profile?)}>
+        <!-- play/pause -->
+        <button type="button" class="mx-auto scale-75" phx-click={js_play_pause(@own_profile?)} aria-label={if @playing do "Pause" else "Play" end}>
           <%= if @playing do %>
             <svg id="player-pause" width="50" height="50" fill="none">
               <circle class="text-gray-300 dark:text-gray-500" cx="25" cy="25" r="24" stroke="currentColor" stroke-width="1.5" />
@@ -70,10 +70,10 @@ defmodule LiveBeatsWeb.PlayerLive do
             </svg>
           <% end %>
         </button>
-        <!-- /pause -->
+        <!-- /play/pause -->
 
         <!-- next -->
-        <button type="button" class="mx-auto scale-75" phx-click={js_next(@own_profile?)}>
+        <button type="button" class="mx-auto scale-75" phx-click={js_next(@own_profile?)} aria-label="Next">
           <svg width="17" height="18" viewBox="0 0 17 18" fill="none">
             <path d="M17 0H15V18H17V0Z" fill="currentColor" />
             <path d="M13 9L0 0V18L13 9Z" fill="currentColor" />
@@ -221,7 +221,10 @@ defmodule LiveBeatsWeb.PlayerLive do
     {:noreply, play_current_song(socket)}
   end
 
-  def handle_info({Accounts, %Accounts.Events.ActiveProfileChanged{new_profile_user_id: user_id}}, socket) do
+  def handle_info(
+        {Accounts, %Accounts.Events.ActiveProfileChanged{new_profile_user_id: user_id}},
+        socket
+      ) do
     if user_id do
       {:noreply, assign(socket, profile: get_profile(user_id))}
     else

@@ -120,6 +120,7 @@ defmodule LiveBeatsWeb.LiveHelpers do
       assigns
       |> assign_new(:outlined, fn -> false end)
       |> assign_new(:class, fn -> "w-4 h-4 inline-block" end)
+      |> assign_new(:alt, fn -> "" end)
 
     ~H"""
     <%= if @outlined do %>
