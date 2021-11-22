@@ -143,13 +143,13 @@
     </div>
   </div>
 
+  <.live_component module={LiveBeatsWeb.LayoutComponent} id="layout" />
+
+  <%= if @current_user do %>
+    <%= live_render(@socket, LiveBeatsWeb.PlayerLive, id: "player", session: %{}, sticky: true) %>
+  <% end %>
+
   <main class="flex-1 relative z-0 overflow-y-auto focus:outline-none">
-    <.live_component module={LiveBeatsWeb.LayoutComponent} id="layout" />
-
-    <%= if @current_user do %>
-      <%= live_render(@socket, LiveBeatsWeb.PlayerLive, id: "player", session: %{}, sticky: true) %>
-    <% end %>
-
     <.flash flash={@flash} kind={:info}/>
     <.flash flash={@flash} kind={:error}/>
     <.connection_status>

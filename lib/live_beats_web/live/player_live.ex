@@ -9,7 +9,7 @@ defmodule LiveBeatsWeb.PlayerLive do
   def render(assigns) do
     ~H"""
     <!-- player -->
-    <div id="audio-player" phx-hook="AudioPlayer" class="w-full" >
+    <div id="audio-player" phx-hook="AudioPlayer" class="w-full" role="region" aria-label="Player" >
       <div phx-update="ignore">
         <audio></audio>
       </div>
