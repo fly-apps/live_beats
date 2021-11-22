@@ -87,7 +87,7 @@ Hooks.Menu = {
       let menuItems = this.menuItems()
       this.deactivate(menuItems)
       this.activate(menuItems.indexOf(this.activeItem) - 1, menuItems.length - 1)
-    } else if (e.key == "Tab") {
+    } else if (e.key === "Tab"){
       e.preventDefault()
     }
   }
