@@ -37,7 +37,7 @@ defmodule LiveBeatsWeb.LiveHelpers do
           </svg>
         </div>
         <div class="ml-3">
-          <p class="text-sm font-medium text-red-800">
+          <p class="text-sm font-medium text-red-800" role="alert">
             <%= render_slot(@inner_block) %>
           </p>
         </div>
