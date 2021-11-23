@@ -58,6 +58,7 @@ defmodule LiveBeatsWeb.ProfileLive do
       module={SongRowComponent}
       rows={@songs}
       row_id={fn song -> "song-#{song.id}" end}
+      owns_profile?= {@owns_profile?}
     >
       <:col let={%{song: song}} label="Title"><%= song.title %></:col>
       <:col let={%{song: song}} label="Artist"><%= song.artist %></:col>

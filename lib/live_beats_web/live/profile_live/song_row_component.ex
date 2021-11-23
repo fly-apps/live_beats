@@ -28,7 +28,9 @@ defmodule LiveBeatsWeb.ProfileLive.SongRowComponent do
                 <% end %>
                 <%= if @status == :stopped do %>
                   <span class="flex relative w-6 -translate-x-1">
+                  <%= if @owns_profile? do %>
                     <.icon name={:play} class="h-5 w-5 text-gray-400"/>
+                  <% end %>
                   </span>
                 <% end %>
               <% end %>
@@ -52,7 +54,8 @@ defmodule LiveBeatsWeb.ProfileLive.SongRowComponent do
        col: assigns.col,
        class: assigns.class,
        index: assigns.index,
-       status: :stopped
+       status: :stopped,
+       owns_profile?: assigns.owns_profile?
      )}
   end
 end
