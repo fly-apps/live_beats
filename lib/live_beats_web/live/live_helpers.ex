@@ -134,7 +134,7 @@ defmodule LiveBeatsWeb.LiveHelpers do
     """
   end
 
-  def link(%{redirect_to: to} = assigns) do
+  def link(%{navigate: to} = assigns) do
     opts = assigns |> assigns_to_attributes() |> Keyword.put(:to, to)
     assigns = assign(assigns, :opts, opts)
 
@@ -143,7 +143,7 @@ defmodule LiveBeatsWeb.LiveHelpers do
     """
   end
 
-  def link(%{patch_to: to} = assigns) do
+  def link(%{patch: to} = assigns) do
     opts = assigns |> assigns_to_attributes() |> Keyword.put(:to, to)
     assigns = assign(assigns, :opts, opts)
 
@@ -178,8 +178,8 @@ defmodule LiveBeatsWeb.LiveHelpers do
         <:title><%= @current_user.name %></:title>
         <:subtitle>@<%= @current_user.username %></:subtitle>
 
-        <:link redirect_to={profile_path(@current_user)}>View Profile</:link>
-        <:link redirect_to={Routes.settings_path(LiveBeatsWeb.Endpoint, :edit)}Settings</:link>
+        <:link navigate={profile_path(@current_user)}>View Profile</:link>
+        <:link navigate={Routes.settings_path(LiveBeatsWeb.Endpoint, :edit)}Settings</:link>
       </.dropdown>
   """
   def dropdown(assigns) do
@@ -344,15 +344,15 @@ defmodule LiveBeatsWeb.LiveHelpers do
     assigns =
       assigns
       |> assign_new(:show, fn -> false end)
-      |> assign_new(:patch_to, fn -> nil end)
-      |> assign_new(:redirect_to, fn -> nil end)
+      |> assign_new(:patch, fn -> nil end)
+      |> assign_new(:navigate, fn -> nil end)
       |> assign_new(:on_cancel, fn -> %JS{} end)
       |> assign_new(:on_confirm, fn -> %JS{} end)
       # slots
       |> assign_new(:title, fn -> [] end)
       |> assign_new(:confirm, fn -> [] end)
       |> assign_new(:cancel, fn -> [] end)
-      |> assign_rest(~w(id show patch_to redirect_to on_cancel on_confirm title confirm cancel)a)
+      |> assign_rest(~w(id show patch navigate on_cancel on_confirm title confirm cancel)a)
 
     ~H"""
     <div id={@id} class={"fixed z-10 inset-0 overflow-y-auto #{if @show, do: "fade-in", else: "hidden"}"} aria-labelledby="modal-title" role="dialog" aria-modal="true" {@rest}>
@@ -365,11 +365,11 @@ defmodule LiveBeatsWeb.LiveHelpers do
           phx-window-keydown={hide_modal(@on_cancel, @id)} phx-key="escape"
           phx-click-away={hide_modal(@on_cancel, @id)}
         >
-          <%= if @patch_to do %>
-            <.link patch_to={@patch_to} data-modal-return class="hidden"></.link>
+          <%= if @patch do %>
+            <.link patch={@patch} data-modal-return class="hidden"></.link>
           <% end %>
-          <%= if @redirect_to do %>
-            <.link redirect_to={@redirect_to} data-modal-return class="hidden"></.link>
+          <%= if @navigate do %>
+            <.link navigate={@navigate} data-modal-return class="hidden"></.link>
           <% end %>
           <div class="sm:flex sm:items-start">
             <div class={"mx-auto flex-shrink-0 flex items-center justify-center h-8 w-8 rounded-full bg-purple-100 sm:mx-0"}>
@@ -455,16 +455,16 @@ defmodule LiveBeatsWeb.LiveHelpers do
     """
   end
 
-  def button(%{patch_to: _} = assigns) do
+  def button(%{patch: _} = assigns) do
     assigns = assign_new(assigns, :primary, fn -> false end)
 
     ~H"""
     <%= if @primary do %>
-      <%= live_patch to: @patch_to, class: "order-0 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3" do %>
+      <%= live_patch to: @patch, class: "order-0 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3" do %>
         <%= render_slot(@inner_block) %>
       <% end %>
     <% else %>
-      <%= live_patch to: @patch_to, class: "order-1 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-0 sm:ml-0 lg:ml-3" do %>
+      <%= live_patch to: @patch, class: "order-1 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-0 sm:ml-0 lg:ml-3" do %>
         <%= render_slot(@inner_block) %>
       <% end %>
     <% end %>

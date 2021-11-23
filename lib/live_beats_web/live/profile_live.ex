@@ -32,7 +32,7 @@ defmodule LiveBeatsWeb.ProfileLive do
           </.button>
         <% end %>
         <%= if @owns_profile? do %>
-          <.button primary patch_to={profile_path(@current_user, :new)}>
+          <.button primary patch={profile_path(@current_user, :new)}>
             <.icon name={:upload}/><span class="ml-2">Upload Songs</span>
           </.button>
         <% end %>
@@ -220,7 +220,7 @@ defmodule LiveBeatsWeb.ProfileLive do
     LayoutComponent.show_modal(UploadFormComponent, %{
       id: :new,
       confirm: {"Save", type: "submit", form: "song-form"},
-      patch_to: profile_path(socket.assigns.current_user),
+      patch: profile_path(socket.assigns.current_user),
       song: socket.assigns.song,
       title: socket.assigns.page_title,
       current_user: socket.assigns.current_user
