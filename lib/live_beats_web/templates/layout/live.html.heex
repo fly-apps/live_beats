@@ -7,6 +7,7 @@
   <div id="mobile-sidebar" class="relative flex-1 flex flex-col max-w-xs w-full pt-5 pb-4 bg-white hidden min-h-screen">
     <div class="absolute top-0 right-0 -mr-12 pt-2">
       <button type="button"
+        aria-expanded="true"
         class="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
         phx-click={hide_mobile_sidebar()}>
         <span class="sr-only">Close sidebar</span>
@@ -94,6 +95,8 @@
   <!-- Search header -->
   <div class="relative z-10 flex-shrink-0 flex h-16 bg-white border-b border-gray-200 lg:hidden">
     <button type="button"
+      id="show-mobile-sidebar"
+      aria-expanded="false"
       class="px-4 border-r border-gray-200 text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-purple-500 lg:hidden"
       phx-click={show_mobile_sidebar()}>
       <span class="sr-only">Open sidebar</span>
