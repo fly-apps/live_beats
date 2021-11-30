@@ -17,6 +17,8 @@ defmodule LiveBeats.Application do
       LiveBeatsWeb.Telemetry,
       # Start the PubSub system
       {Phoenix.PubSub, name: LiveBeats.PubSub},
+      #start presence
+      LiveBeatsWeb.Presence,
       # Start the Endpoint (http/https)
       LiveBeatsWeb.Endpoint
       # Start a worker by calling: LiveBeats.Worker.start_link(arg)
