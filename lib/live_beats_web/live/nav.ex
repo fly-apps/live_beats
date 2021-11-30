@@ -15,7 +15,7 @@ defmodule LiveBeatsWeb.Nav do
     active_tab =
       case {socket.view, socket.assigns.live_action} do
         {ProfileLive, _} ->
-          if params["profile_username"] == current_user_profile_userame(socket) do
+          if params["profile_username"] == current_user_profile_username(socket) do
             :profile
           end
 
@@ -29,7 +29,7 @@ defmodule LiveBeatsWeb.Nav do
     {:cont, assign(socket, active_tab: active_tab)}
   end
 
-  defp current_user_profile_userame(socket) do
+  defp current_user_profile_username(socket) do
     if user = socket.assigns.current_user do
       user.username
     end
