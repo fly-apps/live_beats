@@ -84,6 +84,12 @@ defmodule LiveBeatsWeb.ProfileLive do
     if connected?(socket) do
       MediaLibrary.subscribe_to_profile(profile)
       Accounts.subscribe(current_user.id)
+      LiveBeatsWeb.Presence.track(
+        self(),
+        topic(profile.user_id),
+        current_user.id,
+        current_user
+      )
     end
 
     active_song_id =
@@ -162,6 +168,14 @@ defmodule LiveBeatsWeb.ProfileLive do
 
   def handle_info({Accounts, _}, socket), do: {:noreply, socket}
 
+  def handle_info(
+        %{event: "presence_diff", payload: %{joins: _joins, leaves: _leaves}},
+        %{assigns: %{presences: _users}} = socket
+      ) do
+
+    {:noreply, assign_presences(socket)}
+  end
+
   defp stop_song(socket, song_id) do
     SongRowComponent.send_status(song_id, :stopped)
 
@@ -235,8 +249,15 @@ defmodule LiveBeatsWeb.ProfileLive do
   end
 
   defp assign_presences(socket) do
-    users = Accounts.lists_users_by_active_profile(socket.assigns.profile.user_id, limit: 10)
-    assign(socket, presences: users)
+    presences = socket.assigns.profile.user_id
+    |> topic()
+    |> Presence.list()
+    |> Enum.map(fn {_user_id, user_data} ->
+      user_data[:metas]
+      |> List.first()
+    end)
+
+    assign(socket, presences: presences)
   end
 
   defp url_text(nil), do: ""
@@ -245,4 +266,6 @@ defmodule LiveBeatsWeb.ProfileLive do
     uri = URI.parse(url_str)
     uri.host <> uri.path
   end
+
+  defp topic(user_id) when is_integer(user_id), do: "profile:#{user_id}"
 end
