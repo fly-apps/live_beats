@@ -534,6 +534,7 @@ defmodule LiveBeatsWeb.LiveHelpers do
       assigns
       |> assign_new(:row_id, fn -> false end)
       |> assign_new(:active_id, fn -> nil end)
+      |> assign_new(:owns_profile?, fn -> assigns.owns_profile? end)
       |> assign(:col, for(col <- assigns.col, col[:if] != false, do: col))
 
     ~H"""
@@ -558,7 +559,8 @@ defmodule LiveBeatsWeb.LiveHelpers do
                 row={row} col={@col}
                 index={i}
                 active_id={@active_id}
-                class="hover:bg-gray-50"
+                class="hover:bg-gray-50",
+                owns_profile?={@owns_profile?}
               />
             <% end %>
           </tbody>
