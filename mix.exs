@@ -33,8 +33,7 @@ defmodule LiveBeats.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      # {:phoenix, "~> 1.6.0"},
-      {:phoenix, path: "~/oss/phoenix", override: true},
+      {:phoenix, "~> 1.6.0"},
       {:phoenix_ecto, "~> 4.4"},
       {:ecto_sql, "~> 3.6"},
       {:postgrex, ">= 0.0.0"},
