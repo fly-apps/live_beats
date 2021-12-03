@@ -50,12 +50,8 @@ COPY priv priv
 # step down so that `lib` is available.
 COPY assets assets
 
-# For Phoenix 1.6 and later, compile assets using esbuild
+# compile assets
 RUN mix assets.deploy
-
-# For Phoenix versions earlier than 1.6, compile assets npm
-# RUN cd assets && yarn install && yarn run webpack --mode production
-# RUN mix phx.digest
 
 # Compile the release
 COPY lib lib
@@ -86,13 +82,8 @@ WORKDIR "/app"
 RUN chown nobody /app
 
 # Only copy the final release from the build stage
-COPY --from=builder --chown=nobody:root /app/_build/prod/rel ./
+COPY --from=builder --chown=nobody:root /app/_build/prod/rel/live_beats ./
 
 USER nobody
 
-# Create a symlink to the application directory by extracting the directory name. This is required
-# since the release directory will be named after the application, and we don't know that name.
-RUN set -eux; \
-  ln -nfs /app/$(basename *)/bin/$(basename *) /app/entry
-
-CMD /app/entry start
+CMD /app/bin/server

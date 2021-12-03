@@ -14,11 +14,13 @@ if config_env() == :prod do
       For example: ecto://USER:PASS@HOST/DATABASE
       """
 
-  ipv6? = !!System.get_env("IPV6")
+  server? = System.get_env("PHX_SERVER") == "true"
+  host = System.get_env("PHX_HOST") || "example.com"
+  ecto_ipv6? = System.get_env("ECTO_IPV6") == "true"
 
   config :live_beats, LiveBeats.Repo,
     # ssl: true,
-    socket_options: if(ipv6?, do: [:inet6], else: []),
+    socket_options: if(ecto_ipv6?, do: [:inet6], else: []),
     url: database_url,
     pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10")
 
@@ -29,7 +31,6 @@ if config_env() == :prod do
       You can generate one by calling: mix phx.gen.secret
       """
 
-  host = System.get_env("URL_HOST") || "example.com"
 
   config :live_beats, LiveBeatsWeb.Endpoint,
     url: [host: host, port: 80],
@@ -41,9 +42,8 @@ if config_env() == :prod do
       ip: {0, 0, 0, 0, 0, 0, 0, 0},
       port: String.to_integer(System.get_env("PORT") || "4000")
     ],
-    check_origin: ["//#{host}"],
     secret_key_base: secret_key_base,
-    server: true
+    server: server?
 
   config :live_beats, :files, [
     uploads_dir: "/app/uploads",

@@ -5,11 +5,12 @@ kill_timeout = 5
 processes = []
 
 [deploy]
-  release_command = "/app/entry eval LiveBeats.Release.migrate"
+  release_command = "/app/bin/migrate"
 
 [env]
-  IPV6 = 1
-  URL_HOST = "livebeats.fly.dev"
+  PHX_HOST = "livebeats.fly.dev"
+  ECTO_IPV6 = "true"
+  ERL_AFLAGS = "-proto_dist inet6_tcp"
 
 [mounts]
   source="data"
