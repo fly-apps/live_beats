@@ -1,3 +1,3 @@
 #!/bin/sh
 cd -P -- "$(dirname -- "$0")"
-./live_beats eval LiveBeats.Release.migrate
+exec ./live_beats eval LiveBeats.Release.migrate

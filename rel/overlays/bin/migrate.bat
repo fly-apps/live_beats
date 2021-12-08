@@ -1,0 +1,1 @@
+call "%~dp0\live_beats" eval LiveBeats.Release.migrate
