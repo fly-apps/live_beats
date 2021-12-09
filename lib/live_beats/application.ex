@@ -20,9 +20,10 @@ defmodule LiveBeats.Application do
       #start presence
       LiveBeatsWeb.Presence,
       # Start the Endpoint (http/https)
-      LiveBeatsWeb.Endpoint
+      LiveBeatsWeb.Endpoint,
       # Start a worker by calling: LiveBeats.Worker.start_link(arg)
       # {LiveBeats.Worker, arg}
+      {Phoenix.Presence.Client, client: LiveBeats.PresenceClient, pubsub: LiveBeats.PubSub, presence: LiveBeats.Presence}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
