@@ -51,35 +51,101 @@ defmodule Phoenix.Presence.Client do
 
   defp track_pid(state, pid, topic, key, meta) do
     case Map.fetch(state.topics, topic) do
-      {:ok, presences} ->
+      {:ok, _topic_content} ->
         state.presence_mod.track(pid, topic, key, meta)
-        # update topics state...
-        # new_state
-        state
+        update_topics_state(:add_new_presence, state, topic, key, meta)
 
       :error ->
         # subscribe to topic we weren't yet tracking
         Phoenix.PubSub.subscribe(state.pubsub, topic)
-        # new_state
-        state
+        state.presence_mod.track(pid, topic, key, meta)
+        update_topics_state(:add_new_topic, state, topic, key, meta)
     end
   end
 
   defp untrack_pid(state, pid, topic, key) do
     state.presence_mod.untrack(pid, topic, key)
     # remove presence from state.topics
-    # if no more presences for given topic, unsubscribe
-    #   Phoenix.PubSub.unsubscribe(state.pubsub, topic)
-    # new_state
-    state
+    if Map.has_key?(state.topics, topic) do
+      presences_count =
+        state.topics[topic]
+        |> Map.keys()
+        |> Enum.count()
+
+      # if no more presences for given topic, unsubscribe
+      if presences_count == 0 do
+        Phoenix.PubSub.unsubscribe(state.pubsub, topic)
+        update_topics_state(:remove_topic, state, topic, key)
+      else
+        update_topics_state(:remove_presence, state, topic, key)
+      end
+    else
+      state
+    end
   end
 
-  defp merge_diff(state, topic, diff) do
+  # is a join
+  defp merge_diff(state, topic, %{leaves: leaves, joins: joins}) when map_size(leaves) == 0 do
     # merge diff into state.topics
-    # invoke state.client.handle_join|handle_leave
+    joined_key = Map.keys(joins) |> hd
+    joined_meta = joins[joined_key].metas |> hd
+
+    state.client.handle_join(topic, joined_key, joined_meta, state)
+
+    if Map.has_key?(state.topics, topic) do
+      update_topics_state(:add_new_presence, state, topic, joined_key, joined_meta)
+    else
+      update_topics_state(:add_new_topic, state, topic, joined_key, joined_meta)
+    end
+  end
+
+  defp merge_diff(state, topic, %{leaves: leaves, joins: joins}) when map_size(joins) == 0 do
+    presences_count =
+      state.topics[topic]
+      |> Map.keys()
+      |> Enum.count()
+
+    leaved_key = Map.keys(leaves) |> hd
+    left_meta = leaves[leaved_key].metas |> hd
+
+    state.client.handle_leave(topic, leaved_key, left_meta, state)
     # if no more presences for given topic, unsubscribe
-    #   Phoenix.PubSub.unsubscribe(state.pubsub, topic)
-    # new_state
-    state
+    if presences_count == 0 do
+      Phoenix.PubSub.unsubscribe(state.pubsub, topic)
+      update_topics_state(:remove_topic, state, topic, leaved_key)
+    else
+      update_topics_state(:remove_presence, state, topic, leaved_key)
+    end
+  end
+
+  defp update_topics_state(:add_new_topic, %{topics: topics} = state, topic, key, meta) do
+    topic_presences = %{key => meta}
+    updated_topics = Map.put_new(topics, topic, topic_presences)
+    Map.put(state, :topics, updated_topics)
+  end
+
+  defp update_topics_state(:add_new_presence, %{topics: topics} = state, topic, key, meta) do
+    updated_topic =
+      topics[topic]
+      |> Map.put_new(key, meta)
+
+    updated_topics = Map.put(topics, topic, updated_topic)
+
+    Map.put(state, :topics, updated_topics)
+  end
+
+  defp update_topics_state(:remove_topic, %{topics: topics} = state, topic, _key) do
+    updated_topics = Map.delete(topics, topic)
+    Map.put(state, :topics, updated_topics)
+  end
+
+  defp update_topics_state(:remove_presence, %{topics: topics} = state, topic, key) do
+    updated_presences =
+      topics[topic]
+      |> Map.delete(key)
+
+    updated_topics = Map.put(topics, topic, updated_presences)
+
+    Map.put(state, :topics, updated_topics)
   end
 end
