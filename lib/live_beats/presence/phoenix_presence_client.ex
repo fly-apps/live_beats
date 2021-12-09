@@ -15,11 +15,11 @@ defmodule Phoenix.Presence.Client do
   end
 
   def track(topic, key, meta) do
-    GenServer.call(PresenceClient, {:track, self(), topic, key, meta})
+    GenServer.call(PresenceClient, {:track, self(), topic, to_string(key), meta})
   end
 
   def untrack(topic, key) do
-    GenServer.call(PresenceClient, {:untrack, self(), topic, key})
+    GenServer.call(PresenceClient, {:untrack, self(), to_string(topic), key})
   end
 
   def init(opts) do
@@ -39,6 +39,11 @@ defmodule Phoenix.Presence.Client do
 
   def handle_info(%{topic: topic, event: "presence_diff", payload: diff}, state) do
     {:noreply, merge_diff(state, topic, diff)}
+  end
+
+  def handle_call(:state, _from, state) do
+    IO.inspect(state.topics, label: :state_topics)
+    {:reply, :ok, state}
   end
 
   def handle_call({:track, pid, topic, key, meta}, _from, state) do
@@ -105,16 +110,16 @@ defmodule Phoenix.Presence.Client do
       |> Map.keys()
       |> Enum.count()
 
-    leaved_key = Map.keys(leaves) |> hd
-    left_meta = leaves[leaved_key].metas |> hd
+    left_key = Map.keys(leaves) |> hd
+    left_meta = leaves[left_key].metas |> hd
 
-    state.client.handle_leave(topic, leaved_key, left_meta, state)
+    state.client.handle_leave(topic, left_key, left_meta, state)
     # if no more presences for given topic, unsubscribe
     if presences_count == 0 do
       Phoenix.PubSub.unsubscribe(state.pubsub, topic)
-      update_topics_state(:remove_topic, state, topic, leaved_key)
+      update_topics_state(:remove_topic, state, topic, left_key)
     else
-      update_topics_state(:remove_presence, state, topic, leaved_key)
+      update_topics_state(:remove_presence, state, topic, left_key)
     end
   end
 

@@ -156,7 +156,7 @@ defmodule LiveBeatsWeb.ProfileLive do
   end
 
   def handle_info({LiveBeats.PresenceClient, %{user_left: user_id}}, socket) do
-    updated_presences = socket.assign.presences |> Enum.reject(fn user -> user.id == user_id end)
+    updated_presences = socket.assigns.presences |> Enum.reject(fn user -> user.id == user_id end)
     {:noreply, assign(socket, :presences, updated_presences)}
   end
 
