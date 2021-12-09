@@ -87,6 +87,7 @@ defmodule LiveBeatsWeb.ProfileLive do
     if connected?(socket) do
       MediaLibrary.subscribe_to_profile(profile)
       Accounts.subscribe(current_user.id)
+      LiveBeatsWeb.Presence.subscribe(profile)
       Phoenix.Presence.Client.track(topic(profile.user_id),
         current_user.id,
         %{}
@@ -146,6 +147,22 @@ defmodule LiveBeatsWeb.ProfileLive do
     {:noreply, socket}
   end
 
+  def handle_info({LiveBeats.PresenceClient, %{user_joined: user_id}}, socket) do
+    new_user = Accounts.get_user!(user_id)
+    updated_presences =
+    if new_user in socket.assigns.presences do
+      socket.assigns.presences
+    else
+      [new_user | socket.assigns.presences]
+    end
+    {:noreply, assign(socket, :presences, updated_presences)}
+  end
+
+  def handle_info({LiveBeats.PresenceClient, %{user_left: user_id}}, socket) do
+    updated_presences = socket.assign.presences |> Enum.reject(fn user -> user.id == user_id end)
+    {:noreply, assign(socket, :presences, updated_presences)}
+  end
+
   def handle_info({Accounts, %Accounts.Events.ActiveProfileChanged{} = event}, socket) do
     {:noreply, assign(socket, active_profile_id: event.new_profile_user_id)}
   end
@@ -172,14 +189,6 @@ defmodule LiveBeatsWeb.ProfileLive do
   def handle_info({MediaLibrary, _}, socket), do: {:noreply, socket}
 
   def handle_info({Accounts, _}, socket), do: {:noreply, socket}
-
-  def handle_info(
-        %{event: "presence_diff", payload: %{joins: _joins, leaves: _leaves}},
-        %{assigns: %{presences: _users}} = socket
-      ) do
-
-    {:noreply, assign_presences(socket)}
-  end
 
   defp stop_song(socket, song_id) do
     SongRowComponent.send_status(song_id, :stopped)
@@ -256,11 +265,11 @@ defmodule LiveBeatsWeb.ProfileLive do
   defp assign_presences(socket) do
     presences = socket.assigns.profile.user_id
     |> topic()
-    |> Presence.list()
-    |> Enum.map(fn {_user_id, user_data} ->
-      user_data[:metas]
-      |> List.first()
+    |> LiveBeats.PresenceClient.list()
+    |> Enum.map(fn {user_id, _user_data} ->
+      user_id
     end)
+    |> Accounts.list_users_by_ids()
 
     assign(socket, presences: presences)
   end
@@ -272,5 +281,5 @@ defmodule LiveBeatsWeb.ProfileLive do
     uri.host <> uri.path
   end
 
-  defp topic(user_id) when is_integer(user_id), do: "profile:#{user_id}"
+  defp topic(user_id) when is_integer(user_id), do: "active_profile:#{user_id}"
 end
