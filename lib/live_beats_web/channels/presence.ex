@@ -10,6 +10,7 @@ defmodule LiveBeatsWeb.Presence do
 
   import Phoenix.LiveView.Helpers
   import LiveBeatsWeb.LiveHelpers
+  @pubsub LiveBeats.PubSub
 
   def listening_now(assigns) do
     ~H"""
@@ -30,5 +31,13 @@ defmodule LiveBeatsWeb.Presence do
       </ul>
     </div>
     """
+  end
+
+  def subscribe(user_id) do
+    Phoenix.PubSub.subscribe(@pubsub, topic(user_id))
+  end
+
+  defp topic(profile) do
+    "active_users:#{profile.user_id}"
   end
 end
