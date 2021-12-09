@@ -84,11 +84,9 @@ defmodule LiveBeatsWeb.ProfileLive do
     if connected?(socket) do
       MediaLibrary.subscribe_to_profile(profile)
       Accounts.subscribe(current_user.id)
-      LiveBeatsWeb.Presence.track(
-        self(),
-        topic(profile.user_id),
+      Phoenix.Presence.Client.track(topic(profile.user_id),
         current_user.id,
-        current_user
+        %{}
       )
     end
 
