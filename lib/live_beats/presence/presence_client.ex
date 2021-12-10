@@ -17,7 +17,7 @@ defmodule LiveBeats.PresenceClient do
     {:ok, %{}}
   end
 
-  def handle_join(topic, key, meta, state) do
+  def handle_join(topic, key, _meta, state) do
     active_users_topic =
       topic
       |> profile_identifier()
@@ -28,7 +28,7 @@ defmodule LiveBeats.PresenceClient do
     {:ok, state}
   end
 
-  def handle_leave(topic, key, presence, state) do
+  def handle_leave(topic, key, _meta, state) do
     active_users_topic =
       topic
       |> profile_identifier()
