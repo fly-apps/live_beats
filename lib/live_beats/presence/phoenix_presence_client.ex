@@ -19,7 +19,7 @@ defmodule Phoenix.Presence.Client do
   end
 
   def untrack(topic, key) do
-    GenServer.call(PresenceClient, {:untrack, self(), to_string(topic), key})
+    GenServer.call(PresenceClient, {:untrack, self(), topic, to_string(key)})
   end
 
   def init(opts) do
@@ -55,11 +55,12 @@ defmodule Phoenix.Presence.Client do
   end
 
   defp track_pid(state, pid, topic, key, meta) do
-    #presences are handled when the presence_diff event received
+    # presences are handled when the presence_diff event is received
     case Map.fetch(state.topics, topic) do
       {:ok, _topic_content} ->
         state.presence_mod.track(pid, topic, key, meta)
         state
+
       :error ->
         # subscribe to topic we weren't yet tracking
         Phoenix.PubSub.subscribe(state.pubsub, topic)
@@ -69,25 +70,15 @@ defmodule Phoenix.Presence.Client do
   end
 
   defp untrack_pid(state, pid, topic, key) do
-    state.presence_mod.untrack(pid, topic, key)
-    # remove presence from state.topics
     if Map.has_key?(state.topics, topic) do
-      presences_count = topic_presences_count(state, topic)
-
-      # if no more presences for given topic, unsubscribe
-      if presences_count == 0 do
-        Phoenix.PubSub.unsubscribe(state.pubsub, topic)
-        update_topics_state(:remove_topic, state, topic, key)
-      else
-        update_topics_state(:remove_presence, state, topic, key)
-      end
+      state.presence_mod.untrack(pid, topic, key)
     else
       state
     end
   end
 
   defp merge_diff(state, topic, %{leaves: leaves, joins: joins}) do
-    #add new topic if needed
+    # add new topic if needed
     updated_state =
       if Map.has_key?(state.topics, topic) do
         state
@@ -116,7 +107,6 @@ defmodule Phoenix.Presence.Client do
   end
 
   defp handle_leave({left_key, meta}, {state, topic}) do
-    left_meta = Map.get(meta, :metas, [])
     updated_state = update_topics_state(:remove_presence, state, topic, left_key)
     state.client.handle_leave(topic, left_key, meta, state)
     {updated_state, topic}
