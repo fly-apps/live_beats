@@ -42,8 +42,7 @@ defmodule Phoenix.Presence.Client do
   end
 
   def handle_call(:state, _from, state) do
-    IO.inspect(state.topics, label: :state_topics)
-    {:reply, :ok, state}
+    {:reply, state, state}
   end
 
   def handle_call({:track, pid, topic, key, meta}, _from, state) do

@@ -23,7 +23,7 @@ defmodule LiveBeats.Application do
       LiveBeatsWeb.Endpoint,
       # Start a worker by calling: LiveBeats.Worker.start_link(arg)
       # {LiveBeats.Worker, arg}
-      {Phoenix.Presence.Client, client: LiveBeats.PresenceClient, pubsub: LiveBeats.PubSub, presence: LiveBeatsWeb.Presence}
+      {Phoenix.Presence.Client, client: Application.get_env(:live_beats, :presence_client), pubsub: LiveBeats.PubSub, presence: LiveBeatsWeb.Presence}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
