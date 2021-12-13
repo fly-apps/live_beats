@@ -253,6 +253,8 @@ defmodule LiveBeatsWeb.LiveHelpers do
       transition:
         {"transition ease-in-out duration-300 transform", "-translate-x-full", "translate-x-0"}
     )
+    |> JS.hide(to: "#show-mobile-sidebar", transition: "fade-out")
+    |> JS.dispatch("js:exec", to: "#hide-mobile-sidebar", detail: %{call: "focus", args: []})
   end
 
   def hide_mobile_sidebar(js \\ %JS{}) do
@@ -264,6 +266,8 @@ defmodule LiveBeatsWeb.LiveHelpers do
       transition:
         {"transition ease-in-out duration-300 transform", "translate-x-0", "-translate-x-full"}
     )
+    |> JS.show(to: "#show-mobile-sidebar", transition: "fade-in")
+    |> JS.dispatch("js:exec", to: "#show-mobile-sidebar", detail: %{call: "focus", args: []})
   end
 
   def show(js \\ %JS{}, selector) do
