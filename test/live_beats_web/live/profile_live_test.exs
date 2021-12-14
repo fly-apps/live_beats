@@ -4,6 +4,7 @@ defmodule LiveBeatsWeb.ProfileLiveTest do
   import Phoenix.LiveViewTest
   import LiveBeats.AccountsFixtures
 
+  alias LiveBeats.MediaLibrary
   alias LiveBeatsWeb.LiveHelpers
 
   setup %{conn: conn} do
@@ -13,11 +14,13 @@ defmodule LiveBeatsWeb.ProfileLiveTest do
     {:ok, conn: conn, current_user: current_user, user2: user2}
   end
 
-  test "profile page", %{conn: conn, current_user: current_user} do
+  test "profile page uploads", %{conn: conn, current_user: current_user} do
+    profile = MediaLibrary.get_profile!(current_user)
     {:ok, lv, dead_html} = live(conn, LiveHelpers.profile_path(current_user))
 
     assert dead_html =~ "chrismccord&#39;s beats"
 
+    # uploads
     assert lv
            |> element("#upload-btn")
            |> render_click()
@@ -47,12 +50,20 @@ defmodule LiveBeatsWeb.ProfileLiveTest do
              }
            }) =~ "can&#39;t be blank"
 
-    assert {:ok, _new_lv, html} =
+    assert {:ok, new_lv, html} =
              lv |> form("#song-form") |> render_submit() |> follow_redirect(conn)
 
     assert_redirected(lv, "/#{current_user.username}")
     assert html =~ "1 song(s) uploaded"
 
     assert html =~ "silence1s"
+
+    # deleting songs
+
+    song = MediaLibrary.get_first_song(profile)
+    assert new_lv |> element("#delete-modal-#{song.id}-confirm") |> render_click()
+
+    {:ok, refreshed_lv, _} = live(conn, LiveHelpers.profile_path(current_user))
+    refute render(refreshed_lv) =~ "silence1s"
   end
 end

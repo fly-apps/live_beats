@@ -133,7 +133,7 @@ defmodule LiveBeatsWeb.ProfileLive do
     song = MediaLibrary.get_song!(id)
 
     if song.user_id == socket.assigns.current_user.id do
-      {:ok, _} = MediaLibrary.delete_song(song)
+      :ok = MediaLibrary.delete_song(song)
     end
 
     {:noreply, socket}
