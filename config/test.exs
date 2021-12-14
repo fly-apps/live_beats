@@ -1,5 +1,9 @@
 import Config
 
+config :live_beats, :files, [
+  uploads_dir: Path.expand("../tmp/test-uploads", __DIR__),
+  host: [scheme: "http", host: "localhost", port: 4000],
+]
 # Configure your database
 #
 # The MIX_TEST_PARTITION environment variable can be used

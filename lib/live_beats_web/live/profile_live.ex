@@ -32,7 +32,7 @@ defmodule LiveBeatsWeb.ProfileLive do
           </.button>
         <% end %>
         <%= if @owns_profile? do %>
-          <.button primary patch={profile_path(@current_user, :new)}>
+          <.button id="upload-btn" primary patch={profile_path(@current_user, :new)}>
             <.icon name={:upload}/><span class="ml-2">Upload Songs</span>
           </.button>
         <% end %>

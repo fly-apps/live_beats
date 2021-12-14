@@ -27,7 +27,7 @@ defmodule LiveBeats.AccountsFixtures do
       "html_url" => "https://github.com/chrismccord",
       "id" => 1234,
       "location" => "Charlotte, NC",
-      "login" => "chrismccord",
+      "login" => attrs[:username] || "chrismccord",
       "name" => "Chris McCord",
       "node_id" => "slkdfjsklfjsf",
       "organizations_url" => "https://api.github.com/users/chrismccord/orgs",
