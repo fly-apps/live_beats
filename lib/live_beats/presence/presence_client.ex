@@ -23,7 +23,7 @@ defmodule LiveBeats.PresenceClient do
       |> profile_identifier()
       |> active_users_topic()
 
-    Phoenix.PubSub.broadcast!(@pubsub, active_users_topic, {__MODULE__, %{user_joined: key}})
+    Phoenix.PubSub.local_broadcast(@pubsub, active_users_topic, {__MODULE__, %{user_joined: key}})
 
     {:ok, state}
   end
@@ -34,7 +34,7 @@ defmodule LiveBeats.PresenceClient do
       |> profile_identifier()
       |> active_users_topic()
 
-    Phoenix.PubSub.broadcast!(@pubsub, active_users_topic, {__MODULE__, %{user_left: key}})
+    Phoenix.PubSub.local_broadcast(@pubsub, active_users_topic, {__MODULE__, %{user_left: key}})
     {:ok, state}
   end
 

@@ -24,7 +24,7 @@ defmodule Phoenix.Presence.Client do
 
   def init(opts) do
     client = Keyword.fetch!(opts, :client)
-    client_state = client.init(%{})
+    {:ok, client_state} = client.init(%{})
 
     state = %{
       topics: %{},
@@ -104,13 +104,18 @@ defmodule Phoenix.Presence.Client do
     updated_state =
       update_topics_state(:add_new_presence_or_metas, state, topic, joined_key, joined_meta)
 
-    state.client.handle_join(topic, joined_key, joined_meta, state)
+    {:ok, updated_client_state} = state.client.handle_join(topic, joined_key, joined_meta, state.client_state)
+    updated_state = Map.put(updated_state, :client_state, updated_client_state)
+
     {updated_state, topic}
   end
 
   defp handle_leave({left_key, meta}, {state, topic}) do
     updated_state = update_topics_state(:remove_presence_or_metas, state, topic, left_key, meta)
-    state.client.handle_leave(topic, left_key, meta, state)
+
+    {:ok, updated_client_state} = state.client.handle_leave(topic, left_key, meta, state.client_state)
+    updated_state = Map.put(updated_state, :client_state, updated_client_state)
+
     {updated_state, topic}
   end
 
