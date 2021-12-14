@@ -67,6 +67,10 @@ defmodule LiveBeatsWeb.ProfileLiveTest do
       {:ok, refreshed_lv, _} = live(conn, LiveHelpers.profile_path(current_user))
       refute render(refreshed_lv) =~ "silence1s"
     end
+
+    test "invalid uploads" do
+      # TODO
+    end
   end
 
   describe "viewing other profiles" do
