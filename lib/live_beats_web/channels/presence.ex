@@ -12,6 +12,8 @@ defmodule LiveBeatsWeb.Presence do
   import LiveBeatsWeb.LiveHelpers
   @pubsub LiveBeats.PubSub
 
+  alias LiveBeats.Accounts
+
   def listening_now(assigns) do
     ~H"""
     <!-- users -->
@@ -31,6 +33,18 @@ defmodule LiveBeatsWeb.Presence do
       </ul>
     </div>
     """
+  end
+
+  def fetch(_topic, presences) do
+    users =
+      presences
+      |> Map.keys()
+      |> Accounts.get_users_map()
+      |> Enum.into(%{})
+
+    for {key, %{metas: metas}} <- presences, into: %{} do
+      {key, %{metas: metas, user: users[String.to_integer(key)]}}
+    end
   end
 
   def subscribe(user_id) do

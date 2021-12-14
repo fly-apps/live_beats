@@ -177,8 +177,6 @@ defmodule Phoenix.Presence.Client do
   end
 
   defp topic_presences_count(state, topic) do
-    state.topics[topic]
-    |> Map.keys()
-    |> Enum.count()
+    map_size(state.topics[topic])
   end
 end
