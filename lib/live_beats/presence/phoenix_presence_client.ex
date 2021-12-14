@@ -11,15 +11,20 @@ defmodule Phoenix.Presence.Client do
     * `:client` - The required callback module
   """
   def start_link(opts) do
-    GenServer.start_link(__MODULE__, opts, name: PresenceClient)
+    case Keyword.fetch(opts, :name) do
+      {:ok, name} ->
+        GenServer.start_link(__MODULE__, opts, name: name)
+
+      :error -> GenServer.start_link(__MODULE__, opts)
+    end
   end
 
-  def track(topic, key, meta) do
-    GenServer.call(PresenceClient, {:track, self(), topic, to_string(key), meta})
+  def track(pid \\ PresenceClient, topic, key, meta) do
+    GenServer.call(pid, {:track, self(), topic, to_string(key), meta})
   end
 
-  def untrack(topic, key) do
-    GenServer.call(PresenceClient, {:untrack, self(), topic, to_string(key)})
+  def untrack(pid \\ PresenceClient, topic, key) do
+    GenServer.call(pid, {:untrack, self(), topic, to_string(key)})
   end
 
   def init(opts) do
