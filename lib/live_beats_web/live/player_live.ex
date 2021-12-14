@@ -9,8 +9,8 @@ defmodule LiveBeatsWeb.PlayerLive do
   def render(assigns) do
     ~H"""
     <!-- player -->
-    <div id="audio-player" phx-hook="AudioPlayer" class="w-full" role="region" aria-label="Player" >
-      <div phx-update="ignore">
+    <div id="audio-player" phx-hook="AudioPlayer" class="w-full" role="region" aria-label="Player">
+      <div id="audio-ignore" phx-update="ignore">
         <audio></audio>
       </div>
       <div class="bg-white dark:bg-gray-800 p-4">
@@ -28,7 +28,8 @@ defmodule LiveBeatsWeb.PlayerLive do
 
           <.progress_bar id="player-progress" />
 
-          <div class="text-gray-500 dark:text-gray-400 flex-row justify-between text-sm font-medium tabular-nums"
+          <div id="player-info"
+            class="text-gray-500 dark:text-gray-400 flex-row justify-between text-sm font-medium tabular-nums"
             phx-update="ignore">
             <div id="player-time"></div>
             <div id="player-duration"></div>

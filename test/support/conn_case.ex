@@ -17,12 +17,16 @@ defmodule LiveBeatsWeb.ConnCase do
 
   use ExUnit.CaseTemplate
 
+  @endpoint LiveBeatsWeb.Endpoint
+  import Phoenix.ConnTest
+
   using do
     quote do
       # Import conveniences for testing with connections
       import Plug.Conn
       import Phoenix.ConnTest
       import LiveBeatsWeb.ConnCase
+      import unquote(__MODULE__)
 
       alias LiveBeatsWeb.Router.Helpers, as: Routes
 
@@ -35,5 +39,13 @@ defmodule LiveBeatsWeb.ConnCase do
     pid = Ecto.Adapters.SQL.Sandbox.start_owner!(LiveBeats.Repo, shared: not tags[:async])
     on_exit(fn -> Ecto.Adapters.SQL.Sandbox.stop_owner(pid) end)
     {:ok, conn: Phoenix.ConnTest.build_conn()}
+  end
+
+  def log_in_user(conn, user) do
+    conn
+    |> Phoenix.ConnTest.bypass_through(LiveBeatsWeb.Router, [:browser])
+    |> get("/")
+    |> LiveBeatsWeb.UserAuth.log_in_user(user)
+    |> Phoenix.ConnTest.recycle()
   end
 end

@@ -4,21 +4,29 @@ defmodule LiveBeats.MediaLibraryFixtures do
   entities via the `LiveBeats.MediaLibrary` context.
   """
 
+  alias LiveBeats.MediaLibrary.Song
+
   @doc """
   Generate a song.
   """
   def song_fixture(attrs \\ %{}) do
     {:ok, song} =
-      attrs
-      |> Enum.into(%{
-        album_artist: "some album_artist",
-        artist: "some artist",
-        date_recorded: ~N[2021-10-26 20:11:00],
-        date_released: ~N[2021-10-26 20:11:00],
-        duration: 42,
-        title: "some title"
-      })
-      |> LiveBeats.MediaLibrary.create_song()
+      struct!(
+        Song,
+        Enum.into(attrs, %{
+          album_artist: "some album_artist",
+          artist: "some artist",
+          date_recorded: ~N[2021-10-26 20:11:00],
+          date_released: ~N[2021-10-26 20:11:00],
+          duration: 42,
+          title: "some title",
+          mp3_url: "//example.com/mp3.mp3",
+          mp3_filename: "mp3.mp3",
+          mp3_filepath: "/data/mp3.mp3",
+          status: :stopped
+        })
+      )
+      |> LiveBeats.Repo.insert()
 
     song
   end

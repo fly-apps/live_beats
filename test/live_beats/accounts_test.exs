@@ -1,9 +1,9 @@
 defmodule LiveBeats.AccountsTest do
   use LiveBeats.DataCase
 
-  alias LiveBeats.Accounts
   import LiveBeats.AccountsFixtures
-  alias LiveBeats.Accounts.{User}
+
+  alias LiveBeats.Accounts
 
   describe "get_user!/1" do
     test "raises if id is invalid" do
@@ -14,13 +14,20 @@ defmodule LiveBeats.AccountsTest do
 
     test "returns the user with the given id" do
       %{id: id} = user = user_fixture()
-      assert %User{id: ^id} = Accounts.get_user!(user.id)
+      assert %Accounts.User{id: ^id} = Accounts.get_user!(user.id)
     end
   end
 
   describe "register_github_user/1" do
     test "creates users with valid data" do
-      flunk "TODO"
+      info = %{
+        "id" => "github-id",
+        "login" => "chrismccord",
+        "avatar_url" => "https://example.com",
+        "html_url" => "https://example.com"
+      }
+
+      assert {:ok, _user} = Accounts.register_github_user("chris@example.com", info, [], "123")
     end
   end
 end

@@ -322,12 +322,6 @@ defmodule LiveBeats.MediaLibrary do
     prev || get_last_song(profile)
   end
 
-  def create_song(attrs \\ %{}) do
-    %Song{}
-    |> Song.changeset(attrs)
-    |> Repo.insert()
-  end
-
   def update_song(%Song{} = song, attrs) do
     song
     |> Song.changeset(attrs)
@@ -358,6 +352,10 @@ defmodule LiveBeats.MediaLibrary do
       []
     )
     |> Repo.transaction()
+    |> case do
+      {:ok, _} -> :ok
+      other -> other
+    end
   end
 
   def change_song(song_or_changeset, attrs \\ %{})

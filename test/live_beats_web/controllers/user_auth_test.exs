@@ -19,7 +19,7 @@ defmodule LiveBeatsWeb.UserAuthTest do
       conn = UserAuth.log_in_user(conn, user)
       assert id = get_session(conn, :user_id)
       assert get_session(conn, :live_socket_id) == "users_sessions:#{id}"
-      assert redirected_to(conn) == "/"
+      assert redirected_to(conn) == "/chrismccord"
       assert Accounts.get_user!(id)
     end
 
@@ -43,7 +43,7 @@ defmodule LiveBeatsWeb.UserAuthTest do
         |> UserAuth.log_out_user()
 
       refute get_session(conn, :user_id)
-      assert redirected_to(conn) == "/"
+      assert redirected_to(conn) == "/signin"
     end
 
     test "broadcasts to the given live_socket_id", %{conn: conn} do
@@ -72,7 +72,7 @@ defmodule LiveBeatsWeb.UserAuthTest do
     test "redirects if user is authenticated", %{conn: conn, user: user} do
       conn = conn |> assign(:current_user, user) |> UserAuth.redirect_if_user_is_authenticated([])
       assert conn.halted
-      assert redirected_to(conn) == "/"
+      assert redirected_to(conn) == Routes.profile_path(conn, :show, user.username)
     end
 
     test "does not redirect if user is not authenticated", %{conn: conn} do

@@ -11,7 +11,7 @@ defmodule LiveBeatsWeb.LiveHelpers do
   def home_path(nil = _current_user), do: "/"
   def home_path(%Accounts.User{} = current_user), do: profile_path(current_user)
 
-  def profile_path(current_user_or_profile, action \\ :index)
+  def profile_path(current_user_or_profile, action \\ :show)
 
   def profile_path(%Accounts.User{} = current_user, action) do
     Routes.profile_path(LiveBeatsWeb.Endpoint, action, current_user.username)
@@ -429,7 +429,7 @@ defmodule LiveBeatsWeb.LiveHelpers do
       |> assign_new(:value, fn -> assigns[:min] || 0 end)
 
     ~H"""
-    <div class="bg-gray-200 flex-auto dark:bg-black rounded-full overflow-hidden" phx-update="ignore">
+    <div id={"#{@id}-container"} class="bg-gray-200 flex-auto dark:bg-black rounded-full overflow-hidden" phx-update="ignore">
       <div
         id={@id}
         class="bg-lime-500 dark:bg-lime-400 h-1.5 w-0"

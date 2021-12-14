@@ -11,21 +11,20 @@ defmodule LiveBeatsWeb.GithubCallbackTest do
       "valid" ->
         {:ok,
          %{
-           info: %{"login" => "chrismccord", "name" => "Chris", "id" => 1},
+           info: %{
+             "login" => "chrismccord",
+             "name" => "Chris",
+             "id" => 1,
+             "avatar_url" => "",
+             "html_url" => ""
+           },
            primary_email: "chris@local.test",
            emails: [%{"primary" => true, "email" => "chris@local.test"}],
            token: "1234"
          }}
 
       "invalid" ->
-        {:ok,
-         %{
-           info: %{"login" => "chrismccord"},
-           primary_email: "chris@local.test",
-           emails: [%{"primary" => true, "email" => "chris@local.test"}],
-           token: "1234"
-         }}
-
+        {:error, %{reason: "token"}}
 
       "failed" ->
         {:error, %{reason: state}}
@@ -45,7 +44,7 @@ defmodule LiveBeatsWeb.GithubCallbackTest do
 
     conn = get(conn, Routes.o_auth_callback_path(conn, :new, "github", params))
 
-    assert redirected_to(conn, 302) == "/"
+    assert redirected_to(conn, 302) == "/chrismccord"
     assert %Accounts.User{} = user = Accounts.get_user_by_email("chris@local.test")
     assert user.name == "Chris"
   end
@@ -56,7 +55,9 @@ defmodule LiveBeatsWeb.GithubCallbackTest do
 
     conn = get(conn, Routes.o_auth_callback_path(conn, :new, "github", params))
 
-    assert get_flash(conn, :error) == "We were unable to fetch the necessary information from your GithHub account"
+    assert get_flash(conn, :error) ==
+             "We were unable to contact GitHub. Please try again later"
+
     assert redirected_to(conn, 302) == "/"
     assert Accounts.list_users(limit: 100) == []
   end

@@ -211,7 +211,7 @@ defmodule LiveBeatsWeb.ProfileLive do
     end
   end
 
-  defp apply_action(socket, :index, _params) do
+  defp apply_action(socket, :show, _params) do
     socket
     |> assign(:page_title, "Listing Songs")
     |> assign(:song, nil)
