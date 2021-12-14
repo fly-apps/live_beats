@@ -177,10 +177,16 @@ let liveSocket = new LiveSocket("/live", Socket, {
   params: {_csrf_token: csrfToken}
 })
 
+let lastFocusedElement = null
+
 let routeUpdated = () => {
   let target;
-  if (document.location.pathname.endsWith("/songs/new")) {
+  if (lastFocusedElement != null) {
+    target = lastFocusedElement
+    lastFocusedElement = null
+  } else if (document.location.pathname.endsWith("/songs/new")) {
     target = document.querySelector("#layout")
+    lastFocusedElement = document.activeElement
   } else {
     target = document.querySelector("main h1") || document.querySelector("main")
   }
