@@ -260,10 +260,7 @@ defmodule LiveBeatsWeb.ProfileLive do
     presences = socket.assigns.profile.user_id
     |> topic()
     |> LiveBeats.PresenceClient.list()
-    |> Enum.map(fn {user_id, _user_data} ->
-      user_id
-    end)
-    |> Accounts.list_users_by_ids()
+    |> Enum.map(fn {_key, meta} -> meta.user end)
 
     assign(socket, presences: presences)
   end

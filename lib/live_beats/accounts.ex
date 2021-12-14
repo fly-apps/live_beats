@@ -21,8 +21,8 @@ defmodule LiveBeats.Accounts do
     Repo.all(from u in User, limit: ^Keyword.fetch!(opts, :limit))
   end
 
-  def list_users_by_ids(user_ids) when is_list(user_ids) do
-    Repo.all(from u in User, where: u.id in ^user_ids)
+  def get_users_map(user_ids) when is_list(user_ids) do
+    Repo.all(from u in User, where: u.id in ^user_ids, select: {u.id, u})
   end
 
   def lists_users_by_active_profile(id, opts) do
