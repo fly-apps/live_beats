@@ -13,8 +13,8 @@ defmodule Phoenix.Presence.Client.PresenceMock do
     {:ok, %{id: id}}
   end
 
-  def track(pid, topic, key) do
-    GenServer.cast(pid, {:track, topic, key})
+  def track(client_pid, pid, topic, key) do
+    GenServer.cast(pid, {:track, client_pid, topic, key})
   end
 
   @impl true
@@ -24,8 +24,8 @@ defmodule Phoenix.Presence.Client.PresenceMock do
   end
 
   @impl true
-  def handle_cast({:track, topic, key}, state) do
-    Client.track(topic, key, %{})
+  def handle_cast({:track, client_pid, topic, key}, state) do
+    Client.track(client_pid, topic, key, %{})
     {:noreply, state}
   end
 end
