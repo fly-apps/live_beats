@@ -178,7 +178,12 @@ let liveSocket = new LiveSocket("/live", Socket, {
 })
 
 let routeUpdated = () => {
-  let target = document.querySelector("main h1") || document.querySelector("main")
+  let target;
+  if (document.location.pathname.endsWith("/songs/new")) {
+    target = document.querySelector("#layout")
+  } else {
+    target = document.querySelector("main h1") || document.querySelector("main")
+  }
   if (target) {
     let origTabIndex = target.getAttribute("tabindex")
     target.setAttribute("tabindex", "-1")
@@ -199,7 +204,7 @@ window.addEventListener("phx:page-loading-start", info => topbar.show())
 window.addEventListener("phx:page-loading-stop", info => topbar.hide())
 
 // Accessible routing
-window.addEventListener("phx:page-loading-stop", () => window.requestAnimationFrame(routeUpdated))
+window.addEventListener("phx:page-loading-stop", () => window.requestAnimationFrame(() => window.requestAnimationFrame(routeUpdated)))
 
 window.addEventListener("js:exec", e => e.target[e.detail.call](...e.detail.args))
 
