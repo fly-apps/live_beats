@@ -174,6 +174,9 @@ Hooks.AudioPlayer = {
 Hooks.Modal = {
   // Subject to the W3C Software License at https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document
   isFocusable(element) {
+    if (element == this.beforeFocusEl || element == this.afterFocusEl) {
+      return false
+    }
     if (element.tabIndex > 0 || (element.tabIndex === 0 && element.getAttribute("tabIndex") !== null)) {
       return true
     }
