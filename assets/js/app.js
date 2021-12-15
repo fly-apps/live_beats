@@ -238,6 +238,9 @@ Hooks.Modal = {
     this.beforeFocusEl.removeEventListener("focus", () => this.beforeFocus())
     this.beforeFocusEl.style.display = "none"
     this.afterFocusEl.removeEventListener("focus", () => this.afterFocus())
+    if (lastFocusedElement) {
+      lastFocusedElement.focus()
+    }
   },
   showBeforeFocus() {
     this.beforeFocusEl.addEventListener("focus", () => this.beforeFocus())
@@ -262,8 +265,8 @@ let lastFocusedElement = null
 let routeUpdated = () => {
   let target;
   if (lastFocusedElement != null) {
-    target = lastFocusedElement
     lastFocusedElement = null
+    return
   } else if (document.location.pathname.endsWith("/songs/new")) {
     target = document.querySelector("#layout")
     lastFocusedElement = document.activeElement
