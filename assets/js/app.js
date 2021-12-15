@@ -225,13 +225,13 @@ Hooks.Modal = {
     return false
   },
   mounted() {
-    this.dialog = this.el.querySelector(".dialog")
     this.beforeFocusEl = this.el.querySelector(".before-focus")
-    this.el.addEventListener("phx:show-end", () => this.showBeforeFocus())
+    this.beforeFocusEl.addEventListener("focus", () => this.beforeFocus())
     this.afterFocusEl = this.el.querySelector(".after-focus")
     this.afterFocusEl.addEventListener("focus", () => this.afterFocus())
+    this.el.addEventListener("phx:show-end", () => this.show())
     if (window.getComputedStyle(this.el).display !== "none") {
-      this.showBeforeFocus()
+      this.show()
     }
   },
   destroyed() {
@@ -241,14 +241,14 @@ Hooks.Modal = {
       lastFocusedElement.focus()
     }
   },
-  showBeforeFocus() {
-    this.beforeFocusEl.addEventListener("focus", () => this.beforeFocus())
+  show() {
+    this.el.focus()
   },
   beforeFocus() {
-    this.focusLastDescendant(this.dialog)
+    this.focusLastDescendant(this.el)
   },
   afterFocus() {
-    this.focusFirstDescendant(this.dialog)
+    this.focusFirstDescendant(this.el)
   }
 }
 
@@ -266,8 +266,8 @@ let routeUpdated = () => {
     lastFocusedElement = null
     return
   } else if (document.location.pathname.endsWith("/songs/new")) {
-    target = document.querySelector("#layout")
     lastFocusedElement = document.activeElement
+    return
   } else {
     target = document.querySelector("main h1") || document.querySelector("main")
   }
