@@ -359,8 +359,9 @@ defmodule LiveBeatsWeb.LiveHelpers do
       |> assign_rest(~w(id show patch navigate on_cancel on_confirm title confirm cancel)a)
 
     ~H"""
-    <div id={@id} class={"fixed z-10 inset-0 overflow-y-auto #{if @show, do: "fade-in", else: "hidden"}"} aria-labelledby="modal-title" role="dialog" aria-modal="true" tabindex="0" {@rest}>
-      <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+    <div id={@id} class={"fixed z-10 inset-0 overflow-y-auto #{if @show, do: "fade-in", else: "hidden"}"} aria-labelledby="modal-title" role="dialog" aria-modal="true" tabindex="0" phx-hook="Modal" {@rest}>
+      <span class="hidden before-focus" tabindex="0" aria-hidden="true" />
+      <div class="dialog flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
         <div
@@ -398,7 +399,6 @@ defmodule LiveBeatsWeb.LiveHelpers do
                 class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
                 phx-click={@on_confirm}
                 phx-disable-with
-                tabindex="1"
                 {assigns_to_attributes(confirm)}
               >
                 <%= render_slot(confirm) %>
@@ -408,7 +408,6 @@ defmodule LiveBeatsWeb.LiveHelpers do
               <button
                 class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm"
                 phx-click={hide_modal(@on_cancel, @id)}
-                tabindex="2"
                 {assigns_to_attributes(cancel)}
               >
                 <%= render_slot(cancel) %>
@@ -417,6 +416,7 @@ defmodule LiveBeatsWeb.LiveHelpers do
           </div>
         </div>
       </div>
+      <span class="after-focus" tabindex="0" aria-hidden="true" />
     </div>
     """
   end

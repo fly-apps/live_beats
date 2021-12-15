@@ -171,6 +171,86 @@ Hooks.AudioPlayer = {
   formatTime(seconds){ return new Date(1000 * seconds).toISOString().substr(14, 5) }
 }
 
+Hooks.Modal = {
+  // Subject to the W3C Software License at https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document
+  isFocusable(element) {
+    if (element.tabIndex > 0 || (element.tabIndex === 0 && element.getAttribute("tabIndex") !== null)) {
+      return true
+    }
+    if (element.disabled) {
+      return false
+    }
+    switch (element.nodeName) {
+      case "A":
+        return !!element.href && element.rel != "ignore"
+      case "INPUT":
+        return element.type != "hidden" && element.type != "file"
+      case "BUTTON":
+      case "SELECT":
+      case "TEXTAREA":
+        return true
+      default:
+        return false
+    }
+  },
+  // Subject to the W3C Software License at https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document
+  attemptFocus(element) {
+    if (!this.isFocusable(element)) {
+      return false
+    }
+    try {
+      element.focus()
+    } catch (e) {
+    }
+    return document.activeElement === element
+  },
+  // Subject to the W3C Software License at https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document
+  focusFirstDescendant(element) {
+    for (var i = 0; i < element.childNodes.length; i++) {
+      var child = element.childNodes[i]
+      if (this.attemptFocus(child) || this.focusFirstDescendant(child)) {
+        return true
+      }
+    }
+    return false
+  },
+  // Subject to the W3C Software License at https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document
+  focusLastDescendant(element) {
+    for (var i = element.childNodes.length - 1; i >= 0; i--) {
+      var child = element.childNodes[i]
+      if (this.attemptFocus(child) || this.focusLastDescendant(child)) {
+        return true
+      }
+    }
+    return false
+  },
+  mounted() {
+    this.dialog = this.el.querySelector(".dialog")
+    this.beforeFocusEl = this.el.querySelector(".before-focus")
+    this.el.addEventListener("phx:show-end", () => this.showBeforeFocus())
+    this.afterFocusEl = this.el.querySelector(".after-focus")
+    this.afterFocusEl.addEventListener("focus", () => this.afterFocus())
+    if (window.getComputedStyle(this.el).display !== "none") {
+      this.showBeforeFocus()
+    }
+  },
+  destroyed() {
+    this.beforeFocusEl.removeEventListener("focus", () => this.beforeFocus())
+    this.beforeFocusEl.style.display = "none"
+    this.afterFocusEl.removeEventListener("focus", () => this.afterFocus())
+  },
+  showBeforeFocus() {
+    this.beforeFocusEl.addEventListener("focus", () => this.beforeFocus())
+    this.beforeFocusEl.style.display = "block"
+  },
+  beforeFocus() {
+    this.focusLastDescendant(this.dialog)
+  },
+  afterFocus() {
+    this.focusFirstDescendant(this.dialog)
+  }
+}
+
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, {
   hooks: Hooks,

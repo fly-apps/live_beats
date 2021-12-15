@@ -48,7 +48,7 @@
                 <div class="flex text-sm text-gray-600">
                   <label for="file-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
                     <span phx-click={JS.dispatch("click", to: "##{@uploads.mp3.ref}")}>Upload files</span>
-                    <%= live_file_input @uploads.mp3, class: "sr-only" %>
+                    <%= live_file_input @uploads.mp3, class: "sr-only", tabindex: "0" %>
                   </label>
                   <p class="pl-1">or drag and drop</p>
                 </div>
