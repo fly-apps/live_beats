@@ -17,7 +17,7 @@ defmodule Phoenix.Presence.ClientTest do
     :ok
   end
 
-  test "When a new process is tracked, a topic key is added to the topics state" do
+  test "A topic key is added to the topics state when a new process is tracked" do
     presence_key = 1
     topic = topic(100)
 
@@ -58,7 +58,7 @@ defmodule Phoenix.Presence.ClientTest do
     assert %{topics: %{}} = client_state
   end
 
-  test "When there are two presences for the same key, the metas are accumulated" do
+  test "metas are accumulated when there are two presences for the same key" do
     presence_key = 1
     topic = topic(100)
 
@@ -80,7 +80,7 @@ defmodule Phoenix.Presence.ClientTest do
     assert %{topics: %{^topic => %{"1" => [%{m1: :m1}, %{m2: :m2}]}}} = client_state
   end
 
-  test "When there are two presences for the same key and one leaves, just the meta is deleted" do
+  test "Just one meta is deleted when there are two presences for the same key and one leaves" do
     presence_key = 1
     topic = topic(100)
 
