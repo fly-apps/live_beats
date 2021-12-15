@@ -28,13 +28,9 @@ defmodule Phoenix.Presence.ClientTest do
     Process.monitor(presence_process)
 
     PresenceMock.track(presence_client, presence_process, topic, presence_key)
-
-    assert Process.alive?(presence_process)
-
     assert_receive %{event: "presence_diff"}
 
     client_state = :sys.get_state(presence_client)
-
     assert %{topics: %{^topic => %{"1" => [%{phx_ref: _ref}]}}} = client_state
   end
 
@@ -49,22 +45,68 @@ defmodule Phoenix.Presence.ClientTest do
     Process.monitor(presence_process)
 
     PresenceMock.track(presence_client, presence_process, topic, presence_key)
-
     assert Process.alive?(presence_process)
-
     assert_receive %{event: "presence_diff"}
 
     client_state = :sys.get_state(presence_client)
-
     assert %{topics: %{^topic => %{"1" => [%{phx_ref: _ref}]}}} = client_state
 
     send(presence_process, :quit)
-
     assert_receive {:DOWN, _ref, :process, ^presence_process, _reason}
 
     client_state = :sys.get_state(presence_client)
-
     assert %{topics: %{}} = client_state
+  end
+
+  test "When there are two presences for the same key, the metas are accumulated" do
+    presence_key = 1
+    topic = topic(100)
+
+    {:ok, presence_client} = Client.start_link(@presence_client_opts)
+    {:ok, presence_process_1} = PresenceMock.start_link(id: presence_key)
+    {:ok, presence_process_2} = PresenceMock.start_link(id: presence_key)
+
+    Phoenix.PubSub.subscribe(@pubsub, topic)
+
+    PresenceMock.track(presence_client, presence_process_1, topic, presence_key, %{m1: :m1})
+    assert_receive %{event: "presence_diff"}
+
+    PresenceMock.track(presence_client, presence_process_2, topic, presence_key, %{m2: :m2})
+    assert_receive %{event: "presence_diff"}
+
+
+    client_state = :sys.get_state(presence_client)
+
+    assert %{topics: %{^topic => %{"1" => [%{m1: :m1}, %{m2: :m2}]}}} = client_state
+  end
+
+  test "When there are two presences for the same key and one leaves, just the meta is deleted" do
+    presence_key = 1
+    topic = topic(100)
+
+    {:ok, presence_client} = Client.start_link(@presence_client_opts)
+    {:ok, presence_process_1} = PresenceMock.start_link(id: presence_key)
+    {:ok, presence_process_2} = PresenceMock.start_link(id: presence_key)
+
+    Phoenix.PubSub.subscribe(@pubsub, topic)
+    Process.monitor(presence_process_1)
+
+    PresenceMock.track(presence_client, presence_process_1, topic, presence_key, %{m1: :m1})
+    assert_receive %{event: "presence_diff"}
+
+    PresenceMock.track(presence_client, presence_process_2, topic, presence_key, %{m2: :m2})
+    assert_receive %{event: "presence_diff"}
+
+
+    client_state = :sys.get_state(presence_client)
+    assert %{topics: %{^topic => %{"1" => [%{m1: :m1}, %{m2: :m2}]}}} = client_state
+
+    send(presence_process_1, :quit)
+    assert_receive {:DOWN, _ref, :process, ^presence_process_1, _reason}
+    assert_receive %{event: "presence_diff"}
+
+    client_state = :sys.get_state(presence_client)
+    assert %{topics: %{^topic => %{"1" => [%{m2: :m2}]}}}  = client_state
   end
 
   defp topic(id) do
