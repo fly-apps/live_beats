@@ -236,7 +236,6 @@ Hooks.Modal = {
   },
   destroyed() {
     this.beforeFocusEl.removeEventListener("focus", () => this.beforeFocus())
-    this.beforeFocusEl.style.display = "none"
     this.afterFocusEl.removeEventListener("focus", () => this.afterFocus())
     if (lastFocusedElement) {
       lastFocusedElement.focus()
@@ -244,7 +243,6 @@ Hooks.Modal = {
   },
   showBeforeFocus() {
     this.beforeFocusEl.addEventListener("focus", () => this.beforeFocus())
-    this.beforeFocusEl.style.display = "block"
   },
   beforeFocus() {
     this.focusLastDescendant(this.dialog)
