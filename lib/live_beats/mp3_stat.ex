@@ -36,11 +36,19 @@ defmodule LiveBeats.MP3Stat do
   def parse(path) do
     {tag_info, rest} = parse_tag(File.read!(path))
     duration = parse_frame(rest, 0, 0, 0)
-    title = Enum.at(tag_info["TIT2"] || [], 0)
-    artist = Enum.at(tag_info["TPE1"] || [], 0)
 
-    {:ok,
-     %MP3Stat{duration: round(duration), path: path, tags: tag_info, title: title, artist: artist}}
+    case duration do
+      duration when is_float(duration) and duration > 0 ->
+        title = Enum.at(tag_info["TIT2"] || [], 0)
+        artist = Enum.at(tag_info["TPE1"] || [], 0)
+        seconds = round(duration)
+
+        {:ok,
+         %MP3Stat{duration: seconds, path: path, tags: tag_info, title: title, artist: artist}}
+
+      _other ->
+        {:error, :bad_file}
+    end
   rescue
     _ -> {:error, :bad_file}
   end

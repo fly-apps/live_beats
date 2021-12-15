@@ -9,4 +9,12 @@ defmodule LiveBeats.MP3StatTest do
     assert stat.title == "Silence"
     assert stat.artist == "Anon"
   end
+
+  test "parse/1 with invalid mp3" do
+    assert {:error, :bad_file} =  MP3Stat.parse("mix.exs")
+  end
+
+  test "parse/1 with missing file" do
+    assert {:error, :bad_file} =  MP3Stat.parse("lsfjslkfjslkfjs")
+  end
 end
