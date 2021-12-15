@@ -46,7 +46,7 @@ defmodule LiveBeatsWeb.ProfileLive.SongEntryComponent do
       <div class="col-span-full sm:grid sm:grid-cols-2 sm:gap-2 sm:items-start">
         <.error input_name={"songs[#{@ref}][attribution]"} field={:attribution} errors={@errors} class="-mt-1"/>
       </div>
-      <div style={"width: #{@progress}%;"} class="col-span-full bg-purple-500 dark:bg-purple-400 h-1.5 w-0 p-0">
+      <div role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow={@progress} style={"width: #{@progress}%;"} class="col-span-full bg-purple-500 dark:bg-purple-400 h-1.5 w-0 p-0">
       </div>
     </div>
     """
