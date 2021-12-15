@@ -8,7 +8,7 @@ defmodule LiveBeats.MP3Stat do
   use Bitwise
   alias LiveBeats.MP3Stat
 
-  defstruct duration: 0, path: nil, title: nil, tags: nil
+  defstruct duration: 0, path: nil, title: nil, artist: nil, tags: nil
 
   @declared_frame_ids ~w(AENC APIC ASPI COMM COMR ENCR EQU2 ETCO GEOB GRID LINK MCDI MLLT OWNE PRIV PCNT POPM POSS RBUF RVA2 RVRB SEEK SIGN SYLT SYTC TALB TBPM TCOM TCON TCOP TDEN TDLY TDOR TDRC TDRL TDTG TENC TEXT TFLT TIPL TIT1 TIT2 TIT3 TKEY TLAN TLEN TMCL TMED TMOO TOAL TOFN TOLY TOPE TOWN TPE1 TPE2 TPE3 TPE4 TPOS TPRO TPUB TRCK TRSN TRSO TSOA TSOP TSOT TSRC TSSE TSST TXXX UFID USER USLT WCOM WCOP WOAF WOAR WOAS WORS WPAY WPUB WXXX)
 
@@ -36,7 +36,11 @@ defmodule LiveBeats.MP3Stat do
   def parse(path) do
     {tag_info, rest} = parse_tag(File.read!(path))
     duration = parse_frame(rest, 0, 0, 0)
-    {:ok, %MP3Stat{duration: round(duration), path: path, tags: tag_info, title: tag_info["TIT2"]}}
+    title = Enum.at(tag_info["TIT2"] || [], 0)
+    artist = Enum.at(tag_info["TPE1"] || [], 0)
+
+    {:ok,
+     %MP3Stat{duration: round(duration), path: path, tags: tag_info, title: title, artist: artist}}
   rescue
     _ -> {:error, :bad_file}
   end
