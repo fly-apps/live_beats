@@ -1,3 +1,8 @@
+defmodule Phoenix.Presence.ClientTest.Presence do
+  use Phoenix.Presence, otp_app: :live_beats,
+                        pubsub_server: LiveBeats.PubSub
+end
+
 defmodule Phoenix.Presence.ClientTest do
   use ExUnit.Case
 
@@ -6,11 +11,12 @@ defmodule Phoenix.Presence.ClientTest do
 
   @pubsub LiveBeats.PubSub
   @client Phoenix.Presence.Client.Mock
-  @presence LiveBeatsWeb.Presence
+  @presence Phoenix.Presence.ClientTest.Presence
 
   @presence_client_opts [client: @client, pubsub: @pubsub, presence: @presence]
 
   setup tags do
+    start_supervised!({@presence, []})
     pid = Ecto.Adapters.SQL.Sandbox.start_owner!(LiveBeats.Repo, shared: not tags[:async])
     on_exit(fn -> Ecto.Adapters.SQL.Sandbox.stop_owner(pid) end)
 
@@ -21,8 +27,8 @@ defmodule Phoenix.Presence.ClientTest do
     presence_key = 1
     topic = topic(100)
 
-    {:ok, presence_client} = Client.start_link(@presence_client_opts)
-    {:ok, presence_process} = PresenceMock.start_link(id: presence_key)
+    {:ok, presence_client} = start_supervised({Client, @presence_client_opts})
+    {:ok, presence_process} = start_supervised({PresenceMock, id: presence_key})
 
     Phoenix.PubSub.subscribe(@pubsub, topic)
     Process.monitor(presence_process)
@@ -38,8 +44,8 @@ defmodule Phoenix.Presence.ClientTest do
     presence_key = 1
     topic = topic(100)
 
-    {:ok, presence_client} = Client.start_link(@presence_client_opts)
-    {:ok, presence_process} = PresenceMock.start_link(id: presence_key)
+    {:ok, presence_client} = start_supervised({Client, @presence_client_opts})
+    {:ok, presence_process} = start_supervised({PresenceMock, id: presence_key})
 
     Phoenix.PubSub.subscribe(@pubsub, topic)
     Process.monitor(presence_process)
@@ -62,9 +68,9 @@ defmodule Phoenix.Presence.ClientTest do
     presence_key = 1
     topic = topic(100)
 
-    {:ok, presence_client} = Client.start_link(@presence_client_opts)
-    {:ok, presence_process_1} = PresenceMock.start_link(id: presence_key)
-    {:ok, presence_process_2} = PresenceMock.start_link(id: presence_key)
+    {:ok, presence_client} = start_supervised({Client, @presence_client_opts})
+    {:ok, presence_process_1} = start_supervised({PresenceMock, id: presence_key}, id: :mock_1)
+    {:ok, presence_process_2} = start_supervised({PresenceMock, id: presence_key}, id: :mock_2)
 
     Phoenix.PubSub.subscribe(@pubsub, topic)
 
@@ -73,7 +79,6 @@ defmodule Phoenix.Presence.ClientTest do
 
     PresenceMock.track(presence_client, presence_process_2, topic, presence_key, %{m2: :m2})
     assert_receive %{event: "presence_diff"}
-
 
     client_state = :sys.get_state(presence_client)
 
@@ -84,9 +89,9 @@ defmodule Phoenix.Presence.ClientTest do
     presence_key = 1
     topic = topic(100)
 
-    {:ok, presence_client} = Client.start_link(@presence_client_opts)
-    {:ok, presence_process_1} = PresenceMock.start_link(id: presence_key)
-    {:ok, presence_process_2} = PresenceMock.start_link(id: presence_key)
+    {:ok, presence_client} = start_supervised({Client, @presence_client_opts})
+    {:ok, presence_process_1} = start_supervised({PresenceMock, id: presence_key}, id: :mock_1)
+    {:ok, presence_process_2} = start_supervised({PresenceMock, id: presence_key}, id: :mock_2)
 
     Phoenix.PubSub.subscribe(@pubsub, topic)
     Process.monitor(presence_process_1)
@@ -97,7 +102,6 @@ defmodule Phoenix.Presence.ClientTest do
     PresenceMock.track(presence_client, presence_process_2, topic, presence_key, %{m2: :m2})
     assert_receive %{event: "presence_diff"}
 
-
     client_state = :sys.get_state(presence_client)
     assert %{topics: %{^topic => %{"1" => [%{m1: :m1}, %{m2: :m2}]}}} = client_state
 
@@ -106,7 +110,7 @@ defmodule Phoenix.Presence.ClientTest do
     assert_receive %{event: "presence_diff"}
 
     client_state = :sys.get_state(presence_client)
-    assert %{topics: %{^topic => %{"1" => [%{m2: :m2}]}}}  = client_state
+    assert %{topics: %{^topic => %{"1" => [%{m2: :m2}]}}} = client_state
   end
 
   defp topic(id) do

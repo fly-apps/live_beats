@@ -17,14 +17,19 @@ defmodule LiveBeats.Application do
       LiveBeatsWeb.Telemetry,
       # Start the PubSub system
       {Phoenix.PubSub, name: LiveBeats.PubSub},
-      #start presence
+      # start presence
       LiveBeatsWeb.Presence,
+      {Phoenix.Presence.Client,
+       client: LiveBeats.PresenceClient,
+       pubsub: LiveBeats.PubSub,
+       presence: LiveBeatsWeb.Presence,
+       name: PresenceClient},
       # Start the Endpoint (http/https)
-      LiveBeatsWeb.Endpoint,
+      LiveBeatsWeb.Endpoint
+
       # Start a worker by calling: LiveBeats.Worker.start_link(arg)
       # {LiveBeats.Worker, arg}
-
-    ] ++ start_presence_client(Mix.env)
+    ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
@@ -38,11 +43,5 @@ defmodule LiveBeats.Application do
   def config_change(changed, _new, removed) do
     LiveBeatsWeb.Endpoint.config_change(changed, removed)
     :ok
-  end
-
-  defp start_presence_client(:test), do: []
-
-  defp start_presence_client(_) do
-    [{Phoenix.Presence.Client, client: LiveBeats.PresenceClient, pubsub: LiveBeats.PubSub, presence: LiveBeatsWeb.Presence, name: PresenceClient}]
   end
 end
