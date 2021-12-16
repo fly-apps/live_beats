@@ -1,5 +1,4 @@
 defmodule Phoenix.Presence.Client.PresenceMock do
-
   use GenServer
   alias Phoenix.Presence.Client
 
