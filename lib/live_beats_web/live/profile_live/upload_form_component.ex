@@ -54,7 +54,7 @@ defmodule LiveBeatsWeb.ProfileLive.UploadFormComponent do
           {:noreply,
            socket
            |> put_flash(:info, "#{map_size(songs)} song(s) uploaded")
-           |> push_redirect(to: profile_path(current_user))}
+           |> push_patch(to: profile_path(current_user))}
 
         {:error, {failed_op, reason}} ->
           {:noreply, put_error(socket, {failed_op, reason})}

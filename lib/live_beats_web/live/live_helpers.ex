@@ -557,7 +557,7 @@ defmodule LiveBeatsWeb.LiveHelpers do
               <% end %>
             </tr>
           </thead>
-          <tbody class="bg-white divide-y divide-gray-100">
+          <tbody id={@id} class="bg-white divide-y divide-gray-100" phx-update="append">
             <%= for {row, i} <- Enum.with_index(@rows) do %>
               <.live_component
                 module={@module}

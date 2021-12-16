@@ -10,4 +10,8 @@ defmodule LiveBeats.MediaLibrary.Events do
   defmodule PublicProfileUpdated do
     defstruct profile: nil
   end
+
+  defmodule SongsImported do
+    defstruct user_id: nil, songs: []
+  end
 end

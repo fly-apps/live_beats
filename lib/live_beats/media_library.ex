@@ -184,14 +184,16 @@ defmodule LiveBeats.MediaLibrary do
 
     case LiveBeats.Repo.transaction(multi) do
       {:ok, results} ->
-        {:ok,
-         results
-         |> Enum.filter(&match?({{:song, _ref}, _}, &1))
-         |> Enum.map(fn {{:song, ref}, song} ->
-           consume_file.(ref, fn tmp_path -> store_mp3(song, tmp_path) end)
-           {ref, song}
-         end)
-         |> Enum.into(%{})}
+        songs =
+          results
+          |> Enum.filter(&match?({{:song, _ref}, _}, &1))
+          |> Enum.map(fn {{:song, ref}, song} ->
+            consume_file.(ref, fn tmp_path -> store_mp3(song, tmp_path) end)
+            {ref, song}
+          end)
+          broadcast_imported(user, songs)
+
+        {:ok, Enum.into(songs, %{})}
 
       {:error, failed_op, failed_val, _changes} ->
         failed_op =
@@ -203,6 +205,11 @@ defmodule LiveBeats.MediaLibrary do
 
         {:error, {failed_op, failed_val}}
     end
+  end
+
+  defp broadcast_imported(%Accounts.User{} = user, songs) do
+    songs = Enum.map(songs, fn {_ref, song} -> song end)
+    broadcast!(user.id, %Events.SongsImported{user_id: user.id, songs: songs})
   end
 
   def parse_file_name(name) do
