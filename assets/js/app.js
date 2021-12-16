@@ -174,9 +174,6 @@ Hooks.AudioPlayer = {
 Hooks.Modal = {
   // Subject to the W3C Software License at https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document
   isFocusable(element) {
-    if (element == this.beforeFocusEl || element == this.afterFocusEl) {
-      return false
-    }
     if (element.tabIndex > 0 || (element.tabIndex === 0 && element.getAttribute("tabIndex") !== null)) {
       return true
     }
@@ -228,6 +225,7 @@ Hooks.Modal = {
     return false
   },
   mounted() {
+    this.dialog = this.el.querySelector("[role=dialog]")
     this.beforeFocusEl = this.el.querySelector(".before-focus")
     this.beforeFocusEl.addEventListener("focus", () => this.beforeFocus())
     this.afterFocusEl = this.el.querySelector(".after-focus")
@@ -245,13 +243,13 @@ Hooks.Modal = {
     }
   },
   show() {
-    this.el.focus()
+    this.dialog.focus()
   },
   beforeFocus() {
-    this.focusLastDescendant(this.el)
+    this.focusLastDescendant(this.dialog)
   },
   afterFocus() {
-    this.focusFirstDescendant(this.el)
+    this.focusFirstDescendant(this.dialog)
   }
 }
 

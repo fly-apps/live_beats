@@ -325,7 +325,6 @@ defmodule LiveBeatsWeb.LiveHelpers do
         {"ease-out duration-300", "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95",
          "opacity-100 translate-y-0 sm:scale-100"}
     )
-    |> js_exec("##{id}-confirm", "focus", [])
   end
 
   def hide_modal(js \\ %JS{}, id) do
@@ -359,9 +358,9 @@ defmodule LiveBeatsWeb.LiveHelpers do
       |> assign_rest(~w(id show patch navigate on_cancel on_confirm title confirm cancel)a)
 
     ~H"""
-    <div id={@id} class={"fixed z-10 inset-0 overflow-y-auto #{if @show, do: "fade-in", else: "hidden"}"} aria-labelledby="modal-title" role="dialog" aria-modal="true" tabindex="0" phx-hook="Modal" {@rest}>
+    <div id={@id} class={"fixed z-10 inset-0 overflow-y-auto #{if @show, do: "fade-in", else: "hidden"}"} phx-hook="Modal" {@rest}>
       <span class="before-focus" tabindex="0" aria-hidden="true" />
-      <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+      <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0" aria-labelledby={"#{@id}-title"} role="dialog" aria-modal="true" tabindex="0" >
         <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
         <div
@@ -383,7 +382,7 @@ defmodule LiveBeatsWeb.LiveHelpers do
             </div>
             <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full mr-12">
               <h3 class="text-lg leading-6 font-medium text-gray-900" id={"#{@id}-title"}>
-                <%= render_slot(@title) %>
+                Title <%= render_slot(@title) %>
               </h3>
               <div class="mt-2">
                 <p id={"#{@id}-content"} class={"text-sm text-gray-500"}>
