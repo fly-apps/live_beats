@@ -1,6 +1,10 @@
 defmodule Phoenix.Presence.Client do
   use GenServer
 
+  @callback init(state :: term) :: {:ok, new_state :: term}
+  @callback handle_join(topic :: String.t(), key :: String.t(), meta :: [map()], state :: term) :: {:ok, term}
+  @callback handle_leave(topic :: String.t(), key :: String.t(), meta :: [map()], state :: term) :: {:ok, term}
+
   @doc """
   TODO
 
