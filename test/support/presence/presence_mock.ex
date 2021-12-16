@@ -18,7 +18,6 @@ defmodule Phoenix.Presence.Client.PresenceMock do
 
   @impl true
   def handle_info(:quit, state) do
-    IO.inspect(:quit)
     {:stop, :normal, state}
   end
 

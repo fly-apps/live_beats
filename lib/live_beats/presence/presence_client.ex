@@ -4,19 +4,17 @@ defmodule LiveBeats.PresenceClient do
   @presence LiveBeatsWeb.Presence
   @pubsub LiveBeats.PubSub
 
-  def start_link(opts) do
-    Phoenix.Presence.Client.start_link(presence: @presence, client: __MODULE__)
-  end
-
   def list(topic) do
     @presence.list(topic)
   end
 
+  @impl Phoenix.Presence.Client
   def init(_opts) do
     # user-land state
     {:ok, %{}}
   end
 
+  @impl Phoenix.Presence.Client
   def handle_join(topic, key, _meta, state) do
     active_users_topic =
       topic
@@ -28,6 +26,7 @@ defmodule LiveBeats.PresenceClient do
     {:ok, state}
   end
 
+  @impl Phoenix.Presence.Client
   def handle_leave(topic, key, _meta, state) do
     active_users_topic =
       topic
