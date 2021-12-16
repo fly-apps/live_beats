@@ -91,7 +91,7 @@ defmodule LiveBeatsWeb.ProfileLive do
 
     active_song_id =
       if song = MediaLibrary.get_current_active_song(profile) do
-        SongRowComponent.send_status(song, song.status)
+        SongRowComponent.send_status(song.id, song.status)
         song.id
       end
 
@@ -170,8 +170,7 @@ defmodule LiveBeatsWeb.ProfileLive do
   def handle_info({Accounts, _}, socket), do: {:noreply, socket}
 
   defp stop_song(socket, song_id) do
-    song = MediaLibrary.get_song!(song_id)
-    SongRowComponent.send_status(song, :stopped)
+    SongRowComponent.send_status(song_id, :stopped)
 
     if socket.assigns.active_song_id == song_id do
       assign(socket, :active_song_id, nil)
@@ -181,8 +180,7 @@ defmodule LiveBeatsWeb.ProfileLive do
   end
 
   defp pause_song(socket, song_id) do
-    song = MediaLibrary.get_song!(song_id)
-    SongRowComponent.send_status(song, :paused)
+    SongRowComponent.send_status(song_id, :paused)
     socket
   end
 
@@ -191,18 +189,18 @@ defmodule LiveBeatsWeb.ProfileLive do
 
     cond do
       active_song_id == song.id ->
-        SongRowComponent.send_status(song, :playing)
+        SongRowComponent.send_status(song.id, :playing)
         socket
 
       active_song_id ->
-        SongRowComponent.send_status(song, :playing)
+        SongRowComponent.send_status(song.id, :playing)
 
         socket
         |> stop_song(active_song_id)
         |> assign(active_song_id: song.id)
 
       true ->
-        SongRowComponent.send_status(song, :playing)
+        SongRowComponent.send_status(song.id, :playing)
         assign(socket, active_song_id: song.id)
     end
   end

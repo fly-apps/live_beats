@@ -3,8 +3,8 @@ defmodule LiveBeatsWeb.ProfileLive.SongRowComponent do
 
   alias LiveBeats.MediaLibrary.Song
 
-  def send_status(%Song{} = song, status) when status in [:playing, :paused, :stopped] do
-    send_update(__MODULE__, id: "song-#{song.id}", action: :send, song: song, status: status)
+  def send_status(song_id, status) when status in [:playing, :paused, :stopped] do
+    send_update(__MODULE__, id: "song-#{song_id}", action: :send, status: status)
   end
 
   def render(assigns) do
@@ -44,12 +44,8 @@ defmodule LiveBeatsWeb.ProfileLive.SongRowComponent do
     """
   end
 
-  def mount(socket) do
-    {:ok, socket, temporary_assigns: [song: nil]}
-  end
-
-  def update(%{action: :send, status: status, song: song}, socket) when status in [:playing, :paused, :stopped] do
-    {:ok, assign(socket, status: status, song: song)}
+  def update(%{action: :send, status: status}, socket) when status in [:playing, :paused, :stopped] do
+    {:ok, assign(socket, status: status)}
   end
 
   def update(assigns, socket) do
