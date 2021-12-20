@@ -236,8 +236,6 @@ Hooks.Modal = {
     }
   },
   destroyed() {
-    this.beforeFocusEl.removeEventListener("focus", () => this.beforeFocus())
-    this.afterFocusEl.removeEventListener("focus", () => this.afterFocus())
     if (lastFocusedElement) {
       lastFocusedElement.focus()
     }
