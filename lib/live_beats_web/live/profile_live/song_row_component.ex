@@ -1,8 +1,6 @@
 defmodule LiveBeatsWeb.ProfileLive.SongRowComponent do
   use LiveBeatsWeb, :live_component
 
-  alias LiveBeats.MediaLibrary.Song
-
   def send_status(song_id, status) when status in [:playing, :paused, :stopped] do
     send_update(__MODULE__, id: "song-#{song_id}", action: :send, status: status)
   end

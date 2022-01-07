@@ -1,14 +1,12 @@
 import Config
 
-config :live_beats, :files, [
+config :live_beats, :files,
   uploads_dir: Path.expand("../priv/uploads", __DIR__),
-  host: [scheme: "http", host: "localhost", port: 4000],
-]
+  host: [scheme: "http", host: "localhost", port: 4000]
 
-config :live_beats, :github, [
+config :live_beats, :github,
   client_id: System.fetch_env!("LIVE_BEATS_GITHUB_CLIENT_ID"),
-  client_secret: System.fetch_env!("LIVE_BEATS_GITHUB_CLIENT_SECRET"),
-]
+  client_secret: System.fetch_env!("LIVE_BEATS_GITHUB_CLIENT_SECRET")
 
 # Configure your database
 config :live_beats, LiveBeats.Repo,
@@ -35,14 +33,16 @@ config :live_beats, LiveBeatsWeb.Endpoint,
   watchers: [
     # Start the esbuild watcher by calling Esbuild.install_and_run(:default, args)
     esbuild: {Esbuild, :install_and_run, [:default, ~w(--sourcemap=inline --watch)]},
-    npx: [
-       "tailwindcss",
-       "--input=css/app.css",
-       "--output=../priv/static/assets/app.css",
-       "--postcss",
-       "--watch",
-       cd: Path.expand("../assets", __DIR__)
-     ]
+    tailwind: {Tailwind, :install_and_run, [:default, ~w(--watch)]}
+
+    # npx: [
+    #    "tailwindcss",
+    #    "--input=css/app.css",
+    #    "--output=../priv/static/assets/app.css",
+    #    "--postcss",
+    #    "--watch",
+    #    cd: Path.expand("../assets", __DIR__)
+    #  ]
   ]
 
 # ## SSL Support
