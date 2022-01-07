@@ -31,6 +31,17 @@ config :live_beats, LiveBeats.Mailer, adapter: Swoosh.Adapters.Local
 config :swoosh, :api_client, false
 
 # Configure esbuild (the version is required)
+config :tailwind,
+  version: "3.0.10",
+  default: [
+    args: ~w(
+      --config=tailwind.config.js
+      --input=css/app.css
+      --output=../priv/static/assets/app.css
+    ),
+    cd: Path.expand("../assets", __DIR__)
+  ]
+
 config :esbuild,
   version: "0.12.18",
   default: [

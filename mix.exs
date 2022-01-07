@@ -39,7 +39,6 @@ defmodule LiveBeats.MixProject do
       {:postgrex, ">= 0.0.0"},
       {:phoenix_html, "~> 3.0"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
-      # {:phoenix_live_view, path: "~/oss/phoenix_live_view", override: true},
       {:phoenix_live_view, github: "phoenixframework/phoenix_live_view", override: true},
       {:floki, ">= 0.30.0", only: :test},
       {:phoenix_live_dashboard, "~> 0.5"},
@@ -52,7 +51,8 @@ defmodule LiveBeats.MixProject do
       {:plug_cowboy, "~> 2.5"},
       {:mint, "~> 1.0"},
       {:heroicons, "~> 0.2.2"},
-      {:castore, "~> 0.1.13"}
+      {:castore, "~> 0.1.13"},
+      {:tailwind, "~> 0.1"}
     ]
   end
 
@@ -69,6 +69,7 @@ defmodule LiveBeats.MixProject do
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
       "assets.deploy": [
+        "tailwind default --minify",
         "esbuild default --minify",
         "phx.digest"
       ]

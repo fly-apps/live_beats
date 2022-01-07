@@ -33,15 +33,8 @@ config :live_beats, LiveBeatsWeb.Endpoint,
   watchers: [
     # Start the esbuild watcher by calling Esbuild.install_and_run(:default, args)
     esbuild: {Esbuild, :install_and_run, [:default, ~w(--sourcemap=inline --watch)]},
-    tailwindcss:
-      {LiveBeats.Tailwind, :run,
-       [
-         [
-           "--input=css/app.css",
-           "--output=../priv/static/assets/app.css",
-           "--watch"
-         ]
-       ]}
+    tailwind: {Tailwind, :install_and_run, [:default, ~w(--watch)]}
+
     # npx: [
     #    "tailwindcss",
     #    "--input=css/app.css",
