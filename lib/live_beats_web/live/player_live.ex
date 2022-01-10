@@ -15,16 +15,18 @@ defmodule LiveBeatsWeb.PlayerLive do
       </div>
       <div class="bg-white dark:bg-gray-800 p-4">
         <div class="flex items-center space-x-3.5 sm:space-x-5 lg:space-x-3.5 xl:space-x-5">
-          <div class="pr-5">
-            <div class="min-w-0 max-w-xs flex-col space-y-0.5">
+          <%= if @song do %>
+            <div class="pr-5">
+              <div class="min-w-0 max-w-xs flex-col space-y-0.5">
                 <h2 class="text-black dark:text-white text-sm sm:text-sm lg:text-sm xl:text-sm font-semibold truncate">
-                  <%= if @song, do: @song.title, else: raw("&nbsp;") %>
+                  <%= @song.title %>
                 </h2>
                 <p class="text-gray-500 dark:text-gray-400 text-sm sm:text-sm lg:text-sm xl:text-sm font-medium">
-                  <%= if @song, do: @song.artist, else: raw("&nbsp;") %>
+                  <%= @song.artist %>
                 </p>
+              </div>
             </div>
-          </div>
+          <% end %>
 
           <.progress_bar id="player-progress" />
 
