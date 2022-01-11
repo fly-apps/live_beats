@@ -367,6 +367,9 @@ defmodule LiveBeats.MediaLibrary do
   end
 
   def delete_expired_songs(count, interval) do
+    #for substracting the interval of time when from_now/2 is invoked
+    count = count * -1
+
     Ecto.Multi.new()
     |> Ecto.Multi.delete_all(
       :delete_expired_songs,
