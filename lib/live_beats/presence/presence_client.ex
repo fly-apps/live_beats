@@ -15,25 +15,34 @@ defmodule LiveBeats.PresenceClient do
   end
 
   @impl Phoenix.Presence.Client
-  def handle_join(topic, key, _meta, state) do
+  def handle_join(topic, _key, presence, state) do
     active_users_topic =
       topic
       |> profile_identifier()
       |> active_users_topic()
 
-    Phoenix.PubSub.local_broadcast(@pubsub, active_users_topic, {__MODULE__, %{user_joined: key}})
+    Phoenix.PubSub.local_broadcast(
+      @pubsub,
+      active_users_topic,
+      {__MODULE__, %{user_joined: presence}}
+    )
 
     {:ok, state}
   end
 
   @impl Phoenix.Presence.Client
-  def handle_leave(topic, key, _meta, state) do
+  def handle_leave(topic, _key, presence, state) do
     active_users_topic =
       topic
       |> profile_identifier()
       |> active_users_topic()
 
-    Phoenix.PubSub.local_broadcast(@pubsub, active_users_topic, {__MODULE__, %{user_left: key}})
+    Phoenix.PubSub.local_broadcast(
+      @pubsub,
+      active_users_topic,
+      {__MODULE__, %{user_left: presence}}
+    )
+
     {:ok, state}
   end
 

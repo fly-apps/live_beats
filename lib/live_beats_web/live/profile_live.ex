@@ -88,7 +88,9 @@ defmodule LiveBeatsWeb.ProfileLive do
       MediaLibrary.subscribe_to_profile(profile)
       Accounts.subscribe(current_user.id)
       LiveBeatsWeb.Presence.subscribe(profile)
-      Phoenix.Presence.Client.track(topic(profile.user_id),
+
+      Phoenix.Presence.Client.track(
+        topic(profile.user_id),
         current_user.id,
         %{}
       )
@@ -111,7 +113,7 @@ defmodule LiveBeatsWeb.ProfileLive do
       |> list_songs()
       |> assign_presences()
 
-    {:ok, socket, temporary_assigns: [songs: []]}
+    {:ok, socket, temporary_assigns: [songs: [], presences: []]}
   end
 
   def handle_params(params, _url, socket) do
@@ -147,21 +149,14 @@ defmodule LiveBeatsWeb.ProfileLive do
     {:noreply, socket}
   end
 
-  def handle_info({LiveBeats.PresenceClient, %{user_joined: user_id}}, socket) do
-    new_user = Accounts.get_user!(user_id)
-    updated_presences =
-    if new_user in socket.assigns.presences do
-      socket.assigns.presences
-    else
-      [new_user | socket.assigns.presences]
-    end
-    {:noreply, assign(socket, :presences, updated_presences)}
+  def handle_info({LiveBeats.PresenceClient, %{user_joined: presence}}, socket) do
+    %{user: user} = presence
+    {:noreply, update(socket, :presences, &[user | &1])}
   end
 
-  def handle_info({LiveBeats.PresenceClient, %{user_left: user_id}}, socket) do
-    updated_presences = socket.assigns.presences
-    |> Enum.reject(fn user -> user.id == String.to_integer(user_id) end)
-    {:noreply, assign(socket, :presences, updated_presences)}
+  def handle_info({LiveBeats.PresenceClient, %{user_left: presence}}, socket) do
+    %{user: user} = presence
+    {:noreply, push_event(socket, "remove-el", %{id: "presence-#{user.id}"})}
   end
 
   def handle_info({Accounts, %Accounts.Events.ActiveProfileChanged{} = event}, socket) do
@@ -264,10 +259,11 @@ defmodule LiveBeatsWeb.ProfileLive do
   end
 
   defp assign_presences(socket) do
-    presences = socket.assigns.profile.user_id
-    |> topic()
-    |> LiveBeats.PresenceClient.list()
-    |> Enum.map(fn {_key, meta} -> meta.user end)
+    presences =
+      socket.assigns.profile.user_id
+      |> topic()
+      |> LiveBeats.PresenceClient.list()
+      |> Enum.map(fn {_key, meta} -> meta.user end)
 
     assign(socket, presences: presences)
   end

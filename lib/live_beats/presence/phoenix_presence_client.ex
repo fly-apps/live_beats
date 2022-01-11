@@ -2,8 +2,10 @@ defmodule Phoenix.Presence.Client do
   use GenServer
 
   @callback init(state :: term) :: {:ok, new_state :: term}
-  @callback handle_join(topic :: String.t(), key :: String.t(), meta :: [map()], state :: term) :: {:ok, term}
-  @callback handle_leave(topic :: String.t(), key :: String.t(), meta :: [map()], state :: term) :: {:ok, term}
+  @callback handle_join(topic :: String.t(), key :: String.t(), meta :: [map()], state :: term) ::
+              {:ok, term}
+  @callback handle_leave(topic :: String.t(), key :: String.t(), meta :: [map()], state :: term) ::
+              {:ok, term}
 
   @doc """
   TODO
@@ -19,7 +21,8 @@ defmodule Phoenix.Presence.Client do
       {:ok, name} ->
         GenServer.start_link(__MODULE__, opts, name: name)
 
-      :error -> GenServer.start_link(__MODULE__, opts)
+      :error ->
+        GenServer.start_link(__MODULE__, opts)
     end
   end
 
@@ -113,7 +116,9 @@ defmodule Phoenix.Presence.Client do
     updated_state =
       update_topics_state(:add_new_presence_or_metas, state, topic, joined_key, joined_meta)
 
-    {:ok, updated_client_state} = state.client.handle_join(topic, joined_key, joined_meta, state.client_state)
+    {:ok, updated_client_state} =
+      state.client.handle_join(topic, joined_key, meta, state.client_state)
+
     updated_state = Map.put(updated_state, :client_state, updated_client_state)
 
     {updated_state, topic}
@@ -122,7 +127,9 @@ defmodule Phoenix.Presence.Client do
   defp handle_leave({left_key, meta}, {state, topic}) do
     updated_state = update_topics_state(:remove_presence_or_metas, state, topic, left_key, meta)
 
-    {:ok, updated_client_state} = state.client.handle_leave(topic, left_key, meta, state.client_state)
+    {:ok, updated_client_state} =
+      state.client.handle_leave(topic, left_key, meta, state.client_state)
+
     updated_state = Map.put(updated_state, :client_state, updated_client_state)
 
     {updated_state, topic}

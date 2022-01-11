@@ -51,18 +51,13 @@ defmodule LiveBeatsWeb.ProfileLiveTest do
                }
              }) =~ "can&#39;t be blank"
 
-      assert {:ok, new_lv, html} =
-               lv |> form("#song-form") |> render_submit() |> follow_redirect(conn)
-
-      assert_redirected(lv, "/#{current_user.username}")
-      assert html =~ "1 song(s) uploaded"
-
-      assert html =~ "silence1s"
+      assert lv |> form("#song-form") |> render_submit() =~ "silence1s"
+      assert_patch(lv, "/#{current_user.username}")
 
       # deleting songs
 
       song = MediaLibrary.get_first_song(profile)
-      assert new_lv |> element("#delete-modal-#{song.id}-confirm") |> render_click()
+      assert lv |> element("#delete-modal-#{song.id}-confirm") |> render_click()
 
       {:ok, refreshed_lv, _} = live(conn, LiveHelpers.profile_path(current_user))
       refute render(refreshed_lv) =~ "silence1s"
