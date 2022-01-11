@@ -191,7 +191,8 @@ defmodule LiveBeats.MediaLibrary do
             consume_file.(ref, fn tmp_path -> store_mp3(song, tmp_path) end)
             {ref, song}
           end)
-          broadcast_imported(user, songs)
+
+        broadcast_imported(user, songs)
 
         {:ok, Enum.into(songs, %{})}
 
@@ -362,6 +363,73 @@ defmodule LiveBeats.MediaLibrary do
     |> case do
       {:ok, _} -> :ok
       other -> other
+    end
+  end
+
+  def delete_expired_songs(count, interval) do
+    Ecto.Multi.new()
+    |> Ecto.Multi.delete_all(
+      :delete_expired_songs,
+      from(s in Song,
+        where: s.inserted_at < from_now(^count, ^interval),
+        select: %{user_id: s.user_id, mp3_filepath: s.mp3_filepath}
+      )
+    )
+    |> Ecto.Multi.merge(&update_users_songs_count(&1))
+    |> Repo.transaction()
+    |> case do
+      {:ok, transaction_result} ->
+        {_deleted_songs_count, deleted_songs} = transaction_result.delete_expired_songs
+        Enum.each(deleted_songs, &delete_song_file/1)
+
+      error ->
+        error
+    end
+  end
+
+  defp update_users_songs_count(%{delete_expired_songs: results}) do
+    {_deleted_songs_count, deleted_songs} = results
+
+    deleted_songs
+    |> Enum.reduce(%{}, &acc_user_songs/2)
+    |> Enum.reduce(Ecto.Multi.new(), &decrement_user_songs_count/2)
+  end
+
+  defp decrement_user_songs_count({user_id, deleted_songs_count}, multi) do
+    update_user_songs_count(multi, user_id, deleted_songs_count * -1)
+  end
+
+  defp update_user_songs_count(multi, user_id, songs_count) do
+    Ecto.Multi.update_all(
+      multi,
+      "update_songs_count_user_#{user_id}",
+      fn _ ->
+        from(u in Accounts.User,
+          where: u.id == ^user_id,
+          update: [inc: [songs_count: ^songs_count]]
+        )
+      end,
+      []
+    )
+  end
+
+  defp acc_user_songs(%{user_id: user_id} = _song, songs_acc) do
+    if Map.has_key?(songs_acc, user_id) do
+      Map.put(songs_acc, user_id, songs_acc[user_id] + 1)
+    else
+      Map.put_new(songs_acc, user_id, 1)
+    end
+  end
+
+  defp delete_song_file(song) do
+    case File.rm(song.mp3_filepath) do
+      :ok ->
+        :ok
+
+      {:error, reason} ->
+        Logger.info(
+          "unable to delete song #{song.id} at #{song.mp3_filepath}, got: #{inspect(reason)}"
+        )
     end
   end
 
