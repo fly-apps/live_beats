@@ -23,8 +23,8 @@ defmodule LiveBeatsWeb.ProfileLiveTest do
 
       # uploads
       assert lv
-            |> element("#upload-btn")
-            |> render_click()
+             |> element("#upload-btn")
+             |> render_click()
 
       assert render(lv) =~ "Add Songs"
 
@@ -43,26 +43,21 @@ defmodule LiveBeatsWeb.ProfileLiveTest do
       [%{"ref" => ref}] = mp3.entries
 
       refute lv
-            |> form("#song-form")
-            |> render_change(%{
-              "_target" => ["songs", ref, "artist"],
-              "songs" => %{
-                ref => %{"artist" => "Anon", "attribution" => "", "title" => "silence1s"}
-              }
-            }) =~ "can&#39;t be blank"
+             |> form("#song-form")
+             |> render_change(%{
+               "_target" => ["songs", ref, "artist"],
+               "songs" => %{
+                 ref => %{"artist" => "Anon", "attribution" => "", "title" => "silence1s"}
+               }
+             }) =~ "can&#39;t be blank"
 
-      assert {:ok, new_lv, html} =
-              lv |> form("#song-form") |> render_submit() |> follow_redirect(conn)
-
-      assert_redirected(lv, "/#{current_user.username}")
-      assert html =~ "1 song(s) uploaded"
-
-      assert html =~ "silence1s"
+      assert lv |> form("#song-form") |> render_submit() =~ "silence1s"
+      assert_patch(lv, "/#{current_user.username}")
 
       # deleting songs
 
       song = MediaLibrary.get_first_song(profile)
-      assert new_lv |> element("#delete-modal-#{song.id}-confirm") |> render_click()
+      assert lv |> element("#delete-modal-#{song.id}-confirm") |> render_click()
 
       {:ok, refreshed_lv, _} = live(conn, LiveHelpers.profile_path(current_user))
       refute render(refreshed_lv) =~ "silence1s"

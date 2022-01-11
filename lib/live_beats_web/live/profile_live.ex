@@ -87,6 +87,13 @@ defmodule LiveBeatsWeb.ProfileLive do
     if connected?(socket) do
       MediaLibrary.subscribe_to_profile(profile)
       Accounts.subscribe(current_user.id)
+      LiveBeatsWeb.Presence.subscribe(profile)
+
+      Phoenix.Presence.Client.track(
+        topic(profile.user_id),
+        current_user.id,
+        %{}
+      )
     end
 
     active_song_id =
@@ -106,7 +113,7 @@ defmodule LiveBeatsWeb.ProfileLive do
       |> list_songs()
       |> assign_presences()
 
-    {:ok, socket, temporary_assigns: [songs: []]}
+    {:ok, socket, temporary_assigns: [songs: [], presences: []]}
   end
 
   def handle_params(params, _url, socket) do
@@ -140,6 +147,16 @@ defmodule LiveBeatsWeb.ProfileLive do
     end
 
     {:noreply, socket}
+  end
+
+  def handle_info({LiveBeats.PresenceClient, %{user_joined: presence}}, socket) do
+    %{user: user} = presence
+    {:noreply, update(socket, :presences, &[user | &1])}
+  end
+
+  def handle_info({LiveBeats.PresenceClient, %{user_left: presence}}, socket) do
+    %{user: user} = presence
+    {:noreply, push_event(socket, "remove-el", %{id: "presence-#{user.id}"})}
   end
 
   def handle_info({Accounts, %Accounts.Events.ActiveProfileChanged{} = event}, socket) do
@@ -242,8 +259,13 @@ defmodule LiveBeatsWeb.ProfileLive do
   end
 
   defp assign_presences(socket) do
-    users = Accounts.lists_users_by_active_profile(socket.assigns.profile.user_id, limit: 10)
-    assign(socket, presences: users)
+    presences =
+      socket.assigns.profile.user_id
+      |> topic()
+      |> LiveBeats.PresenceClient.list()
+      |> Enum.map(fn {_key, meta} -> meta.user end)
+
+    assign(socket, presences: presences)
   end
 
   defp url_text(nil), do: ""
@@ -252,4 +274,6 @@ defmodule LiveBeatsWeb.ProfileLive do
     uri = URI.parse(url_str)
     uri.host <> uri.path
   end
+
+  defp topic(user_id) when is_integer(user_id), do: "active_profile:#{user_id}"
 end

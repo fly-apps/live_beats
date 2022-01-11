@@ -258,6 +258,8 @@ defmodule LiveBeatsWeb.PlayerLive do
 
   def handle_info({MediaLibrary, _}, socket), do: {:noreply, socket}
 
+  def handle_info(%{event: "presence_diff"}, socket), do: {:noreply, socket}
+
   defp play_song(socket, %Song{} = song, elapsed) do
     socket
     |> push_play(song, elapsed)

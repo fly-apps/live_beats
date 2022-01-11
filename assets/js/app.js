@@ -195,6 +195,7 @@ window.addEventListener("phx:page-loading-stop", info => topbar.hide())
 window.addEventListener("phx:page-loading-stop", routeUpdated)
 
 window.addEventListener("js:exec", e => e.target[e.detail.call](...e.detail.args))
+window.addEventListener("phx:remove-el", e => document.getElementById(e.detail.id).remove())
 
 // connect if there are any LiveViews on the page
 liveSocket.getSocket().onOpen(() => execJS("#connection-status", "js-hide"))

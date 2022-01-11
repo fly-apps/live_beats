@@ -35,9 +35,23 @@ defmodule LiveBeatsWeb.ConnCase do
     end
   end
 
+  defp wait_for_children(children_lookup) when is_function(children_lookup) do
+    Process.sleep(100)
+
+    for pid <- children_lookup.() do
+      ref = Process.monitor(pid)
+      assert_receive {:DOWN, ^ref, _, _, _}, 1000
+    end
+  end
+
   setup tags do
     pid = Ecto.Adapters.SQL.Sandbox.start_owner!(LiveBeats.Repo, shared: not tags[:async])
     on_exit(fn -> Ecto.Adapters.SQL.Sandbox.stop_owner(pid) end)
+
+    on_exit(fn ->
+      wait_for_children(fn -> LiveBeatsWeb.Presence.fetchers_pids() end)
+    end)
+
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
 
