@@ -53,5 +53,35 @@ defmodule LiveBeats.MediaLibraryTest do
       song = song_fixture()
       assert %Ecto.Changeset{} = MediaLibrary.change_song(song)
     end
+
+    test "delete_expired_songs/2 deletes the song expired before the required interval" do
+      user = user_fixture()
+      today = Timex.now()
+
+      three_months_ago = add_n_months(today, -3)
+      four_months_ago = add_n_months(today, -4)
+      one_month_ago = add_n_months(today, 1)
+
+      expired_song_1 =
+        song_fixture(user_id: user.id, title: "song1", inserted_at: four_months_ago)
+
+      expired_song_2 =
+        song_fixture(user_id: user.id, title: "song2", inserted_at: three_months_ago)
+
+      active_song = song_fixture(user_id: user.id, title: "song3", inserted_at: one_month_ago)
+
+      MediaLibrary.delete_expired_songs(-2, "month")
+
+      assert_raise Ecto.NoResultsError, fn -> MediaLibrary.get_song!(expired_song_1.id) end
+      assert_raise Ecto.NoResultsError, fn -> MediaLibrary.get_song!(expired_song_2.id) end
+      assert active_song == MediaLibrary.get_song!(active_song.id)
+    end
+  end
+
+  defp add_n_months(datetime, n) do
+    datetime
+    |> Timex.shift(months: n)
+    |> DateTime.to_naive()
+    |> NaiveDateTime.truncate(:second)
   end
 end
