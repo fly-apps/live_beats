@@ -150,7 +150,11 @@ defmodule LiveBeatsWeb.ProfileLive do
 
   def handle_info({LiveBeats.PresenceClient, %{user_left: presence}}, socket) do
     %{user: user} = presence
-    {:noreply, push_event(socket, "remove-el", %{id: "presence-#{user.id}"})}
+    if presence.metas == [] do
+      {:noreply, push_event(socket, "remove-el", %{id: "presence-#{user.id}"})}
+    else
+      {:noreply, socket}
+    end
   end
 
   def handle_info({Accounts, %Accounts.Events.ActiveProfileChanged{} = event}, socket) do

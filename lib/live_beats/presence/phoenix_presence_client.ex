@@ -94,7 +94,7 @@ defmodule Phoenix.Presence.Client do
       if Map.has_key?(state.topics, topic) do
         state
       else
-        update_topics_state(:add_new_topic, state, topic)
+        put_new_topic(state, topic)
       end
 
     # merge diff into state.topics
@@ -104,49 +104,49 @@ defmodule Phoenix.Presence.Client do
     # if no more presences for given topic, unsubscribe and remove topic
     if topic_presences_count(updated_state, topic) == 0 do
       Phoenix.PubSub.unsubscribe(state.pubsub, topic)
-      update_topics_state(:remove_topic, updated_state, topic)
+      remove_topic(updated_state, topic)
     else
       updated_state
     end
   end
 
-  defp handle_join({joined_key, meta}, {state, topic}) do
-    joined_meta = Map.get(meta, :metas, [])
+  defp handle_join({joined_key, presence}, {state, topic}) do
+    joined_metas = Map.get(presence, :metas, [])
 
-    updated_state =
-      update_topics_state(:add_new_presence_or_metas, state, topic, joined_key, joined_meta)
+    {updated_state, new_metas} = add_new_presence_or_metas(state, topic, joined_key, joined_metas)
+    new_presence = Map.put(presence, :metas, new_metas)
 
     {:ok, updated_client_state} =
-      state.client.handle_join(topic, joined_key, meta, state.client_state)
+      state.client.handle_join(topic, joined_key, new_presence, state.client_state)
 
     updated_state = Map.put(updated_state, :client_state, updated_client_state)
 
     {updated_state, topic}
   end
 
-  defp handle_leave({left_key, meta}, {state, topic}) do
-    updated_state = update_topics_state(:remove_presence_or_metas, state, topic, left_key, meta)
+  defp handle_leave({left_key, presence}, {state, topic}) do
+    {updated_state, new_metas} = remove_presence_or_metas(state, topic, left_key, presence)
+    new_presence = Map.put(presence, :metas, new_metas)
 
     {:ok, updated_client_state} =
-      state.client.handle_leave(topic, left_key, meta, state.client_state)
+      state.client.handle_leave(topic, left_key, new_presence, state.client_state)
 
     updated_state = Map.put(updated_state, :client_state, updated_client_state)
 
     {updated_state, topic}
   end
 
-  defp update_topics_state(:add_new_topic, %{topics: topics} = state, topic) do
+  defp put_new_topic(%{topics: topics} = state, topic) do
     updated_topics = Map.put_new(topics, topic, %{})
     Map.put(state, :topics, updated_topics)
   end
 
-  defp update_topics_state(:remove_topic, %{topics: topics} = state, topic) do
+  defp remove_topic(%{topics: topics} = state, topic) do
     updated_topics = Map.delete(topics, topic)
     Map.put(state, :topics, updated_topics)
   end
 
-  defp update_topics_state(
-         :add_new_presence_or_metas,
+  defp add_new_presence_or_metas(
          %{topics: topics} = state,
          topic,
          key,
@@ -154,26 +154,25 @@ defmodule Phoenix.Presence.Client do
        ) do
     topic_info = topics[topic]
 
-    updated_topic =
+    {updated_topic, updated_metas} =
       case Map.fetch(topic_info, key) do
         # existing presence, add new metas
         {:ok, existing_metas} ->
           remaining_metas = new_metas -- existing_metas
           updated_metas = existing_metas ++ remaining_metas
-          Map.put(topic_info, key, updated_metas)
+          {Map.put(topic_info, key, updated_metas), updated_metas}
 
         :error ->
           # there are no presences for that key
-          Map.put(topic_info, key, new_metas)
+          {Map.put(topic_info, key, new_metas), new_metas}
       end
 
     updated_topics = Map.put(topics, topic, updated_topic)
 
-    Map.put(state, :topics, updated_topics)
+    {Map.put(state, :topics, updated_topics), updated_metas}
   end
 
-  defp update_topics_state(
-         :remove_presence_or_metas,
+  defp remove_presence_or_metas(
          %{topics: topics} = state,
          topic,
          key,
@@ -194,7 +193,7 @@ defmodule Phoenix.Presence.Client do
 
     updated_topics = Map.put(topics, topic, updated_topic)
 
-    Map.put(state, :topics, updated_topics)
+    {Map.put(state, :topics, updated_topics), remaining_metas}
   end
 
   defp topic_presences_count(state, topic) do
