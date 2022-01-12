@@ -11,15 +11,30 @@ defmodule LiveBeatsWeb.Presence do
 
   import Phoenix.LiveView.Helpers
   import LiveBeatsWeb.LiveHelpers
-  @pubsub LiveBeats.PubSub
 
-  alias LiveBeats.Accounts
+  alias LiveBeats.{Accounts, MediaLibrary}
+
+  def subscribe(%MediaLibrary.Profile{} = profile) do
+    LiveBeats.PresenceClient.subscribe(profile)
+  end
+
+  def fetch(_topic, presences) do
+    users =
+      presences
+      |> Map.keys()
+      |> Accounts.get_users_map()
+      |> Enum.into(%{})
+
+    for {key, %{metas: metas}} <- presences, into: %{} do
+      {key, %{metas: metas, user: users[String.to_integer(key)]}}
+    end
+  end
 
   def listening_now(assigns) do
     ~H"""
     <!-- users -->
     <div class="px-4 mt-6 sm:px-6 lg:px-8">
-      <h2 class="text-gray-500 text-xs font-medium uppercase tracking-wide">Here now</h2>
+      <h2 class="text-gray-500 text-xs font-medium uppercase tracking-wide">Listening now</h2>
       <ul
         id="listening-now"
         phx-update="prepend"
@@ -40,25 +55,5 @@ defmodule LiveBeatsWeb.Presence do
       </ul>
     </div>
     """
-  end
-
-  def fetch(_topic, presences) do
-    users =
-      presences
-      |> Map.keys()
-      |> Accounts.get_users_map()
-      |> Enum.into(%{})
-
-    for {key, %{metas: metas}} <- presences, into: %{} do
-      {key, %{metas: metas, user: users[String.to_integer(key)]}}
-    end
-  end
-
-  def subscribe(user_id) do
-    Phoenix.PubSub.subscribe(@pubsub, topic(user_id))
-  end
-
-  defp topic(profile) do
-    "active_users:#{profile.user_id}"
   end
 end

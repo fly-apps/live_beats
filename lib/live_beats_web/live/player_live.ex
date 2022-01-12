@@ -142,16 +142,22 @@ defmodule LiveBeatsWeb.PlayerLive do
   defp switch_profile(socket, nil) do
     current_user = Accounts.update_active_profile(socket.assigns.current_user, nil)
 
+    if profile = connected?(socket) and socket.assigns.profile do
+      LiveBeats.PresenceClient.untrack(profile, current_user.id)
+    end
+
     socket
     |> assign(current_user: current_user)
     |> assign_profile(nil)
   end
 
   defp switch_profile(socket, profile_user_id) do
+    %{current_user: current_user} = socket.assigns
     profile = get_profile(profile_user_id)
 
     if profile && connected?(socket) do
-      current_user = Accounts.update_active_profile(socket.assigns.current_user, profile.user_id)
+      current_user = Accounts.update_active_profile(current_user, profile.user_id)
+      LiveBeats.PresenceClient.track(profile, current_user.id)
       send(self(), :play_current)
 
       socket
@@ -257,8 +263,6 @@ defmodule LiveBeatsWeb.PlayerLive do
   end
 
   def handle_info({MediaLibrary, _}, socket), do: {:noreply, socket}
-
-  def handle_info(%{event: "presence_diff"}, socket), do: {:noreply, socket}
 
   defp play_song(socket, %Song{} = song, elapsed) do
     socket

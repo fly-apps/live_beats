@@ -88,12 +88,6 @@ defmodule LiveBeatsWeb.ProfileLive do
       MediaLibrary.subscribe_to_profile(profile)
       Accounts.subscribe(current_user.id)
       LiveBeatsWeb.Presence.subscribe(profile)
-
-      Phoenix.Presence.Client.track(
-        topic(profile.user_id),
-        current_user.id,
-        %{}
-      )
     end
 
     active_song_id =
@@ -259,13 +253,16 @@ defmodule LiveBeatsWeb.ProfileLive do
   end
 
   defp assign_presences(socket) do
-    presences =
-      socket.assigns.profile.user_id
-      |> topic()
-      |> LiveBeats.PresenceClient.list()
-      |> Enum.map(fn {_key, meta} -> meta.user end)
+    if profile = socket.assigns.profile do
+      presences =
+        profile
+        |> LiveBeats.PresenceClient.list()
+        |> Enum.map(fn {_key, meta} -> meta.user end)
 
-    assign(socket, presences: presences)
+      assign(socket, presences: presences)
+    else
+      assign(socket, presences: [])
+    end
   end
 
   defp url_text(nil), do: ""
@@ -274,6 +271,4 @@ defmodule LiveBeatsWeb.ProfileLive do
     uri = URI.parse(url_str)
     uri.host <> uri.path
   end
-
-  defp topic(user_id) when is_integer(user_id), do: "active_profile:#{user_id}"
 end

@@ -83,9 +83,9 @@ defmodule Phoenix.Presence.Client do
   defp untrack_pid(state, pid, topic, key) do
     if Map.has_key?(state.topics, topic) do
       state.presence_mod.untrack(pid, topic, key)
-    else
-      state
     end
+
+    state
   end
 
   defp merge_diff(state, topic, %{leaves: leaves, joins: joins}) do
