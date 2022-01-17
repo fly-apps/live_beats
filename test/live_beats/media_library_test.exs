@@ -86,7 +86,7 @@ defmodule LiveBeats.MediaLibraryTest do
 
       active_song = song_fixture(user_id: user.id, title: "song3", inserted_at: one_month_ago)
 
-      MediaLibrary.expire_songs_older_than(2, "month")
+      MediaLibrary.expire_songs_older_than(2, :month)
 
       assert_raise Ecto.NoResultsError, fn -> MediaLibrary.get_song!(expired_song_1.id) end
       assert_raise Ecto.NoResultsError, fn -> MediaLibrary.get_song!(expired_song_2.id) end

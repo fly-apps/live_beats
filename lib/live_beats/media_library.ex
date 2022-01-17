@@ -366,12 +366,12 @@ defmodule LiveBeats.MediaLibrary do
     end
   end
 
-  def expire_songs_older_than(count, interval) do
+  def expire_songs_older_than(count, interval) when interval in [:month, :day, :second] do
     Ecto.Multi.new()
     |> Ecto.Multi.delete_all(
       :delete_expired_songs,
       from(s in Song,
-        where: s.inserted_at < from_now(^(-count), ^interval),
+        where: s.inserted_at < from_now(^(-count), ^to_string(interval)),
         select: %{user_id: s.user_id, mp3_filepath: s.mp3_filepath}
       )
     )
