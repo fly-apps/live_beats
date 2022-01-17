@@ -1,10 +1,12 @@
 defmodule LiveBeats.SongsCleaner do
   @moduledoc """
-  Remove user songs that were added ... ago
+  Expire user songs using a polling interval.
   """
+  use GenServer
 
   alias LiveBeats.MediaLibrary
-  use GenServer
+
+  @poll_interval :timer.minutes(60)
 
   def start_link(opts) do
     GenServer.start_link(__MODULE__, opts)
@@ -12,24 +14,21 @@ defmodule LiveBeats.SongsCleaner do
 
   @impl true
   def init(opts) do
-    schedule_cleanup()
-
     count = Keyword.fetch!(opts, :count)
     interval = Keyword.fetch!(opts, :interval)
-    MediaLibrary.delete_expired_songs(count, interval)
+    MediaLibrary.expire_songs_older_than(count, interval)
 
-    {:ok, %{count: count, interval: interval}}
+    {:ok, schedule_cleanup(%{count: count, interval: interval})}
   end
 
   @impl true
   def handle_info(:remove_songs, %{count: count, interval: interval} = state) do
-    MediaLibrary.delete_expired_songs(count, interval)
-    schedule_cleanup()
-
-    {:noreply, state}
+    MediaLibrary.expire_songs_older_than(count, interval)
+    {:noreply, schedule_cleanup(state)}
   end
 
-  defp schedule_cleanup do
-    Process.send_after(self(), :remove_songs, :timer.hours(3))
+  defp schedule_cleanup(state) do
+    Process.send_after(self(), :remove_songs, @poll_interval)
+    state
   end
 end

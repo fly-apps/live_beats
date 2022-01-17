@@ -53,7 +53,6 @@ defmodule LiveBeats.MixProject do
       {:heroicons, "~> 0.2.2"},
       {:castore, "~> 0.1.13"},
       {:tailwind, "~> 0.1"},
-      {:timex, "~> 3.0", only: :test}
     ]
   end
 
