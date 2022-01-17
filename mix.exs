@@ -52,7 +52,7 @@ defmodule LiveBeats.MixProject do
       {:mint, "~> 1.0"},
       {:heroicons, "~> 0.2.2"},
       {:castore, "~> 0.1.13"},
-      {:tailwind, "~> 0.1"},
+      {:tailwind, "~> 0.1"}
     ]
   end
 

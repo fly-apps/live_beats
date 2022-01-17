@@ -69,7 +69,6 @@ defmodule LiveBeats.MediaLibraryTest do
       assert %Ecto.Changeset{} = MediaLibrary.change_song(song)
     end
 
-    require IEx
     test "expire_songs_older_than/2 deletes the song expired before the required interval" do
       user = user_fixture()
       today = DateTime.utc_now()
