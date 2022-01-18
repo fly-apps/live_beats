@@ -2,6 +2,7 @@ defmodule LiveBeats.MediaLibraryTest do
   use LiveBeats.DataCase
 
   alias LiveBeats.MediaLibrary
+  alias LiveBeats.Accounts
 
   describe "songs" do
     alias LiveBeats.MediaLibrary.Song
@@ -90,6 +91,41 @@ defmodule LiveBeats.MediaLibraryTest do
       assert_raise Ecto.NoResultsError, fn -> MediaLibrary.get_song!(expired_song_1.id) end
       assert_raise Ecto.NoResultsError, fn -> MediaLibrary.get_song!(expired_song_2.id) end
       assert active_song == MediaLibrary.get_song!(active_song.id)
+    end
+
+    test "Users song_count is decremented when expire_songs_older_than/2 is called and user songs are deleted" do
+      user = user_fixture()
+      today = DateTime.utc_now()
+
+      three_months_ago = add_n_months(today, -3)
+      four_months_ago = add_n_months(today, -4)
+      one_month_ago = add_n_months(today, -1)
+
+      creation_dates = [three_months_ago, four_months_ago, one_month_ago]
+
+      songs_changesets =
+      ["1", "2", "3"]
+      |> Enum.reduce(%{}, fn song_number, acc ->
+        song_changeset = Song.changeset(%Song{}, %{title: "song#{song_number}", artist: "artist_one"})
+        Map.put_new(acc, song_number, song_changeset)
+      end)
+
+
+      assert {:ok, results} = MediaLibrary.import_songs(user, songs_changesets, fn one, two -> {one, two} end)
+
+      assert Accounts.get_user(user.id).songs_count == 3
+
+      created_songs = Enum.reduce(results, [], fn {_key, song}, acc -> [song | acc] end)
+
+      for {song, date} <- Enum.zip(created_songs, creation_dates) do
+        song
+        |> Ecto.Changeset.change(inserted_at: date)
+        |> LiveBeats.Repo.update()
+      end
+
+      MediaLibrary.expire_songs_older_than(2, :month)
+
+      assert Accounts.get_user(user.id).songs_count == 1
     end
   end
 
