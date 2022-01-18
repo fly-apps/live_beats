@@ -3,13 +3,11 @@ defmodule LiveBeats.MediaLibraryTest do
 
   alias LiveBeats.MediaLibrary
   alias LiveBeats.Accounts
+  alias LiveBeats.MediaLibrary.Song
+  import LiveBeats.AccountsFixtures
+  import LiveBeats.MediaLibraryFixtures
 
   describe "songs" do
-    alias LiveBeats.MediaLibrary.Song
-
-    import LiveBeats.AccountsFixtures
-    import LiveBeats.MediaLibraryFixtures
-
     @invalid_attrs %{
       album_artist: nil,
       artist: nil,
@@ -69,14 +67,21 @@ defmodule LiveBeats.MediaLibraryTest do
       song = song_fixture()
       assert %Ecto.Changeset{} = MediaLibrary.change_song(song)
     end
+  end
 
-    test "expire_songs_older_than/2 deletes the song expired before the required interval" do
-      user = user_fixture()
+  describe "expire_songs_older_than/2" do
+    setup do
       today = DateTime.utc_now()
 
-      three_months_ago = add_n_months(today, -3)
-      four_months_ago = add_n_months(today, -4)
-      one_month_ago = add_n_months(today, -1)
+      creation_dates = Enum.map([-1, -3, -4], &add_n_months(today, &1))
+
+      %{creation_dates: creation_dates}
+    end
+
+    test "deletes the song expired before the required interval", %{
+      creation_dates: [one_month_ago, three_months_ago, four_months_ago]
+    } do
+      user = user_fixture()
 
       expired_song_1 =
         song_fixture(user_id: user.id, title: "song1", inserted_at: four_months_ago)
@@ -93,25 +98,22 @@ defmodule LiveBeats.MediaLibraryTest do
       assert active_song == MediaLibrary.get_song!(active_song.id)
     end
 
-    test "Users song_count is decremented when expire_songs_older_than/2 is called and user songs are deleted" do
+    test "Users song_count is decremented when user songs are deleted", %{
+      creation_dates: creation_dates
+    } do
       user = user_fixture()
-      today = DateTime.utc_now()
-
-      three_months_ago = add_n_months(today, -3)
-      four_months_ago = add_n_months(today, -4)
-      one_month_ago = add_n_months(today, -1)
-
-      creation_dates = [three_months_ago, four_months_ago, one_month_ago]
 
       songs_changesets =
-      ["1", "2", "3"]
-      |> Enum.reduce(%{}, fn song_number, acc ->
-        song_changeset = Song.changeset(%Song{}, %{title: "song#{song_number}", artist: "artist_one"})
-        Map.put_new(acc, song_number, song_changeset)
-      end)
+        ["1", "2", "3"]
+        |> Enum.reduce(%{}, fn song_number, acc ->
+          song_changeset =
+            Song.changeset(%Song{}, %{title: "song#{song_number}", artist: "artist_one"})
 
+          Map.put_new(acc, song_number, song_changeset)
+        end)
 
-      assert {:ok, results} = MediaLibrary.import_songs(user, songs_changesets, fn one, two -> {one, two} end)
+      assert {:ok, results} =
+               MediaLibrary.import_songs(user, songs_changesets, fn one, two -> {one, two} end)
 
       assert Accounts.get_user(user.id).songs_count == 3
 
@@ -127,14 +129,14 @@ defmodule LiveBeats.MediaLibraryTest do
 
       assert Accounts.get_user(user.id).songs_count == 1
     end
-  end
 
-  defp add_n_months(datetime, n) do
-    seconds = 30 * (60 * 60 * 24) * n
+    defp add_n_months(datetime, n) do
+      seconds = 30 * (60 * 60 * 24) * n
 
-    datetime
-    |> DateTime.add(seconds, :second)
-    |> DateTime.to_naive()
-    |> NaiveDateTime.truncate(:second)
+      datetime
+      |> DateTime.add(seconds, :second)
+      |> DateTime.to_naive()
+      |> NaiveDateTime.truncate(:second)
+    end
   end
 end
