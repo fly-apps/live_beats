@@ -337,28 +337,11 @@ defmodule LiveBeats.MediaLibrary do
   end
 
   def delete_song(%Song{} = song) do
-    case File.rm(song.mp3_filepath) do
-      :ok ->
-        :ok
-
-      {:error, reason} ->
-        Logger.info(
-          "unable to delete song #{song.id} at #{song.mp3_filepath}, got: #{inspect(reason)}"
-        )
-    end
+    delete_song_file(song)
 
     Ecto.Multi.new()
     |> Ecto.Multi.delete(:delete, song)
-    |> Ecto.Multi.update_all(
-      :update_songs_count,
-      fn _ ->
-        from(u in Accounts.User,
-          where: u.id == ^song.user_id,
-          update: [inc: [songs_count: -1]]
-        )
-      end,
-      []
-    )
+    |> update_user_songs_count(song.user_id, -1)
     |> Repo.transaction()
     |> case do
       {:ok, _} -> :ok

@@ -78,7 +78,7 @@ defmodule LiveBeats.MediaLibraryTest do
       %{creation_dates: creation_dates}
     end
 
-    test "deletes the song expired before the required interval", %{
+    test "deletes the songs expired before the required interval", %{
       creation_dates: [one_month_ago, three_months_ago, four_months_ago]
     } do
       user = user_fixture()
