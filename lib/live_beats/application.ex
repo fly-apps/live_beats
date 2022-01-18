@@ -25,7 +25,8 @@ defmodule LiveBeats.Application do
        presence: LiveBeatsWeb.Presence,
        name: PresenceClient},
       # Start the Endpoint (http/https)
-      LiveBeatsWeb.Endpoint
+      LiveBeatsWeb.Endpoint,
+      {LiveBeats.SongsCleaner, count: 7, interval: :day}
 
       # Start a worker by calling: LiveBeats.Worker.start_link(arg)
       # {LiveBeats.Worker, arg}
