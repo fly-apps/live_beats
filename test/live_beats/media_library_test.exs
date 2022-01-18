@@ -56,11 +56,17 @@ defmodule LiveBeats.MediaLibraryTest do
       assert song == MediaLibrary.get_song!(song.id)
     end
 
-    test "delete_song/1 deletes the song" do
+    test "delete_song/1 deletes the song and decrement the user's songs_count" do
       user = user_fixture()
+
+      user
+      |> Ecto.Changeset.change(songs_count: 10)
+      |> LiveBeats.Repo.update()
+
       song = song_fixture(%{user_id: user.id})
       assert :ok = MediaLibrary.delete_song(song)
       assert_raise Ecto.NoResultsError, fn -> MediaLibrary.get_song!(song.id) end
+      assert Accounts.get_user(user.id).songs_count == 9
     end
 
     test "change_song/1 returns a song changeset" do
