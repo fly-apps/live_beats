@@ -13,8 +13,16 @@ defmodule LiveBeats.UserTracker do
     Phoenix.PubSub.subscribe(@pubsub, topic())
   end
 
-  def start_link(_opts) do
-    GenServer.start_link(__MODULE__, name: __MODULE__)
+  def start_link(opts) do
+    GenServer.start_link(__MODULE__, opts, name: __MODULE__)
+  end
+
+  def presence_joined(presence) do
+    GenServer.call(__MODULE__, {:presence_joined, presence})
+  end
+
+  def presence_left(presence) do
+    GenServer.call(__MODULE__, {:presence_left, presence})
   end
 
   @impl true
@@ -23,13 +31,13 @@ defmodule LiveBeats.UserTracker do
   end
 
   @impl true
-  def handle_call({:user_joined, user}, _from, state) do
-    {:reply, :ok, handle_join(state, user) |> IO.inspect}
+  def handle_call({:presence_joined, presence}, _from, state) do
+    {:reply, :ok, handle_join(state, presence)}
   end
 
   @impl true
-  def handle_call({:user_left, user}, _from, state) do
-    {:reply, :ok, handle_leave(state, user) |> IO.inspect}
+  def handle_call({:presence_left, presence}, _from, state) do
+    {:reply, :ok, handle_leave(state, presence)}
   end
 
   @impl true
@@ -43,17 +51,17 @@ defmodule LiveBeats.UserTracker do
     state
   end
 
-  defp handle_join(state, user) do
-    if Map.has_key?(state, user.id) do
+  defp handle_join(state, presence) do
+    if Map.has_key?(state, presence.user.id) do
       state
     else
-      Map.put_new(state, user.id, user)
+      Map.put_new(state, presence.user.id, presence.user)
     end
   end
 
-  defp handle_leave(state, user) do
-    if Map.has_key?(state, user.id) do
-      Map.delete(state, user.id)
+  defp handle_leave(state, presence) do
+    if Map.has_key?(state, presence.user.id) and presence.metas == [] do
+      Map.delete(state, presence.user.id)
     else
       state
     end
@@ -68,10 +76,7 @@ defmodule LiveBeats.UserTracker do
     state
     |> Enum.map(fn {_key, value} -> value end)
 
-    Logger.info(
-          "broadcasting updates"
-        )
-    Phoenix.PubSub.local_broadcast(@pubsub, topic(), active_users)
+    Phoenix.PubSub.local_broadcast(@pubsub, topic(), {LiveBeats.UserTracker, %{active_users: active_users}})
   end
 
 end
