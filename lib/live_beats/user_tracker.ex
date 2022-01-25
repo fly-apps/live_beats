@@ -1,6 +1,4 @@
 defmodule LiveBeats.UserTracker do
-
-  require Logger
   use GenServer
   @pubsub LiveBeats.PubSub
   @poll_interval :timer.seconds(5)

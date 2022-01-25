@@ -1,16 +1,26 @@
 defmodule LiveBeatsWeb.Nav do
   import Phoenix.LiveView
-
-  alias LiveBeats.MediaLibrary
   alias LiveBeatsWeb.{ProfileLive, SettingsLive}
 
   def on_mount(:default, _params, _session, socket) do
-    {:cont,
+    if connected?(socket) do
+      LiveBeats.UserTracker.subscribe()
+    end
+
      socket
-     |> assign(active_users: MediaLibrary.list_active_profiles(limit: 20))
+     |> assign(:active_users, [])
      |> assign(:region, System.get_env("FLY_REGION"))
      |> attach_hook(:active_tab, :handle_params, &handle_active_tab_params/3)
-     |> attach_hook(:ping, :handle_event, &handle_event/3)}
+     |> attach_hook(:ping, :handle_event, &handle_event/3)
+     |> attach_hook(:actie_users, :handle_info, fn
+        {LiveBeats.UserTracker, %{active_users: users}}, socket ->
+        {:halt, assign(socket, :active_users, users)}
+
+      _params, socket ->
+        {:cont, socket}
+
+     end)
+     {:cont, socket}
   end
 
   defp handle_active_tab_params(params, _url, socket) do
