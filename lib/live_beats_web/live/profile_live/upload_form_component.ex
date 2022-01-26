@@ -28,13 +28,19 @@ defmodule LiveBeatsWeb.ProfileLive.UploadFormComponent do
        progress: &handle_progress/3,
        accept: ~w(.mp3),
        max_entries: @max_songs,
-       max_file_size: 20_000_000
+       max_file_size: 20_000_000,
+       chunk_size: 64_000 * 3
      )}
   end
 
   @impl true
-  def handle_event("validate", %{"_target" => ["mp3"]}, socket) do
-    {:noreply, drop_invalid_uploads(socket)}
+  def handle_event("validate", %{"_target" => ["mp3"]} = params, socket) do
+    {_done, in_progress} = uploaded_entries(socket, :mp3)
+
+    new_socket =
+      Enum.reduce(in_progress, socket, fn entry, acc -> put_new_changeset(acc, entry) end)
+
+    {:noreply, drop_invalid_uploads(new_socket)}
   end
 
   def handle_event("validate", %{"songs" => params, "_target" => ["songs", _, _]}, socket) do

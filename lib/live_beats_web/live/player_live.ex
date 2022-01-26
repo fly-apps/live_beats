@@ -21,7 +21,7 @@ defmodule LiveBeatsWeb.PlayerLive do
                 <%= if @song, do: @song.title, else: raw("&nbsp;") %>
               </h2>
               <p class="text-gray-500 dark:text-gray-400 text-sm sm:text-sm lg:text-sm xl:text-sm font-medium">
-                <%= if @song, do: @song.title, else: raw("&nbsp;") %>
+                <%= if @song, do: @song.artist, else: raw("&nbsp;") %>
               </p>
             </div>
           </div>
