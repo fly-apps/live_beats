@@ -34,7 +34,7 @@ defmodule LiveBeatsWeb.ProfileLive.UploadFormComponent do
   end
 
   @impl true
-  def handle_event("validate", %{"_target" => ["mp3"]} = params, socket) do
+  def handle_event("validate", %{"_target" => ["mp3"]}, socket) do
     {_done, in_progress} = uploaded_entries(socket, :mp3)
 
     new_socket =
