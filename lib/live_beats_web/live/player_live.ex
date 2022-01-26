@@ -249,6 +249,13 @@ defmodule LiveBeatsWeb.PlayerLive do
   end
 
   def handle_info({MediaLibrary, %MediaLibrary.Events.PublicProfileUpdated{} = update}, socket) do
+    %{current_user: current_user} = socket.assigns
+
+    if update.profile.user_id == socket.assigns.current_user.id do
+      LiveBeats.PresenceClient.untrack(socket.assigns.profile, current_user.id)
+      LiveBeats.PresenceClient.track(update.profile, current_user.id)
+    end
+
     {:noreply, assign_profile(socket, update.profile)}
   end
 
