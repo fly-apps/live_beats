@@ -22,6 +22,10 @@ if config_env() == :prod do
   host = System.get_env("PHX_HOST") || "example.com"
   ecto_ipv6? = System.get_env("ECTO_IPV6") == "true"
 
+  app_name =
+    System.get_env("FLY_APP_NAME") ||
+      raise "FLY_APP_NAME not available"
+
   config :live_beats, LiveBeats.Repo,
     # ssl: true,
     socket_options: if(ecto_ipv6?, do: [:inet6], else: []),
@@ -49,9 +53,26 @@ if config_env() == :prod do
 
   config :live_beats, :files,
     uploads_dir: "/app/uploads",
-    host: [scheme: "https", host: host, port: 443]
+    host: [scheme: "https", host: host, port: 443],
+    server_ip: System.fetch_env!("LIVE_BEATS_SERVER_IP"),
+    hostname: "livebeats.local",
+    transport_opts: [inet6: true]
+
 
   config :live_beats, :github,
     client_id: System.fetch_env!("LIVE_BEATS_GITHUB_CLIENT_ID"),
     client_secret: System.fetch_env!("LIVE_BEATS_GITHUB_CLIENT_SECRET")
+
+  config :libcluster,
+    debug: true,
+    topologies: [
+      fly6pn: [
+        strategy: Cluster.Strategy.DNSPoll,
+        config: [
+          polling_interval: 5_000,
+          query: "#{app_name}.internal",
+          node_basename: app_name
+        ]
+      ]
+    ]
 end

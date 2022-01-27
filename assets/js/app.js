@@ -96,6 +96,7 @@ Hooks.AudioPlayer = {
   mounted(){
     this.playbackBeganAt = null
     this.player = this.el.querySelector("audio")
+    this.playerDuration = 0
     this.currentTime = this.el.querySelector("#player-time")
     this.duration = this.el.querySelector("#player-duration")
     this.progress = this.el.querySelector("#player-progress")
@@ -115,9 +116,10 @@ Hooks.AudioPlayer = {
         this.play()
       }
     })
-    this.handleEvent("play", ({url, token, elapsed}) => {
+    this.handleEvent("play", ({url, token, duration, elapsed}) => {
       this.playbackBeganAt = nowSeconds() - elapsed
       let currentSrc = this.player.src.split("?")[0]
+      this.playerDuration = duration
       if(currentSrc === url && this.player.paused){
         this.play({sync: true})
       } else if(currentSrc !== url) {
@@ -156,14 +158,15 @@ Hooks.AudioPlayer = {
   },
 
   updateProgress(){
-    if(isNaN(this.player.duration)){ return false }
-    if(this.player.currentTime >= this.player.duration){
+    if(this.playerDuration === 0){ return false }
+    if(Math.ceil(this.player.currentTime) >= Math.floor(this.playerDuration)){
+      this.playerDuration = 0
       this.pushEvent("next_song_auto")
       clearInterval(this.progressTimer)
       return
     }
-    this.progress.style.width = `${(this.player.currentTime / (this.player.duration) * 100)}%`
-    this.duration.innerText = this.formatTime(this.player.duration)
+    this.progress.style.width = `${(this.player.currentTime / (this.playerDuration) * 100)}%`
+    this.duration.innerText = this.formatTime(this.playerDuration)
     this.currentTime.innerText = this.formatTime(this.player.currentTime)
   },
 

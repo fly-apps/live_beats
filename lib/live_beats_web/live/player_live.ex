@@ -297,11 +297,17 @@ defmodule LiveBeatsWeb.PlayerLive do
   end
 
   defp push_play(socket, %Song{} = song, elapsed) do
-    token = Phoenix.Token.sign(socket.endpoint, "file", song.mp3_filename)
+    token =
+      Phoenix.Token.encrypt(socket.endpoint, "file", %{
+        vsn: 1,
+        ip: to_string(song.server_ip),
+        uuid: song.mp3_filename
+      })
 
     push_event(socket, "play", %{
       paused: Song.paused?(song),
       elapsed: elapsed,
+      duration: song.duration,
       token: token,
       url: song.mp3_url
     })

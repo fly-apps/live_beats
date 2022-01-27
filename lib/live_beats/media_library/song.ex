@@ -19,6 +19,7 @@ defmodule LiveBeats.MediaLibrary.Song do
     field :mp3_url, :string
     field :mp3_filepath, :string
     field :mp3_filename, :string
+    field :server_ip, EctoNetwork.INET
     belongs_to :user, Accounts.User
     belongs_to :genre, LiveBeats.MediaLibrary.Genre
 
@@ -66,6 +67,11 @@ defmodule LiveBeats.MediaLibrary.Song do
     else
       changeset
     end
+  end
+
+  def put_server_ip(%Ecto.Changeset{} = changeset) do
+    server_ip = LiveBeats.config([:files, :server_ip])
+    Ecto.Changeset.cast(changeset, %{server_ip: server_ip}, [:server_ip])
   end
 
   defp mp3_url(filename) do
