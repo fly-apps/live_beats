@@ -29,7 +29,12 @@ defmodule LiveBeats.UserTracker do
 
   @impl true
   def init(_opts) do
-    {:ok, schedule_updates(%{})}
+    {:ok,
+     schedule_updates(%{
+       active_users: %{},
+       user_leaves: [],
+       user_joins: []
+     })}
   end
 
   @impl true
@@ -49,8 +54,14 @@ defmodule LiveBeats.UserTracker do
 
   @impl true
   def handle_info(:send_updates, state) do
-    broadcast_updates(state)
-    {:noreply, schedule_updates(state)}
+    leaves = state.user_leaves -- state.user_joins
+    joins = state.user_joins -- state.user_leaves
+
+    broadcast_updates(leaves, joins)
+
+    # cleaning joins and leaves for each interval
+    new_state = %{state | user_leaves: [], user_joins: []}
+    {:noreply, schedule_updates(new_state)}
   end
 
   defp schedule_updates(state) do
@@ -58,17 +69,23 @@ defmodule LiveBeats.UserTracker do
     state
   end
 
-  defp handle_join(state, presence) do
-    if Map.has_key?(state, presence.user.id) do
+  defp handle_join(state, %{user: user}) do
+    if Map.has_key?(state.active_users, user.id) do
       state
     else
-      Map.put_new(state, presence.user.id, presence.user)
+      updated_active_users = Map.put_new(state.active_users, user.id, user)
+      updated_user_joins = [user | state.user_joins]
+
+      %{state | active_users: updated_active_users, user_joins: updated_user_joins}
     end
   end
 
-  defp handle_leave(state, presence) do
-    if Map.has_key?(state, presence.user.id) and presence.metas == [] do
-      Map.delete(state, presence.user.id)
+  defp handle_leave(state, %{user: user, metas: metas}) do
+    if Map.has_key?(state.active_users, user.id) and metas == [] do
+      updated_active_users = Map.delete(state.active_users, user.id)
+      updated_user_leaves = [user | state.user_leaves]
+
+      %{state | active_users: updated_active_users, user_leaves: updated_user_leaves}
     else
       state
     end
@@ -78,15 +95,15 @@ defmodule LiveBeats.UserTracker do
     "active_users"
   end
 
-  defp broadcast_updates(state) do
+  defp broadcast_updates(leaves, joins) do
     Phoenix.PubSub.local_broadcast(
       @pubsub,
       topic(),
-      {LiveBeats.UserTracker, %{active_users: list_users(state)}}
+      {LiveBeats.UserTracker, %{user_leaves: leaves, user_joins: joins}}
     )
   end
 
   defp list_users(state) do
-    Enum.map(state, fn {_key, value} -> value end)
+    Enum.map(state.active_users, fn {_key, value} -> value end)
   end
 end
