@@ -36,6 +36,7 @@ defmodule LiveBeats.MixProject do
       {:phoenix, github: "phoenixframework/phoenix", override: true},
       {:phoenix_ecto, "~> 4.4"},
       {:ecto_sql, "~> 3.6"},
+      {:ecto_network, "~> 1.3.0"},
       {:postgrex, ">= 0.0.0"},
       {:phoenix_html, "~> 3.0"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
@@ -52,7 +53,8 @@ defmodule LiveBeats.MixProject do
       {:mint, "~> 1.0"},
       {:heroicons, "~> 0.2.2"},
       {:castore, "~> 0.1.13"},
-      {:tailwind, "~> 0.1"}
+      {:tailwind, "~> 0.1"},
+      {:libcluster, "~> 3.3.1"}
     ]
   end
 

@@ -2,7 +2,8 @@ import Config
 
 config :live_beats, :files,
   uploads_dir: Path.expand("../priv/uploads", __DIR__),
-  host: [scheme: "http", host: "localhost", port: 4000]
+  host: [scheme: "http", host: "localhost", port: 4000],
+  server_ip: "127.0.0.1"
 
 config :live_beats, :github,
   client_id: System.fetch_env!("LIVE_BEATS_GITHUB_CLIENT_ID"),

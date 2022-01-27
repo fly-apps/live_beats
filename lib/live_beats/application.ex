@@ -8,8 +8,10 @@ defmodule LiveBeats.Application do
   @impl true
   def start(_type, _args) do
     LiveBeats.MediaLibrary.attach()
+    topologies = Application.get_env(:libcluster, :topologies) || []
 
     children = [
+      {Cluster.Supervisor, [topologies, [name: LiveBeats.ClusterSupervisor]]},
       {Task.Supervisor, name: LiveBeats.TaskSupervisor},
       # Start the Ecto repository
       LiveBeats.Repo,

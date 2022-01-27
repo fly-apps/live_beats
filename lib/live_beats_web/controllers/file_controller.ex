@@ -6,11 +6,27 @@ defmodule LiveBeatsWeb.FileController do
 
   alias LiveBeats.MediaLibrary
 
+  require Logger
+
   def show(conn, %{"id" => filename_uuid, "token" => token}) do
-    case Phoenix.Token.verify(conn, "file", token, max_age: :timer.minutes(1)) do
-      {:ok, ^filename_uuid} -> do_send_file(conn, MediaLibrary.local_filepath(filename_uuid))
-      {:ok, _} -> send_resp(conn, :unauthorized, "")
-      {:error, _} -> send_resp(conn, :unauthorized, "")
+    path = MediaLibrary.local_filepath(filename_uuid)
+    mime_type = MIME.from_path(path)
+
+    case Phoenix.Token.decrypt(conn, "file", token, max_age: :timer.minutes(1)) do
+      {:ok, %{uuid: ^filename_uuid, ip: ip}} ->
+        if local_file?(filename_uuid, ip) do
+          Logger.info("serving file from #{server_ip()}")
+          do_send_file(conn, path)
+        else
+          Logger.info("proxying file to #{ip} from #{server_ip()}")
+          proxy_file(conn, ip, mime_type)
+        end
+
+      {:ok, _} ->
+        send_resp(conn, :unauthorized, "")
+
+      {:error, _} ->
+        send_resp(conn, :unauthorized, "")
     end
   end
 
@@ -20,5 +36,61 @@ defmodule LiveBeatsWeb.FileController do
     |> put_resp_header("content-type", MIME.from_path(path))
     |> put_resp_header("accept-ranges", "bytes")
     |> send_file(200, path)
+  end
+
+  defp proxy_file(conn, ip, mime_type) do
+    uri = conn |> request_url() |> URI.parse()
+    port = LiveBeatsWeb.Endpoint.config(:http)[:port]
+    path = uri.path <> "?" <> uri.query <> "&from=#{server_ip()}"
+    {:ok, ipv6} = :inet.parse_address(String.to_charlist(ip))
+    {:ok, req} = Mint.HTTP.connect(:http, ipv6, port, file_server_opts())
+    {:ok, req, request_ref} = Mint.HTTP.request(req, "GET", path, [], "")
+
+    conn
+    |> put_resp_header("content-type", mime_type)
+    |> put_resp_header("accept-ranges", "bytes")
+    |> put_resp_header("transfer-encoding", "chunked")
+    |> send_chunked(200)
+    |> stream(req, request_ref)
+  end
+
+  defp stream(conn, req, ref) do
+    receive do
+      {:tcp, _, _} = msg ->
+        {:ok, req, responses} = Mint.HTTP.stream(req, msg)
+
+        new_conn =
+          Enum.reduce(responses, conn, fn
+            {:data, ^ref, data}, acc -> chunk!(acc, data)
+            {:done, ^ref}, acc -> halt(acc)
+            {:status, ^ref, 200}, acc -> acc
+            {:headers, ^ref, _}, acc -> acc
+          end)
+
+        if new_conn.halted do
+          new_conn
+        else
+          stream(new_conn, req, ref)
+        end
+    end
+  end
+
+  defp chunk!(conn, data) do
+    {:ok, conn} = chunk(conn, data)
+    conn
+  end
+
+  defp local_file?(_filename_uuid, ip) do
+    # TODO cache locally
+    ip == server_ip()
+  end
+
+  defp server_ip, do: LiveBeats.config([:files, :server_ip])
+
+  defp file_server_opts do
+    [
+      hostname: LiveBeats.config([:files, :hostname]) || "localhost",
+      transport_opts: LiveBeats.config([:files, :transport_opts]) || []
+    ]
   end
 end
