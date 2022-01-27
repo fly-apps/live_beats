@@ -1,7 +1,7 @@
 defmodule LiveBeats.UserTracker do
   use GenServer
   @pubsub LiveBeats.PubSub
-  @poll_interval :timer.seconds(5)
+  @poll_interval :timer.seconds(30)
 
   @doc """
   TODO
@@ -15,6 +15,10 @@ defmodule LiveBeats.UserTracker do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
+  def list_active_users() do
+    GenServer.call(__MODULE__, :list_users)
+  end
+
   def presence_joined(presence) do
     GenServer.call(__MODULE__, {:presence_joined, presence})
   end
@@ -26,6 +30,11 @@ defmodule LiveBeats.UserTracker do
   @impl true
   def init(_opts) do
     {:ok, schedule_updates(%{})}
+  end
+
+  @impl true
+  def handle_call(:list_users, _from, state) do
+    {:reply, list_users(state), state}
   end
 
   @impl true
@@ -70,11 +79,14 @@ defmodule LiveBeats.UserTracker do
   end
 
   defp broadcast_updates(state) do
-    active_users =
-    state
-    |> Enum.map(fn {_key, value} -> value end)
-
-    Phoenix.PubSub.local_broadcast(@pubsub, topic(), {LiveBeats.UserTracker, %{active_users: active_users}})
+    Phoenix.PubSub.local_broadcast(
+      @pubsub,
+      topic(),
+      {LiveBeats.UserTracker, %{active_users: list_users(state)}}
+    )
   end
 
+  defp list_users(state) do
+    Enum.map(state, fn {_key, value} -> value end)
+  end
 end
