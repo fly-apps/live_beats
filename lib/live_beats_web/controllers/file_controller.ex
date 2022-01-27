@@ -8,14 +8,13 @@ defmodule LiveBeatsWeb.FileController do
 
   require Logger
 
-  def show(conn, %{"id" => filename_uuid, "token" => token} = params) do
+  def show(conn, %{"id" => filename_uuid, "token" => token}) do
     path = MediaLibrary.local_filepath(filename_uuid)
     mime_type = MIME.from_path(path)
 
     case Phoenix.Token.decrypt(conn, "file", token, max_age: :timer.minutes(1)) do
       {:ok, %{vsn: 1, uuid: ^filename_uuid, ip: ip, size: size}} ->
-        # if local_file?(filename_uuid, ip) do
-        if !params["proxy"] do
+        if local_file?(filename_uuid, ip) do
           Logger.info("serving file from #{server_ip()}")
           do_send_file(conn, path)
         else
@@ -42,8 +41,7 @@ defmodule LiveBeatsWeb.FileController do
   defp proxy_file(conn, ip, mime_type, content_length) do
     uri = conn |> request_url() |> URI.parse()
     port = LiveBeatsWeb.Endpoint.config(:http)[:port]
-    # path = uri.path <> "?" <> uri.query <> "&from=#{server_ip()}"
-    path = uri.path <> "?" <> String.replace(uri.query, "&proxy", "") <> "&from=#{server_ip()}"
+    path = uri.path <> "?" <> uri.query <> "&from=#{server_ip()}"
     {:ok, ipv6} = :inet.parse_address(String.to_charlist(ip))
     {:ok, req} = Mint.HTTP.connect(:http, ipv6, port, file_server_opts())
     {:ok, req, request_ref} = Mint.HTTP.request(req, "GET", path, [], "")
@@ -51,7 +49,7 @@ defmodule LiveBeatsWeb.FileController do
     conn
     |> put_resp_header("content-type", mime_type)
     |> put_resp_header("accept-ranges", "bytes")
-    |> put_resp_header("content-length", IO.inspect(to_string(content_length)))
+    |> put_resp_header("content-length", to_string(content_length))
     |> send_chunked(200)
     |> stream(req, request_ref)
   end

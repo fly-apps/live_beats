@@ -97,13 +97,8 @@ Hooks.AudioPlayer = {
   mounted(){
     this.playbackBeganAt = null
     this.player = this.el.querySelector("audio")
-    this.player.addEventListener("ended", () => console.log("player: ended"))
-    this.player.addEventListener("stalled", () => console.log("player: stalled"))
-    this.player.addEventListener("suspend", () => console.log("player: suspend"))
-    this.player.addEventListener("waiting", () => console.log("player: waiting"))
-    this.playerDuration = 0
     this.currentTime = this.el.querySelector("#player-time")
-    this.durationText = this.el.querySelector("#player-duration")
+    this.duration = this.el.querySelector("#player-duration")
     this.progress = this.el.querySelector("#player-progress")
     let enableAudio = () => {
       if(this.player.src){
@@ -121,14 +116,13 @@ Hooks.AudioPlayer = {
         this.play()
       }
     })
-    this.handleEvent("play", ({url, token, duration, elapsed}) => {
+    this.handleEvent("play", ({url, token, elapsed}) => {
       this.playbackBeganAt = nowSeconds() - elapsed
       let currentSrc = this.player.src.split("?")[0]
-      this.playerDuration = duration
       if(currentSrc === url && this.player.paused){
         this.play({sync: true})
       } else if(currentSrc !== url) {
-        this.player.src = `${url}?token=${token}&proxy`
+        this.player.src = `${url}?token=${token}`
         this.play({sync: true})
       }
     })
@@ -136,16 +130,16 @@ Hooks.AudioPlayer = {
     this.handleEvent("stop", () => this.stop())
   },
 
-  play(opts = {}){
-    console.log("play")
-    let {sync} = opts
-    clearInterval(this.progressTimer)
+  clearNextTimer(){
     clearTimeout(this.nextTimer)
+    this.nextTimer = null
+  },
+
+  play(opts = {}){
+    let {sync} = opts
+    this.clearNextTimer()
     this.player.play().then(() => {
-      if(sync){
-        console.log("sync", nowSeconds() - this.playbackBeganAt)
-        this.player.currentTime = nowSeconds() - this.playbackBeganAt
-      }
+      if(sync){ this.player.currentTime = nowSeconds() - this.playbackBeganAt }
       this.progressTimer = setInterval(() => this.updateProgress(), 100)
     }, error => {
       if(error.name === "NotAllowedError"){
@@ -156,32 +150,27 @@ Hooks.AudioPlayer = {
 
   pause(){
     clearInterval(this.progressTimer)
-    clearTimeout(this.nextTimer)
     this.player.pause()
   },
 
   stop(){
     clearInterval(this.progressTimer)
-    clearTimeout(this.nextTimer)
     this.player.pause()
     this.player.currentTime = 0
     this.updateProgress()
-    this.durationText.innerText = ""
+    this.duration.innerText = ""
     this.currentTime.innerText = ""
   },
 
   updateProgress(){
-    if(this.playerDuration === 0){ return false }
-    if(Math.ceil(this.player.currentTime) >= Math.floor(this.playerDuration)){
+    if(isNaN(this.player.duration)){ return false }
+    if(!this.nextTimer && this.player.currentTime >= this.player.duration){
       clearInterval(this.progressTimer)
-      this.player.pause()
-      this.playerDuration = 0
-      console.log("next_song_auto")
-      this.nextTimer = setTimeout(() => this.pushEvent("next_song_auto"), rand(1000, 3000))
+      this.nextTimer = setTimeout(() => this.pushEvent("next_song_auto"), rand(0, 1500))
       return
     }
-    this.progress.style.width = `${(this.player.currentTime / (this.playerDuration) * 100)}%`
-    this.durationText.innerText = this.formatTime(this.playerDuration)
+    this.progress.style.width = `${(this.player.currentTime / (this.player.duration) * 100)}%`
+    this.duration.innerText = this.formatTime(this.player.duration)
     this.currentTime.innerText = this.formatTime(this.player.currentTime)
   },
 
@@ -225,5 +214,4 @@ liveSocket.connect()
 // >> liveSocket.enableLatencySim(1000)  // enabled for duration of browser session
 // >> liveSocket.disableLatencySim()
 window.liveSocket = liveSocket
-
 
