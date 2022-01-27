@@ -70,7 +70,7 @@ defmodule LiveBeatsWeb.SettingsLive do
 
   def mount(_parmas, _session, socket) do
     changeset = Accounts.change_settings(socket.assigns.current_user, %{})
-    {:ok, assign(socket, changeset: changeset)}
+    {:ok, assign(socket, changeset: changeset), temporary_assigns: [active_users: []]}
   end
 
   def handle_event("validate", %{"user" => params}, socket) do

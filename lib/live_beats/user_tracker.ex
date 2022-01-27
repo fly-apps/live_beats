@@ -1,11 +1,11 @@
 defmodule LiveBeats.UserTracker do
+  @moduledoc """
+    Send active users updates using a polling interval.
+  """
+
   use GenServer
   @pubsub LiveBeats.PubSub
   @poll_interval :timer.seconds(30)
-
-  @doc """
-  TODO
-  """
 
   def subscribe() do
     Phoenix.PubSub.subscribe(@pubsub, topic())

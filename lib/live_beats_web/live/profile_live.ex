@@ -107,7 +107,7 @@ defmodule LiveBeatsWeb.ProfileLive do
       |> list_songs()
       |> assign_presences()
 
-    {:ok, socket, temporary_assigns: [songs: [], presences: []]}
+    {:ok, socket, temporary_assigns: [songs: [], presences: [], active_users: []]}
   end
 
   def handle_params(params, _url, socket) do
