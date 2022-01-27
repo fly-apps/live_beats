@@ -301,7 +301,8 @@ defmodule LiveBeatsWeb.PlayerLive do
       Phoenix.Token.encrypt(socket.endpoint, "file", %{
         vsn: 1,
         ip: to_string(song.server_ip),
-        uuid: song.mp3_filename
+        size: song.mp3_filesize,
+        uuid: song.mp3_filename,
       })
 
     push_event(socket, "play", %{

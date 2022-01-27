@@ -64,7 +64,6 @@ if config_env() == :prod do
     client_secret: System.fetch_env!("LIVE_BEATS_GITHUB_CLIENT_SECRET")
 
   config :libcluster,
-    debug: true,
     topologies: [
       fly6pn: [
         strategy: Cluster.Strategy.DNSPoll,

@@ -19,6 +19,7 @@ defmodule LiveBeats.MediaLibrary.Song do
     field :mp3_url, :string
     field :mp3_filepath, :string
     field :mp3_filename, :string
+    field :mp3_filesize, :integer, default: 0
     field :server_ip, EctoNetwork.INET
     belongs_to :user, Accounts.User
     belongs_to :genre, LiveBeats.MediaLibrary.Genre
@@ -45,7 +46,13 @@ defmodule LiveBeats.MediaLibrary.Song do
     put_assoc(changeset, :user, user)
   end
 
-  def put_duration(%Ecto.Changeset{} = changeset, duration) when is_integer(duration) do
+  def put_stats(%Ecto.Changeset{} = changeset, %LiveBeats.MP3Stat{} = stat) do
+    changeset
+    |> put_duration(stat.duration)
+    |> Ecto.Changeset.put_change(:mp3_filesize, stat.size)
+  end
+
+  defp put_duration(%Ecto.Changeset{} = changeset, duration) when is_integer(duration) do
     changeset
     |> Ecto.Changeset.change(%{duration: duration})
     |> Ecto.Changeset.validate_number(:duration,

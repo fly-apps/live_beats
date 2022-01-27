@@ -138,7 +138,7 @@ defmodule LiveBeats.MediaLibrary do
   end
 
   def put_stats(%Ecto.Changeset{} = changeset, %MP3Stat{} = stat) do
-    chset = Song.put_duration(changeset, stat.duration)
+    chset = Song.put_stats(changeset, stat)
 
     if error = chset.errors[:duration] do
       {:error, %{duration: error}}
@@ -423,10 +423,11 @@ defmodule LiveBeats.MediaLibrary do
     Song.changeset(song, attrs)
   end
 
+  @keep_changes [:duration, :mp3_filesize, :mp3_filepath]
   def change_song(%Ecto.Changeset{} = prev_changeset, attrs) do
     %Song{}
     |> change_song(attrs)
-    |> Ecto.Changeset.change(Map.take(prev_changeset.changes, [:duration]))
+    |> Ecto.Changeset.change(Map.take(prev_changeset.changes, @keep_changes))
   end
 
   defp order_by_playlist(%Ecto.Query{} = query, direction) when direction in [:asc, :desc] do

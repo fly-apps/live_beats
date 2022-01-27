@@ -4,6 +4,7 @@ import {LiveSocket} from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 
 let nowSeconds = () => Math.round(Date.now() / 1000)
+let rand = (min, max) => Math.floor(Math.random() * (max - min) + min)
 
 let execJS = (selector, attr) => {
   document.querySelectorAll(selector).forEach(el => liveSocket.execJS(el, el.getAttribute(attr)))
@@ -96,9 +97,13 @@ Hooks.AudioPlayer = {
   mounted(){
     this.playbackBeganAt = null
     this.player = this.el.querySelector("audio")
+    this.player.addEventListener("ended", () => console.log("player: ended"))
+    this.player.addEventListener("stalled", () => console.log("player: stalled"))
+    this.player.addEventListener("suspend", () => console.log("player: suspend"))
+    this.player.addEventListener("waiting", () => console.log("player: waiting"))
     this.playerDuration = 0
     this.currentTime = this.el.querySelector("#player-time")
-    this.duration = this.el.querySelector("#player-duration")
+    this.durationText = this.el.querySelector("#player-duration")
     this.progress = this.el.querySelector("#player-progress")
     let enableAudio = () => {
       if(this.player.src){
@@ -123,7 +128,7 @@ Hooks.AudioPlayer = {
       if(currentSrc === url && this.player.paused){
         this.play({sync: true})
       } else if(currentSrc !== url) {
-        this.player.src = `${url}?token=${token}`
+        this.player.src = `${url}?token=${token}&proxy`
         this.play({sync: true})
       }
     })
@@ -132,9 +137,15 @@ Hooks.AudioPlayer = {
   },
 
   play(opts = {}){
+    console.log("play")
     let {sync} = opts
+    clearInterval(this.progressTimer)
+    clearTimeout(this.nextTimer)
     this.player.play().then(() => {
-      if(sync){ this.player.currentTime = nowSeconds() - this.playbackBeganAt }
+      if(sync){
+        console.log("sync", nowSeconds() - this.playbackBeganAt)
+        this.player.currentTime = nowSeconds() - this.playbackBeganAt
+      }
       this.progressTimer = setInterval(() => this.updateProgress(), 100)
     }, error => {
       if(error.name === "NotAllowedError"){
@@ -145,28 +156,32 @@ Hooks.AudioPlayer = {
 
   pause(){
     clearInterval(this.progressTimer)
+    clearTimeout(this.nextTimer)
     this.player.pause()
   },
 
   stop(){
     clearInterval(this.progressTimer)
+    clearTimeout(this.nextTimer)
     this.player.pause()
     this.player.currentTime = 0
     this.updateProgress()
-    this.duration.innerText = ""
+    this.durationText.innerText = ""
     this.currentTime.innerText = ""
   },
 
   updateProgress(){
     if(this.playerDuration === 0){ return false }
     if(Math.ceil(this.player.currentTime) >= Math.floor(this.playerDuration)){
-      this.playerDuration = 0
-      this.pushEvent("next_song_auto")
       clearInterval(this.progressTimer)
+      this.player.pause()
+      this.playerDuration = 0
+      console.log("next_song_auto")
+      this.nextTimer = setTimeout(() => this.pushEvent("next_song_auto"), rand(1000, 3000))
       return
     }
     this.progress.style.width = `${(this.player.currentTime / (this.playerDuration) * 100)}%`
-    this.duration.innerText = this.formatTime(this.playerDuration)
+    this.durationText.innerText = this.formatTime(this.playerDuration)
     this.currentTime.innerText = this.formatTime(this.player.currentTime)
   },
 
