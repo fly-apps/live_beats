@@ -228,13 +228,13 @@ defmodule LiveBeats.MediaLibrary do
   end
 
   def list_genres do
-    Repo.all(Genre, order_by: [asc: :title])
+    Repo.replica().all(Genre, order_by: [asc: :title])
   end
 
   def list_profile_songs(%Profile{} = profile, limit \\ 100) do
     from(s in Song, where: s.user_id == ^profile.user_id, limit: ^limit)
     |> order_by_playlist(:asc)
-    |> Repo.all()
+    |> Repo.replica().all()
   end
 
   def list_active_profiles(opts) do
@@ -246,12 +246,12 @@ defmodule LiveBeats.MediaLibrary do
       order_by: [desc: s.updated_at],
       select: struct(u, [:id, :username, :profile_tagline, :avatar_url, :external_homepage_url])
     )
-    |> Repo.all()
+    |> Repo.replica().all()
     |> Enum.map(&get_profile!/1)
   end
 
   def get_current_active_song(%Profile{user_id: user_id}) do
-    Repo.one(from s in Song, where: s.user_id == ^user_id and s.status in [:playing, :paused])
+    Repo.replica().one(from s in Song, where: s.user_id == ^user_id and s.status in [:playing, :paused])
   end
 
   def get_profile!(%Accounts.User{} = user) do
@@ -286,7 +286,7 @@ defmodule LiveBeats.MediaLibrary do
     end
   end
 
-  def get_song!(id), do: Repo.get!(Song, id)
+  def get_song!(id), do: Repo.replica().get!(Song, id)
 
   def get_first_song(%Profile{user_id: user_id}) do
     from(s in Song,
@@ -294,7 +294,7 @@ defmodule LiveBeats.MediaLibrary do
       limit: 1
     )
     |> order_by_playlist(:asc)
-    |> Repo.one()
+    |> Repo.replica().one()
   end
 
   def get_last_song(%Profile{user_id: user_id}) do
@@ -303,7 +303,7 @@ defmodule LiveBeats.MediaLibrary do
       limit: 1
     )
     |> order_by_playlist(:desc)
-    |> Repo.one()
+    |> Repo.replica().one()
   end
 
   def get_next_song(%Song{} = song, %Profile{} = profile) do
@@ -313,7 +313,7 @@ defmodule LiveBeats.MediaLibrary do
         limit: 1
       )
       |> order_by_playlist(:asc)
-      |> Repo.one()
+      |> Repo.replica().one()
 
     next || get_first_song(profile)
   end
@@ -326,7 +326,7 @@ defmodule LiveBeats.MediaLibrary do
         limit: 1
       )
       |> order_by_playlist(:desc)
-      |> Repo.one()
+      |> Repo.replica().one()
 
     prev || get_last_song(profile)
   end

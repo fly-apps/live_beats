@@ -1,5 +1,8 @@
 import Config
 
+config :live_beats,
+  replica: LiveBeats.Repo
+
 config :live_beats, :files,
   uploads_dir: Path.expand("../tmp/test-uploads", __DIR__),
   host: [scheme: "http", host: "localhost", port: 4000],
@@ -17,6 +20,16 @@ config :live_beats, LiveBeats.Repo,
   hostname: "localhost",
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: 10
+
+config :live_beats, LiveBeats.ReplicaRepo,
+  username: "postgres",
+  password: "postgres",
+  database: "live_beats_test#{System.get_env("MIX_TEST_PARTITION")}",
+  hostname: "localhost",
+  show_sensitive_data_on_connection_error: true,
+  pool_size: 10,
+  priv: "priv/repo"
+
 
 # We don't run a server during test. If one is required,
 # you can enable the server option below.

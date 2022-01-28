@@ -15,6 +15,7 @@ defmodule LiveBeats.Application do
       {Task.Supervisor, name: LiveBeats.TaskSupervisor},
       # Start the Ecto repository
       LiveBeats.Repo,
+      LiveBeats.ReplicaRepo,
       # Start the Telemetry supervisor
       LiveBeatsWeb.Telemetry,
       # Start the PubSub system

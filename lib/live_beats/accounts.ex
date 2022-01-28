@@ -18,15 +18,15 @@ defmodule LiveBeats.Accounts do
   defp topic(user_id), do: "user:#{user_id}"
 
   def list_users(opts) do
-    Repo.all(from u in User, limit: ^Keyword.fetch!(opts, :limit))
+    Repo.replica().all(from u in User, limit: ^Keyword.fetch!(opts, :limit))
   end
 
   def get_users_map(user_ids) when is_list(user_ids) do
-    Repo.all(from u in User, where: u.id in ^user_ids, select: {u.id, u})
+    Repo.replica().all(from u in User, where: u.id in ^user_ids, select: {u.id, u})
   end
 
   def lists_users_by_active_profile(id, opts) do
-    Repo.all(
+    Repo.replica().all(
       from u in User, where: u.active_profile_user_id == ^id, limit: ^Keyword.fetch!(opts, :limit)
     )
   end
@@ -84,11 +84,11 @@ defmodule LiveBeats.Accounts do
       ** (Ecto.NoResultsError)
 
   """
-  def get_user!(id), do: Repo.get!(User, id)
+  def get_user!(id), do: Repo.replica().get!(User, id)
 
-  def get_user(id), do: Repo.get(User, id)
+  def get_user(id), do: Repo.replica().get(User, id)
 
-  def get_user_by!(fields), do: Repo.get_by!(User, fields)
+  def get_user_by!(fields), do: Repo.replica().get_by!(User, fields)
 
   def update_active_profile(%User{active_profile_user_id: same_id} = current_user, same_id) do
     current_user

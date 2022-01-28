@@ -8,6 +8,7 @@
 import Config
 
 config :live_beats,
+  replica: LiveBeats.ReplicaRepo,
   ecto_repos: [LiveBeats.Repo]
 
 # Configures the endpoint

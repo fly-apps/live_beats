@@ -20,6 +20,16 @@ config :live_beats, LiveBeats.Repo,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
 
+# Configure your replica database
+config :live_beats, LiveBeats.ReplicaRepo,
+  username: "postgres",
+  password: "postgres",
+  database: "live_beats_dev",
+  hostname: "localhost",
+  show_sensitive_data_on_connection_error: true,
+  pool_size: 10,
+  priv: "priv/repo"
+
 # For development, we disable any cache and enable
 # debugging and code reloading.
 #
