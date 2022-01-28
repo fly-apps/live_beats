@@ -13,10 +13,17 @@ defmodule LiveBeatsWeb.LayoutView do
       <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider" id={@id}>
         Active Users
       </h3>
-      <div class="mt-1 space-y-1" role="group" aria-labelledby={@id}>
+      <div
+        class="mt-1 space-y-1"
+        role="group"
+        aria-labelledby={@id}
+        id={"#{@id}-container"}
+        phx-update="prepend"
+      >
         <%= for user <- @users do %>
           <.link navigate={profile_path(user)}
             class="group flex items-center px-3 py-2 text-base leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50"
+            id={"#{@id}-#{user.id}"}
           >
             <span class="w-2.5 h-2.5 mr-4 bg-indigo-500 rounded-full" aria-hidden="true"></span>
             <span class="truncate">

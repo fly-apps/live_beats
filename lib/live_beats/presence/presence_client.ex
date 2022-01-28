@@ -41,12 +41,14 @@ defmodule LiveBeats.PresenceClient do
 
   @impl Phoenix.Presence.Client
   def handle_join(topic, _key, presence, state) do
+    LiveBeats.UserTracker.presence_joined(presence)
     local_broadcast(topic, {__MODULE__, %{user_joined: presence}})
     {:ok, state}
   end
 
   @impl Phoenix.Presence.Client
   def handle_leave(topic, _key, presence, state) do
+    LiveBeats.UserTracker.presence_left(presence)
     local_broadcast(topic, {__MODULE__, %{user_left: presence}})
     {:ok, state}
   end
