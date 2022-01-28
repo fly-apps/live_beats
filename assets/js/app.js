@@ -177,6 +177,23 @@ Hooks.AudioPlayer = {
   formatTime(seconds){ return new Date(1000 * seconds).toISOString().substr(14, 5) }
 }
 
+
+Hooks.Ping = {
+  mounted(){
+    this.handleEvent("pong", () => {
+      console.log("pong")
+      this.el.innerText = `ping: ${Date.now() - this.nowMs}ms`
+      this.timer = setTimeout(() => this.ping(), 1000)
+    })
+    this.ping()
+  },
+  destroyed(){ clearTimeout(this.timer) },
+  ping(){
+    this.nowMs = Date.now()
+    this.pushEvent("ping", {})
+  }
+}
+
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, {
   hooks: Hooks,
