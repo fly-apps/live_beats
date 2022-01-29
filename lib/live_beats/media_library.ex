@@ -30,6 +30,10 @@ defmodule LiveBeats.MediaLibrary do
     Phoenix.PubSub.subscribe(@pubsub, topic(profile.user_id))
   end
 
+  def broadcast_ping(%Accounts.User{} = user, rtt, region) do
+    broadcast!(user.active_profile_user_id, {:ping, %{rtt: rtt, region: region}})
+  end
+
   def unsubscribe_to_profile(%Profile{} = profile) do
     Phoenix.PubSub.unsubscribe(@pubsub, topic(profile.user_id))
   end
@@ -251,7 +255,9 @@ defmodule LiveBeats.MediaLibrary do
   end
 
   def get_current_active_song(%Profile{user_id: user_id}) do
-    Repo.replica().one(from s in Song, where: s.user_id == ^user_id and s.status in [:playing, :paused])
+    Repo.replica().one(
+      from s in Song, where: s.user_id == ^user_id and s.status in [:playing, :paused]
+    )
   end
 
   def get_profile!(%Accounts.User{} = user) do

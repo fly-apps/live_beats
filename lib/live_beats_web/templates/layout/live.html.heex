@@ -24,7 +24,7 @@
       <.link navigate={home_path(@current_user)}>
         <.icon name={:status_online} class="w-8 h-8 text-purple-600 -mt-2 inline-block" outlined/>
         <span class="h-8 w-auto text-2xl ml-1 font-bold">
-          LiveBeats <%= @region %>
+          LiveBeats
         </span>
       </.link>
     </div>
@@ -55,7 +55,7 @@
       <.link navigate={home_path(@current_user)}>
         <.icon name={:status_online} class="w-8 h-8 text-purple-600 -mt-2 inline-block" outlined/>
         <span class="h-8 w-auto text-2xl ml-1 font-bold">
-          LiveBeats <small class="font-normal"><%= @region %></small>
+          LiveBeats
         </span>
       </.link>
     </div>
@@ -165,6 +165,9 @@
     <%= @inner_content %>
   </main>
   <div class="relative">
-    <div id="ping" phx-hook="Ping" class="fixed bottom-0 right-0 bg-gray-900 text-gray-200 px-2 rounded-tl-md text-sm w-24 min-w-max"></div>
+    <div class="fixed bottom-0 right-0 bg-gray-900 text-gray-200 px-2 rounded-tl-md text-sm w-[114px] min-w-max" phx-update="ignore">
+      <span id="ping" phx-hook="Ping"></span>
+      <%= if @region do %><img class="inline w-5 h-5 absolute right-0" src={"https://fly.io/ui/images/#{@region}.svg"} /><% end %>
+    </div>
   </div>
 </div>

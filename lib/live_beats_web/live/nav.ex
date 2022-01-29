@@ -31,7 +31,13 @@ defmodule LiveBeatsWeb.Nav do
     {:cont, assign(socket, active_tab: active_tab)}
   end
 
-  defp handle_event("ping", _, socket) do
+  defp handle_event("ping", %{"rtt" => rtt}, socket) do
+    %{current_user: current_user} = socket.assigns
+
+    if rtt && current_user && current_user.active_profile_user_id do
+      MediaLibrary.broadcast_ping(current_user, rtt, socket.assigns.region)
+    end
+
     {:halt, push_event(socket, "pong", %{})}
   end
 

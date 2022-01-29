@@ -40,7 +40,13 @@ defmodule LiveBeatsWeb.ProfileLive do
     </.title_bar>
 
     <Presence.listening_now presences={@presences}>
-      <:title let={user}><%= user.username %></:title>
+      <:title let={%{presence: presence, ping: ping, region: region}}>
+        <%= presence.username %>
+        <%= if ping do %>
+          (<%= ping %>ms)
+          <%= if region do %><img class="inline w-5 h-5 absolute right-1" src={"https://fly.io/ui/images/#{region}.svg"} /><% end %>
+        <% end %>
+      </:title>
     </Presence.listening_now>
 
     <div id="dialogs" phx-update="append">
@@ -178,6 +184,11 @@ defmodule LiveBeatsWeb.ProfileLive do
 
   def handle_info({MediaLibrary, %MediaLibrary.Events.SongsImported{songs: songs}}, socket) do
     {:noreply, update(socket, :songs, &(&1 ++ songs))}
+  end
+
+  def handle_info({MediaLibrary, {:ping, %{user_id: id, rtt: rtt, region: region}}}, socket) do
+    send_update(Presence.Pill, id: id, ping: rtt, region: region)
+    {:noreply, socket}
   end
 
   def handle_info({MediaLibrary, _}, socket), do: {:noreply, socket}

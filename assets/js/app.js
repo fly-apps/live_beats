@@ -181,16 +181,16 @@ Hooks.AudioPlayer = {
 Hooks.Ping = {
   mounted(){
     this.handleEvent("pong", () => {
-      console.log("pong")
-      this.el.innerText = `ping: ${Date.now() - this.nowMs}ms`
-      this.timer = setTimeout(() => this.ping(), 1000)
+      let rtt = Date.now() - this.nowMs
+      this.el.innerText = `ping: ${rtt}ms`
+      this.timer = setTimeout(() => this.ping(rtt), 1000)
     })
-    this.ping()
+    this.ping(null)
   },
   destroyed(){ clearTimeout(this.timer) },
-  ping(){
+  ping(rtt){
     this.nowMs = Date.now()
-    this.pushEvent("ping", {})
+    this.pushEvent("ping", {rtt: rtt})
   }
 }
 
