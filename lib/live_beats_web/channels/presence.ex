@@ -93,7 +93,6 @@ defmodule LiveBeatsWeb.Presence.BadgeComponent do
 
   def update(%{action: {:ping, action}}, socket) do
     %{user: user, ping: ping, region: region} = action
-
     {:ok, assign(socket, presence: user, ping: ping, region: region)}
   end
 

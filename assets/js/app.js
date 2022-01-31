@@ -183,7 +183,7 @@ Hooks.Ping = {
     this.handleEvent("pong", () => {
       let rtt = Date.now() - this.nowMs
       this.el.innerText = `ping: ${rtt}ms`
-      this.timer = setTimeout(() => this.ping(rtt), 100)
+      this.timer = setTimeout(() => this.ping(rtt), 1000)
     })
     this.ping(null)
   },
