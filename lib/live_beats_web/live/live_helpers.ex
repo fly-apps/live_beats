@@ -13,12 +13,16 @@ defmodule LiveBeatsWeb.LiveHelpers do
 
   def profile_path(current_user_or_profile, action \\ :show)
 
+  def profile_path(username, action) when is_binary(username) do
+    Routes.profile_path(LiveBeatsWeb.Endpoint, action, username)
+  end
+
   def profile_path(%Accounts.User{} = current_user, action) do
-    Routes.profile_path(LiveBeatsWeb.Endpoint, action, current_user.username)
+    profile_path(current_user.username, action)
   end
 
   def profile_path(%MediaLibrary.Profile{} = profile, action) do
-    Routes.profile_path(LiveBeatsWeb.Endpoint, action, profile.username)
+    profile_path(profile.username, action)
   end
 
   def connection_status(assigns) do
@@ -134,12 +138,13 @@ defmodule LiveBeatsWeb.LiveHelpers do
     """
   end
 
-  def link(%{navigate: to} = assigns) do
-    opts = assigns |> assigns_to_attributes() |> Keyword.put(:to, to)
-    assigns = assign(assigns, :opts, opts)
+  def link(%{navigate: _to} = assigns) do
+    assigns = assign_new(assigns, :class, fn -> nil end)
 
     ~H"""
-    <%= live_redirect @opts do %><%= render_slot(@inner_block) %><% end %>
+    <a href={@navigate} data-phx-link="redirect" data-phx-link-state="push" class={@class}>
+      <%= render_slot(@inner_block) %>
+    </a>
     """
   end
 

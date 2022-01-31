@@ -1,7 +1,7 @@
 defmodule LiveBeatsWeb.Nav do
   import Phoenix.LiveView
 
-  alias LiveBeats.MediaLibrary
+  alias LiveBeats.{Accounts, MediaLibrary}
   alias LiveBeatsWeb.{ProfileLive, SettingsLive}
 
   def on_mount(:default, _params, _session, socket) do
@@ -32,14 +32,25 @@ defmodule LiveBeatsWeb.Nav do
   end
 
   defp handle_event("ping", %{"rtt" => rtt}, socket) do
-    %{current_user: current_user} = socket.assigns
-
-    if rtt && current_user && current_user.active_profile_user_id do
-      MediaLibrary.broadcast_ping(current_user, rtt, socket.assigns.region)
-    end
-
-    {:halt, push_event(socket, "pong", %{})}
+    {:halt,
+     socket
+     |> rate_limited_ping_broadcast(socket.assigns.current_user, rtt)
+     |> push_event("pong", %{})}
   end
+
+  defp rate_limited_ping_broadcast(socket, %Accounts.User{} = user, rtt) when is_integer(rtt) do
+    now = System.system_time(:millisecond)
+    last_ping_at = socket.assigns[:last_ping_at]
+
+    if is_nil(last_ping_at) || now - last_ping_at > 1000 do
+      MediaLibrary.broadcast_ping(user, rtt, socket.assigns.region)
+      assign(socket, :last_ping_at, now)
+    else
+      socket
+    end
+  end
+
+  defp rate_limited_ping_broadcast(socket, _user, _rtt), do: socket
 
   defp handle_event(_, _, socket), do: {:cont, socket}
 

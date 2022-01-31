@@ -5,6 +5,8 @@ defmodule LiveBeatsWeb.ProfileLive do
   alias LiveBeatsWeb.{LayoutComponent, Presence}
   alias LiveBeatsWeb.ProfileLive.{SongRowComponent, UploadFormComponent}
 
+  @max_presences 20
+
   def render(assigns) do
     ~H"""
     <.title_bar>
@@ -39,17 +41,11 @@ defmodule LiveBeatsWeb.ProfileLive do
       </:actions>
     </.title_bar>
 
-    <.live_component
-      let={%{user: user, ping: ping, region: region}}
-      id={:presence_badges} module={Presence.BadgeListComponent}
+    <Presence.listening_now
       presences={@presences}
-    >
-      <%= user.username %>
-      <%= if ping do %>
-        <p class="text-gray-400 text-xs">ping: <%= ping %>ms</p>
-        <%= if region do %><img class="inline w-7 h-7 absolute right-3 top-3" src={"https://fly.io/ui/images/#{region}.svg"} /><% end %>
-      <% end %>
-    </.live_component>
+      presence_ids={@presence_ids}
+      total_count={@presences_count}
+    />
 
     <div id="dialogs" phx-update="append">
       <%= for song <- if(@owns_profile?, do: @songs, else: []), id = "delete-modal-#{song.id}" do %>
@@ -115,7 +111,7 @@ defmodule LiveBeatsWeb.ProfileLive do
       |> list_songs()
       |> assign_presences()
 
-    {:ok, socket, temporary_assigns: [songs: [], presences: []]}
+    {:ok, socket, temporary_assigns: [songs: [], presences: %{}]}
   end
 
   def handle_params(params, _url, socket) do
@@ -152,15 +148,14 @@ defmodule LiveBeatsWeb.ProfileLive do
   end
 
   def handle_info({LiveBeats.PresenceClient, %{user_joined: presence}}, socket) do
-    %{user: user} = presence
-    {:noreply, update(socket, :presences, &[user | &1])}
+    {:noreply, assign_presence(socket, presence)}
   end
 
   def handle_info({LiveBeats.PresenceClient, %{user_left: presence}}, socket) do
     %{user: user} = presence
 
     if presence.metas == [] do
-      {:noreply, push_event(socket, "remove-el", %{id: "presence-#{user.id}"})}
+      {:noreply, remove_presence(socket, user)}
     else
       {:noreply, socket}
     end
@@ -191,8 +186,9 @@ defmodule LiveBeatsWeb.ProfileLive do
 
   def handle_info({MediaLibrary, {:ping, ping}}, socket) do
     %{user: user, rtt: rtt, region: region} = ping
-    send_update(Presence.BadgeListComponent,
-      id: :presence_badges,
+
+    send_update(Presence.BadgeComponent,
+      id: user.id,
       action: {:ping, %{user: user, ping: rtt, region: region}}
     )
 
@@ -276,16 +272,41 @@ defmodule LiveBeatsWeb.ProfileLive do
   end
 
   defp assign_presences(socket) do
-    if profile = socket.assigns.profile do
-      presences =
-        profile
-        |> LiveBeats.PresenceClient.list()
-        |> Enum.map(fn {_key, meta} -> meta.user end)
+    socket = assign(socket, presences_count: 0, presences: %{}, presence_ids: %{})
 
-      assign(socket, presences: presences)
+    if profile = connected?(socket) && socket.assigns.profile do
+      profile
+      |> LiveBeats.PresenceClient.list()
+      |> Enum.reduce(socket, fn {_, presence}, acc -> assign_presence(acc, presence) end)
     else
-      assign(socket, presences: [])
+      socket
     end
+  end
+
+  defp assign_presence(socket, presence) do
+    %{user: user} = presence
+    %{presence_ids: presence_ids} = socket.assigns
+
+    cond do
+      Map.has_key?(presence_ids, user.id) ->
+        socket
+
+      Enum.count(presence_ids) < @max_presences ->
+        socket
+        |> update(:presences, &Map.put(&1, user.id, user))
+        |> update(:presence_ids, &Map.put(&1, user.id, System.system_time()))
+        |> update(:presences_count, &(&1 + 1))
+
+      true ->
+        update(socket, :presences_count, &(&1 + 1))
+    end
+  end
+
+  defp remove_presence(socket, user) do
+    socket
+    |> update(:presences, &Map.delete(&1, user.id))
+    |> update(:presence_ids, &Map.delete(&1, user.id))
+    |> update(:presences_count, &(&1 - 1))
   end
 
   defp url_text(nil), do: ""
