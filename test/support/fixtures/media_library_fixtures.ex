@@ -10,6 +10,8 @@ defmodule LiveBeats.MediaLibraryFixtures do
   Generate a song.
   """
   def song_fixture(attrs \\ %{}) do
+    {:ok, server_ip} = EctoNetwork.INET.cast(LiveBeats.config([:files, :server_ip]))
+
     {:ok, song} =
       struct!(
         Song,
@@ -23,6 +25,7 @@ defmodule LiveBeats.MediaLibraryFixtures do
           mp3_url: "//example.com/mp3.mp3",
           mp3_filename: "mp3.mp3",
           mp3_filepath: "/data/mp3.mp3",
+          server_ip: server_ip,
           status: :stopped
         })
       )

@@ -165,7 +165,7 @@
     <%= @inner_content %>
   </main>
   <div class="relative">
-    <div class="fixed bottom-0 right-0 bg-gray-900 text-gray-200 px-2 rounded-tl-md text-sm w-[114px] min-w-max" phx-update="ignore">
+    <div id="ping-container" class="fixed bottom-0 right-0 bg-gray-900 text-gray-200 px-2 rounded-tl-md text-sm w-[114px] min-w-max" phx-update="ignore">
       <span id="ping" phx-hook="Ping"></span>
       <%= if @region do %><img class="inline w-5 h-5 absolute right-0" src={"https://fly.io/ui/images/#{@region}.svg"} /><% end %>
     </div>
