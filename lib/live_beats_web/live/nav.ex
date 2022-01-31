@@ -8,7 +8,7 @@ defmodule LiveBeatsWeb.Nav do
     {:cont,
      socket
      |> assign(active_users: MediaLibrary.list_active_profiles(limit: 20))
-     |> assign(:region, System.get_env("FLY_REGION"))
+     |> assign(:region, System.get_env("FLY_REGION") || "iad")
      |> attach_hook(:active_tab, :handle_params, &handle_active_tab_params/3)
      |> attach_hook(:ping, :handle_event, &handle_event/3)}
   end

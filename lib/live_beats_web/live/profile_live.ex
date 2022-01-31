@@ -39,15 +39,17 @@ defmodule LiveBeatsWeb.ProfileLive do
       </:actions>
     </.title_bar>
 
-    <Presence.listening_now presences={@presences}>
-      <:title let={%{presence: presence, ping: ping, region: region}}>
-        <%= presence.username %>
-        <%= if ping do %>
-          (<%= ping %>ms)
-          <%= if region do %><img class="inline w-5 h-5 absolute right-1" src={"https://fly.io/ui/images/#{region}.svg"} /><% end %>
-        <% end %>
-      </:title>
-    </Presence.listening_now>
+    <.live_component
+      let={%{user: user, ping: ping, region: region}}
+      id={:presence_badges} module={Presence.BadgeListComponent}
+      presences={@presences}
+    >
+      <%= user.username %>
+      <%= if ping do %>
+        <p class="text-gray-400 text-xs">ping: <%= ping %>ms</p>
+        <%= if region do %><img class="inline w-7 h-7 absolute right-3 top-3" src={"https://fly.io/ui/images/#{region}.svg"} /><% end %>
+      <% end %>
+    </.live_component>
 
     <div id="dialogs" phx-update="append">
       <%= for song <- if(@owns_profile?, do: @songs, else: []), id = "delete-modal-#{song.id}" do %>
@@ -156,6 +158,7 @@ defmodule LiveBeatsWeb.ProfileLive do
 
   def handle_info({LiveBeats.PresenceClient, %{user_left: presence}}, socket) do
     %{user: user} = presence
+
     if presence.metas == [] do
       {:noreply, push_event(socket, "remove-el", %{id: "presence-#{user.id}"})}
     else
@@ -186,8 +189,13 @@ defmodule LiveBeatsWeb.ProfileLive do
     {:noreply, update(socket, :songs, &(&1 ++ songs))}
   end
 
-  def handle_info({MediaLibrary, {:ping, %{user_id: id, rtt: rtt, region: region}}}, socket) do
-    send_update(Presence.Pill, id: id, ping: rtt, region: region)
+  def handle_info({MediaLibrary, {:ping, ping}}, socket) do
+    %{user: user, rtt: rtt, region: region} = ping
+    send_update(Presence.BadgeListComponent,
+      id: :presence_badges,
+      action: {:ping, %{user: user, ping: rtt, region: region}}
+    )
+
     {:noreply, socket}
   end
 

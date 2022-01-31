@@ -29,11 +29,14 @@ defmodule LiveBeatsWeb.Presence do
       {key, %{metas: metas, user: users[String.to_integer(key)]}}
     end
   end
+end
 
-  def listening_now(assigns) do
+defmodule LiveBeatsWeb.Presence.BadgeListComponent do
+  use LiveBeatsWeb, :live_component
+
+  def render(assigns) do
     ~H"""
-    <!-- users -->
-    <div class="px-4 mt-6 sm:px-6 lg:px-8">
+    <div class="px-4 mt-6 sm:px-6 lg:px-8"> <!-- users -->
       <h2 class="text-gray-500 text-xs font-medium uppercase tracking-wide">Listening now</h2>
       <ul
         id="listening-now"
@@ -45,9 +48,11 @@ defmodule LiveBeatsWeb.Presence do
         <%= for presence <- @presences do %>
           <li id={"presence-#{presence.id}"} class="relative col-span-1 flex shadow-sm rounded-md overflow-hidden">
             <.link navigate={profile_path(presence)} class="flex-1 flex items-center justify-between border-t border-r border-b border-gray-200 bg-white rounded-r-md truncate">
-              <img class="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-l-md bg-purple-600" src={presence.avatar_url} alt="">
+              <img class="w-12 h-12 flex-shrink-0 flex items-center justify-center rounded-l-md bg-purple-600" src={presence.avatar_url} alt="">
               <div class="flex-1 flex items-center justify-between text-gray-900 text-sm font-medium hover:text-gray-600 pl-3">
-                <%= render_slot(@title, presence) %>
+                <div class="flex-1 py-1 text-sm truncate">
+                  <%= render_slot(@inner_block, %{user: presence, ping: @pings[presence.id], region: @regions[presence.id]}) %>
+                </div>
               </div>
             </.link>
           </li>
@@ -55,5 +60,27 @@ defmodule LiveBeatsWeb.Presence do
       </ul>
     </div>
     """
+  end
+
+  def mount(socket) do
+    {:ok, socket, temporary_assigns: [presences: [], pings: %{}, regions: %{}]}
+  end
+
+  def update(%{action: {:ping, action}}, socket) do
+    %{user: user, ping: ping, region: region} = action
+
+    {:ok,
+     socket
+     |> assign(:presences, [user])
+     |> update(:pings, &Map.put(&1, user.id, ping))
+     |> update(:regions, &Map.put(&1, user.id, region))}
+  end
+
+  def update(assigns, socket) do
+    {:ok,
+     socket
+     |> assign(assigns)
+     |> assign_new(:pings, fn -> %{} end)
+     |> assign_new(:regions, fn -> %{} end)}
   end
 end

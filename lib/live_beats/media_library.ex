@@ -31,7 +31,10 @@ defmodule LiveBeats.MediaLibrary do
   end
 
   def broadcast_ping(%Accounts.User{} = user, rtt, region) do
-    broadcast!(user.active_profile_user_id, {:ping, %{rtt: rtt, region: region}})
+    broadcast!(
+      user.active_profile_user_id,
+      {:ping, %{user: user, rtt: rtt, region: region}}
+    )
   end
 
   def unsubscribe_to_profile(%Profile{} = profile) do
