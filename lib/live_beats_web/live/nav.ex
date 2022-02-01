@@ -38,6 +38,8 @@ defmodule LiveBeatsWeb.Nav do
      |> push_event("pong", %{})}
   end
 
+  defp handle_event(_, _, socket), do: {:cont, socket}
+
   defp rate_limited_ping_broadcast(socket, %Accounts.User{} = user, rtt) when is_integer(rtt) do
     now = System.system_time(:millisecond)
     last_ping_at = socket.assigns[:last_ping_at]
@@ -51,8 +53,6 @@ defmodule LiveBeatsWeb.Nav do
   end
 
   defp rate_limited_ping_broadcast(socket, _user, _rtt), do: socket
-
-  defp handle_event(_, _, socket), do: {:cont, socket}
 
   defp current_user_profile_username(socket) do
     if user = socket.assigns.current_user do
