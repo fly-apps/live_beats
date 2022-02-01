@@ -102,17 +102,18 @@ defmodule LiveBeatsWeb.ProfileLive.UploadFormComponent do
   end
 
   defp put_new_changeset(socket, entry) do
-    if get_changeset(socket, entry.ref) do
-      socket
-    else
-      if Enum.count(socket.assigns.changesets) > @max_songs do
-        raise RuntimeError, "file upload limited exceeded"
-      end
+    cond do
+      get_changeset(socket, entry.ref) ->
+        socket
 
-      attrs = MediaLibrary.parse_file_name(entry.client_name)
-      changeset = MediaLibrary.change_song(%MediaLibrary.Song{}, attrs)
+      Enum.count(socket.assigns.changesets) > @max_songs ->
+        socket
 
-      update_changeset(socket, changeset, entry.ref)
+      true ->
+        attrs = MediaLibrary.parse_file_name(entry.client_name)
+        changeset = MediaLibrary.change_song(%MediaLibrary.Song{}, attrs)
+
+        update_changeset(socket, changeset, entry.ref)
     end
   end
 
