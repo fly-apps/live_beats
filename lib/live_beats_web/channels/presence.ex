@@ -93,7 +93,14 @@ defmodule LiveBeatsWeb.Presence.BadgeComponent do
 
   def update(%{action: {:ping, action}}, socket) do
     %{user: user, ping: ping, region: region} = action
-    {:ok, assign(socket, presence: user, ping: ping, region: region)}
+    now = now_ms()
+
+    # debounce other tabs sending valid ping frequency
+    if now - socket.assigns.last_ping_at > 1000 do
+      {:ok, assign(socket, presence: user, ping: ping, region: region, last_ping_at: now)}
+    else
+      {:ok, socket}
+    end
   end
 
   def update(%{presence: nil}, socket), do: {:ok, socket}
@@ -103,6 +110,9 @@ defmodule LiveBeatsWeb.Presence.BadgeComponent do
      socket
      |> assign(id: assigns.id, presence: assigns.presence)
      |> assign_new(:pings, fn -> %{} end)
-     |> assign_new(:regions, fn -> %{} end)}
+     |> assign_new(:regions, fn -> %{} end)
+     |> assign_new(:last_ping_at, fn -> now_ms() end)}
   end
+
+  defp now_ms, do: System.system_time(:millisecond)
 end
