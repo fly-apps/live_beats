@@ -457,7 +457,7 @@ defmodule LiveBeatsWeb.LiveHelpers do
           <%= render_slot(@inner_block) %>
         </h1>
       </div>
-      <%= if Enum.count(assigns.actions) > 0 do %>
+      <%= if Enum.count(@actions) > 0 do %>
         <div class="mt-4 flex sm:mt-0 sm:ml-4 space-x-4">
           <%= render_slot(@actions) %>
         </div>
