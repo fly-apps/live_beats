@@ -2,7 +2,7 @@
 
 Play music together with Phoenix LiveView!
 
-Visit [todo]() to try it out, or run locally:
+Visit [livebeats.fly.dev](http://livebeats.fly.dev) to try it out, or run locally:
 
   * Create a [Github OAuth app](https://docs.github.com/en/developers/apps/building-oauth-apps/creating-an-oauth-app) from [this page](https://github.com/settings/applications/new)
     - Set the app homepage to `http://localhost:4000` and `Authorization callback URL` to `http://localhost:4000/oauth/callbacks/github`
