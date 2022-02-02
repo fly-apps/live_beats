@@ -155,6 +155,10 @@ defmodule LiveBeatsWeb.PlayerLive do
 
     if profile && connected?(socket) do
       current_user = Accounts.update_active_profile(current_user, profile.user_id)
+      #untrack last profile the user was listening
+      if socket.assigns.profile do
+        LiveBeats.PresenceClient.untrack(socket.assigns.profile, current_user.id)
+      end
       LiveBeats.PresenceClient.track(profile, current_user.id)
       send(self(), :play_current)
 
