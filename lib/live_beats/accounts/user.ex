@@ -73,7 +73,7 @@ defmodule LiveBeats.Accounts.User do
 
   defp validate_username(changeset) do
     changeset
-    |> validate_format(:username, ~r/^[a-z0-9_-]{2,32}$/)
+    |> validate_format(:username, ~r/^[a-zA-Z0-9_-]{2,32}$/)
     |> unsafe_validate_unique(:username, LiveBeats.Repo)
     |> unique_constraint(:username)
     |> prepare_changes(fn changeset ->

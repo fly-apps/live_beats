@@ -22,7 +22,7 @@ defmodule LiveBeats.AccountsTest do
     test "creates users with valid data" do
       info = %{
         "id" => "github-id",
-        "login" => "chrismccord",
+        "login" => "Chrismccord",
         "avatar_url" => "https://example.com",
         "html_url" => "https://example.com"
       }
