@@ -238,7 +238,7 @@ defmodule LiveBeatsWeb.ProfileLive do
   defp apply_action(socket, :new, _params) do
     if socket.assigns.owns_profile? do
       socket
-      |> assign(:page_title, "Add Songs")
+      |> assign(:page_title, "Add Music")
       |> assign(:song, %MediaLibrary.Song{})
       |> show_upload_modal()
     else

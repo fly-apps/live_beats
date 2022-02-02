@@ -6,7 +6,7 @@ defmodule LiveBeats.SongsCleaner do
 
   alias LiveBeats.MediaLibrary
 
-  @poll_interval :timer.minutes(60)
+  @poll_interval :timer.minutes(30)
 
   def start_link(opts) do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)

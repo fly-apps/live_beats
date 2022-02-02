@@ -29,7 +29,8 @@ defmodule LiveBeats.Application do
        name: PresenceClient},
       # Start the Endpoint (http/https)
       LiveBeatsWeb.Endpoint,
-      {LiveBeats.SongsCleaner, interval: {7, :day}}
+      # Expire songs every six hours
+      {LiveBeats.SongsCleaner, interval: {3600 * 6, :second}}
 
       # Start a worker by calling: LiveBeats.Worker.start_link(arg)
       # {LiveBeats.Worker, arg}
