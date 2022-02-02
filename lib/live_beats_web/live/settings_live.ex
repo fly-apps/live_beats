@@ -9,7 +9,7 @@ defmodule LiveBeatsWeb.SettingsLive do
       Profile Settings
     </.title_bar>
 
-    <div class="max-w-3xl mx-auto mt-6">
+    <div class="max-w-3xl px-4 mx-auto mt-6">
       <.form let={f} for={@changeset} phx-change="validate" phx-submit="save" class="space-y-8 divide-y divide-gray-200">
         <div class="space-y-8 divide-y divide-gray-200">
           <div>
