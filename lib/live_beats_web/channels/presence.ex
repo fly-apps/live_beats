@@ -68,6 +68,30 @@ end
 defmodule LiveBeatsWeb.Presence.BadgeComponent do
   use LiveBeatsWeb, :live_component
 
+  # https://fly.io/docs/reference/regions/
+  @region_names %{
+    "ams" => "Amsterdam, Netherlands",
+    "atl" => "Atlanta, Georgia (US)",
+    "cdg" => "Paris, France",
+    "dfw" => "Dallas, Texas (US)",
+    "ewr" => "Parsippany, NJ (US)",
+    "fra" => "Frankfurt, Germany",
+    "gru" => "Sao Paulo, Brazil",
+    "hkg" => "Hong Kong",
+    "iad" => "Ashburn, Virginia (US)",
+    "lax" => "Los Angeles, California (US)",
+    "lhr" => "London, United Kingdom",
+    "maa" => "Chennai (Madras), India",
+    "nrt" => "Tokyo, Japan",
+    "ord" => "Chicago, Illinois (US)",
+    "scl" => "Santiago, Chile",
+    "sea" => "Seattle, Washington (US)",
+    "sin" => "Singapore",
+    "sjc" => "Sunnyvale, California (US)",
+    "syd" => "Sydney, Australia",
+    "yyz" => "Toronto, Canada"
+  }
+
   def render(assigns) do
     ~H"""
     <li id={"presence-#{@id}"} class="relative col-span-1 flex shadow-sm rounded-md overflow-hidden">
@@ -78,7 +102,7 @@ defmodule LiveBeatsWeb.Presence.BadgeComponent do
             <%= @presence.username %>
             <%= if @ping do %>
               <p class="text-gray-400 text-xs">ping: <%= @ping %>ms</p>
-              <%= if @region do %><img class="inline w-7 h-7 absolute right-3 top-3" src={"https://fly.io/ui/images/#{@region}.svg"} /><% end %>
+              <%= if @region do %><img class="inline w-7 h-7 absolute right-3 top-3" src={"https://fly.io/ui/images/#{@region}.svg"} title={region_name(@region)} /><% end %>
             <% end %>
           </div>
         </div>
@@ -115,4 +139,6 @@ defmodule LiveBeatsWeb.Presence.BadgeComponent do
   end
 
   defp now_ms, do: System.system_time(:millisecond)
+
+  defp region_name(region), do: Map.get(@region_names, region)
 end
