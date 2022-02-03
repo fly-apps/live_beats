@@ -116,7 +116,7 @@ Hooks.AudioPlayer = {
         this.play()
       }
     })
-    this.handleEvent("play", ({url, token, elapsed}) => {
+    this.handleEvent("play", ({url, token, elapsed, artist, title}) => {
       this.playbackBeganAt = nowSeconds() - elapsed
       let currentSrc = this.player.src.split("?")[0]
       if(currentSrc === url && this.player.paused){
@@ -124,6 +124,10 @@ Hooks.AudioPlayer = {
       } else if(currentSrc !== url) {
         this.player.src = `${url}?token=${token}`
         this.play({sync: true})
+      }
+
+      if("mediaSession" in navigator){
+        navigator.mediaSession.metadata = new MediaMetadata({artist, title})
       }
     })
     this.handleEvent("pause", () => this.pause())

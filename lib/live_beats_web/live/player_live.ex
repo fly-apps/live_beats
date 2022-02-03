@@ -314,6 +314,8 @@ defmodule LiveBeatsWeb.PlayerLive do
       })
 
     push_event(socket, "play", %{
+      artist: song.artist,
+      title: song.title,
       paused: Song.paused?(song),
       elapsed: elapsed,
       duration: song.duration,
