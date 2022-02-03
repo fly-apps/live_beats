@@ -59,22 +59,14 @@ defmodule LiveBeatsWeb.LiveHelpers do
         phx-click={JS.push("lv:clear-flash") |> JS.remove_class("fade-in-scale", to: "#flash") |> hide("#flash")}
         phx-hook="Flash"
       >
-        <div class="flex">
-          <div class="flex-shrink-0">
-            <.icon name={:check_circle} solid />
-          </div>
-          <div class="ml-3">
-            <p class="text-sm font-medium text-red-800">
-              <%= live_flash(@flash, @kind) %>
-            </p>
-          </div>
-          <div class="ml-auto pl-3">
-            <div class="-mx-1.5 -my-1.5">
-              <button type="button" class="inline-flex bg-red-50 rounded-md p-1.5 text-red-500 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-red-50 focus:ring-red-600">
-                <.icon name={:x} solid />
-              </button>
-            </div>
-          </div>
+        <div class="flex justify-between items-center space-x-3 text-red-700">
+          <.icon name={:exclamation_circle} class="w-5 w-5"/>
+          <p class="flex-1 text-sm font-medium">
+            <%= live_flash(@flash, @kind) %>
+          </p>
+          <button type="button" class="inline-flex bg-red-50 rounded-md p-1.5 text-red-500 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-red-50 focus:ring-red-600">
+            <.icon name={:x} class="w-4 h-4" />
+          </button>
         </div>
       </div>
     <% end %>
@@ -91,22 +83,14 @@ defmodule LiveBeatsWeb.LiveHelpers do
         phx-value-key="info"
         phx-hook="Flash"
       >
-        <div class="flex">
-          <div class="flex-shrink-0">
-            <.icon name={:check_circle} solid />
-          </div>
-          <div class="ml-3">
-            <p class="text-sm font-medium text-green-800">
-              <%= live_flash(@flash, @kind) %>
-            </p>
-          </div>
-          <div class="ml-auto pl-3">
-            <div class="-mx-1.5 -my-1.5">
-              <button type="button" class="inline-flex bg-green-50 rounded-md p-1.5 text-green-500 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-green-50 focus:ring-green-600">
-                <.icon name={:x} solid />
-              </button>
-            </div>
-          </div>
+        <div class="flex justify-between items-center space-x-3 text-green-700">
+          <.icon name={:check_circle} class="w-5 h-5"/>
+          <p class="flex-1 text-sm font-medium">
+            <%= live_flash(@flash, @kind) %>
+          </p>
+          <button type="button" class="inline-flex bg-green-50 rounded-md p-1.5 text-green-500 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-green-50 focus:ring-green-600">
+            <.icon name={:x} class="w-4 h-4" />
+          </button>
         </div>
       </div>
     <% end %>
