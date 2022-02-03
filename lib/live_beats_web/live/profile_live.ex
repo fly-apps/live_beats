@@ -14,7 +14,7 @@ defmodule LiveBeatsWeb.ProfileLive do
         <div class="block">
           <%= @profile.tagline %> <%= if @owns_profile? do %>(you)<% end %>
         </div>
-        <.link href={@profile.external_homepage_url} target="_blank" class="block text-sm text-gray-600">
+        <.link href={@profile.external_homepage_url} target="_blank" class="text-sm text-gray-600">
           <.icon name={:code}/> <span class=""><%= url_text(@profile.external_homepage_url) %></span>
         </.link>
       </div>
