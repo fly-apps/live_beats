@@ -276,13 +276,17 @@ defmodule LiveBeatsWeb.PlayerLive do
   defp play_song(socket, %Song{} = song, elapsed) do
     socket
     |> push_play(song, elapsed)
-    |> assign(song: song, playing: true)
+    |> assign(song: song, playing: true, page_title: song_title(song))
   end
 
   defp stop_song(socket) do
     socket
     |> push_event("stop", %{})
-    |> assign(song: nil, playing: false)
+    |> assign(song: nil, playing: false, page_title: "Listing Songs")
+  end
+
+  defp song_title(%{artist: artist, title: title}) do
+    "#{title} - #{artist} (Now Playing)"
   end
 
   defp play_current_song(socket) do
