@@ -26,7 +26,7 @@ defmodule LiveBeatsWeb.ProfileLiveTest do
              |> element("#upload-btn")
              |> render_click()
 
-      assert render(lv) =~ "Add Songs"
+      assert render(lv) =~ "Add Music"
 
       mp3 =
         file_input(lv, "#song-form", :mp3, [
