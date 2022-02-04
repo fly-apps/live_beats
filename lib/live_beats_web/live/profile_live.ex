@@ -51,7 +51,12 @@ defmodule LiveBeatsWeb.ProfileLive do
       <%= for song <- if(@owns_profile?, do: @songs, else: []), id = "delete-modal-#{song.id}" do %>
         <.modal
           id={id}
-          on_confirm={JS.push("delete", value: %{id: song.id}) |> hide_modal(id) |> hide("#song-#{song.id}")}
+          on_cancel={focus("##{id}", "#delete-song-#{song.id}")}
+          on_confirm={
+            JS.push("delete", value: %{id: song.id})
+            |> hide_modal(id)
+            |> focus_closest("#song-#{song.id}")
+            |> hide("#song-#{song.id}")}
         >
           Are you sure you want to delete "<%= song.title %>"?
           <:cancel>Cancel</:cancel>
@@ -72,7 +77,11 @@ defmodule LiveBeatsWeb.ProfileLive do
       <:col let={%{song: song}} label="Attribution" class="max-w-5xl break-words text-gray-600 font-light"><%= song.attribution %></:col>
       <:col let={%{song: song}} label="Duration"><%= MP3Stat.to_mmss(song.duration) %></:col>
       <:col let={%{song: song}} label="" if={@owns_profile?}>
-        <.link phx-click={show_modal("delete-modal-#{song.id}")} class="inline-flex items-center px-3 py-2 text-sm leading-4 font-medium">
+        <.link
+          id={"delete-song-#{song.id}"}
+          phx-click={show_modal("delete-modal-#{song.id}")}
+          class="inline-flex items-center px-3 py-2 text-sm leading-4 font-medium"
+        >
           <.icon name={:trash} class="-ml-0.5 mr-2 h-4 w-4"/>
           Delete
         </.link>

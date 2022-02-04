@@ -22,7 +22,7 @@ defmodule LiveBeatsWeb.ProfileLive.SongEntryComponent do
           <% end %>
         </label>
         <input type="text" name={"songs[#{@ref}][title]"} value={@title}
-          class="block w-full border-0 p-0 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm"/>
+          class="block w-full border-0 p-0 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm" {%{autofocus: @index == 0}}/>
       </div>
       <div class="border border-gray-300 rounded-md px-3 py-2 mt-2 shadow-sm focus-within:ring-1 focus-within:ring-indigo-600 focus-within:border-indigo-600">
         <label for="name" class="block text-xs font-medium text-gray-900">Artist</label>
@@ -45,8 +45,14 @@ defmodule LiveBeatsWeb.ProfileLive.SongEntryComponent do
       <div class="col-span-full sm:grid sm:grid-cols-2 sm:gap-2 sm:items-start">
         <.error input_name={"songs[#{@ref}][attribution]"} field={:attribution} errors={@errors} class="-mt-1"/>
       </div>
-      <div style={"transition: width 0.5s ease-in-out; width: #{@progress}%; min-width: 1px;"} class="col-span-full bg-purple-500 dark:bg-purple-400 h-1.5 w-0 p-0">
-      </div>
+      <div
+        role="progressbar"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow={@progress}
+        style={"transition: width 0.5s ease-in-out; width: #{@progress}%; min-width: 1px;"}
+        class="col-span-full bg-purple-500 dark:bg-purple-400 h-1.5 w-0 p-0"
+      ></div>
     </div>
     """
   end
@@ -55,10 +61,11 @@ defmodule LiveBeatsWeb.ProfileLive.SongEntryComponent do
     {:ok, assign(socket, progress: progress)}
   end
 
-  def update(%{changeset: changeset, id: id}, socket) do
+  def update(%{changeset: changeset, id: id, index: index}, socket) do
     {:ok,
      socket
      |> assign(ref: id)
+     |> assign(index: index)
      |> assign(:errors, changeset.errors)
      |> assign(title: Ecto.Changeset.get_field(changeset, :title))
      |> assign(artist: Ecto.Changeset.get_field(changeset, :artist))

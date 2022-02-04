@@ -29,7 +29,7 @@ defmodule LiveBeatsWeb.LiveHelpers do
     ~H"""
     <div
       id="connection-status"
-      class="hidden rounded-md bg-red-50 p-4 fixed top-1 right-1 w-96 fade-in-scale"
+      class="hidden rounded-md bg-red-50 p-4 fixed top-1 right-1 w-96 fade-in-scale z-50"
       js-show={show("#connection-status")}
       js-hide={hide("#connection-status")}
     >
@@ -55,13 +55,13 @@ defmodule LiveBeatsWeb.LiveHelpers do
     <%= if live_flash(@flash, @kind) do %>
       <div
         id="flash"
-        class="rounded-md bg-red-50 p-4 fixed top-1 right-1 w-96 fade-in-scale"
+        class="rounded-md bg-red-50 p-4 fixed top-1 right-1 w-96 fade-in-scale z-50"
         phx-click={JS.push("lv:clear-flash") |> JS.remove_class("fade-in-scale", to: "#flash") |> hide("#flash")}
         phx-hook="Flash"
       >
         <div class="flex justify-between items-center space-x-3 text-red-700">
           <.icon name={:exclamation_circle} class="w-5 w-5"/>
-          <p class="flex-1 text-sm font-medium">
+          <p class="flex-1 text-sm font-medium" role="alert">
             <%= live_flash(@flash, @kind) %>
           </p>
           <button type="button" class="inline-flex bg-red-50 rounded-md p-1.5 text-red-500 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-red-50 focus:ring-red-600">
@@ -78,14 +78,14 @@ defmodule LiveBeatsWeb.LiveHelpers do
     <%= if live_flash(@flash, @kind) do %>
       <div
         id="flash"
-        class="rounded-md bg-green-50 p-4 fixed top-1 right-1 w-96 fade-in-scale"
+        class="rounded-md bg-green-50 p-4 fixed top-1 right-1 w-96 fade-in-scale z-50"
         phx-click={JS.push("lv:clear-flash") |> JS.remove_class("fade-in-scale") |> hide("#flash")}
         phx-value-key="info"
         phx-hook="Flash"
       >
         <div class="flex justify-between items-center space-x-3 text-green-700">
           <.icon name={:check_circle} class="w-5 h-5"/>
-          <p class="flex-1 text-sm font-medium">
+          <p class="flex-1 text-sm font-medium" role="alert">
             <%= live_flash(@flash, @kind) %>
           </p>
           <button type="button" class="inline-flex bg-green-50 rounded-md p-1.5 text-green-500 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-green-50 focus:ring-green-600">
@@ -348,64 +348,74 @@ defmodule LiveBeatsWeb.LiveHelpers do
       |> assign_rest(~w(id show patch navigate on_cancel on_confirm title confirm cancel)a)
 
     ~H"""
-    <div id={@id} class={"fixed z-10 inset-0 overflow-y-auto #{if @show, do: "fade-in", else: "hidden"}"} aria-labelledby="modal-title" role="dialog" aria-modal="true" {@rest}>
-      <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
-        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-        <div
-          id={"#{@id}-container"}
-          class={"#{if @show, do: "fade-in-scale", else: "hidden"} sticky inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform sm:my-8 sm:align-middle sm:max-w-xl sm:w-full sm:p-6"}
-          phx-window-keydown={hide_modal(@on_cancel, @id)} phx-key="escape"
-          phx-click-away={hide_modal(@on_cancel, @id)}
-        >
-          <%= if @patch do %>
-            <.link patch={@patch} data-modal-return class="hidden"></.link>
-          <% end %>
-          <%= if @navigate do %>
-            <.link navigate={@navigate} data-modal-return class="hidden"></.link>
-          <% end %>
-          <div class="sm:flex sm:items-start">
-            <div class={"mx-auto flex-shrink-0 flex items-center justify-center h-8 w-8 rounded-full bg-purple-100 sm:mx-0"}>
-              <!-- Heroicon name: outline/plus -->
-              <.icon name={:information_circle} outlined class="h-6 w-6 text-purple-600"/>
-            </div>
-            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full mr-12">
-              <h3 class="text-lg leading-6 font-medium text-gray-900" id={"#{@id}-title"}>
-                <%= render_slot(@title) %>
-              </h3>
-              <div class="mt-2">
-                <p id={"#{@id}-content"} class={"text-sm text-gray-500"}>
-                  <%= render_slot(@inner_block) %>
-                </p>
+    <div id={@id} class={"fixed z-10 inset-0 overflow-y-auto #{if @show, do: "fade-in", else: "hidden"}"} {@rest}>
+      <.focus_wrap id={"#{@id}-focus-wrap"} content={"##{@id}-container"}>
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0" aria-labelledby={"#{@id}-title"} aria-describedby={"#{@id}-description"} role="dialog" aria-modal="true" tabindex="0">
+          <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+          <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+          <div
+            id={"#{@id}-container"}
+            class={"#{if @show, do: "fade-in-scale", else: "hidden"} sticky inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform sm:my-8 sm:align-middle sm:max-w-xl sm:w-full sm:p-6"}
+            phx-window-keydown={hide_modal(@on_cancel, @id)} phx-key="escape"
+            phx-click-away={hide_modal(@on_cancel, @id)}
+          >
+            <%= if @patch do %>
+              <.link patch={@patch} data-modal-return class="hidden"></.link>
+            <% end %>
+            <%= if @navigate do %>
+              <.link navigate={@navigate} data-modal-return class="hidden"></.link>
+            <% end %>
+            <div class="sm:flex sm:items-start">
+              <div class={"mx-auto flex-shrink-0 flex items-center justify-center h-8 w-8 rounded-full bg-purple-100 sm:mx-0"}>
+                <!-- Heroicon name: outline/plus -->
+                <.icon name={:information_circle} outlined class="h-6 w-6 text-purple-600"/>
+              </div>
+              <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full mr-12">
+                <h3 class="text-lg leading-6 font-medium text-gray-900" id={"#{@id}-title"}>
+                  <%= render_slot(@title) %>
+                </h3>
+                <div class="mt-2">
+                  <p id={"#{@id}-content"} class={"text-sm text-gray-500"}>
+                    <%= render_slot(@inner_block) %>
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
-          <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-            <%= for confirm <- @confirm do %>
-              <button
-                id={"#{@id}-confirm"}
-                class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
-                phx-click={@on_confirm}
-                phx-disable-with
-                tabindex="1"
-                {assigns_to_attributes(confirm)}
-              >
-                <%= render_slot(confirm) %>
-              </button>
-            <% end %>
-            <%= for cancel <- @cancel do %>
-              <button
-                class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm"
-                phx-click={hide_modal(@on_cancel, @id)}
-                tabindex="2"
-                {assigns_to_attributes(cancel)}
-              >
-                <%= render_slot(cancel) %>
-              </button>
-            <% end %>
+            <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+              <%= for confirm <- @confirm do %>
+                <button
+                  id={"#{@id}-confirm"}
+                  class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
+                  phx-click={@on_confirm}
+                  phx-disable-with
+                  {assigns_to_attributes(confirm)}
+                >
+                  <%= render_slot(confirm) %>
+                </button>
+              <% end %>
+              <%= for cancel <- @cancel do %>
+                <button
+                  class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm"
+                  phx-click={hide_modal(@on_cancel, @id)}
+                  {assigns_to_attributes(cancel)}
+                >
+                  <%= render_slot(cancel) %>
+                </button>
+              <% end %>
+            </div>
           </div>
         </div>
-      </div>
+      </.focus_wrap>
+    </div>
+    """
+  end
+
+  def focus_wrap(assigns) do
+    ~H"""
+    <div id={@id} phx-hook="FocusWrap" data-content={@content}>
+      <span id={"#{@id}-start"} tabindex="0" aria-hidden="true"></span>
+      <%= render_slot(@inner_block) %>
+      <span id={"#{@id}-end"} tabindex="0" aria-hidden="true"></span>
     </div>
     """
   end
@@ -574,6 +584,16 @@ defmodule LiveBeatsWeb.LiveHelpers do
   """
   def js_exec(js \\ %JS{}, to, call, args) do
     JS.dispatch(js, "js:exec", to: to, detail: %{call: call, args: args})
+  end
+
+  def focus(js \\ %JS{}, parent, to) do
+    JS.dispatch(js, "js:focus", to: to, detail: %{parent: parent})
+  end
+
+  def focus_closest(js \\ %JS{}, to) do
+    js
+    |> JS.dispatch("js:focus-closest", to: to)
+    |> hide(to)
   end
 
   defp assign_rest(assigns, exclude) do

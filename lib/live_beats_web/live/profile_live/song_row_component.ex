@@ -7,7 +7,7 @@ defmodule LiveBeatsWeb.ProfileLive.SongRowComponent do
 
   def render(assigns) do
     ~H"""
-    <tr id={@id} class={@class}}>
+    <tr id={@id} class={@class} tabindex="0">
       <%= for {col, i} <- Enum.with_index(@col) do %>
         <td
           class={"px-6 py-3 text-sm font-medium text-gray-900 #{if i == 0, do: "w-80 cursor-pointer"} #{col[:class]}"}

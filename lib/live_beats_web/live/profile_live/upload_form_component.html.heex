@@ -1,7 +1,5 @@
 <div>
-  <h2><%= @title %>
-    <p class="inline text-gray-500 text-sm ml-2">(songs expire every six hours)</p>
-  </h2>
+  <p class="inline text-gray-500 text-sm">(songs expire every six hours)</p>
 
   <.form
     for={:songs}
@@ -13,8 +11,8 @@
 
     <div class="space-y-8 divide-y divide-gray-200 sm:space-y-5">
       <div class="space-y-2 sm:space-y-2">
-        <%= for {ref, changeset} <- @changesets do %>
-          <.live_component id={ref} module={SongEntryComponent} changeset={changeset} />
+        <%= for {{ref, changeset}, i} <- Enum.with_index(@changesets) do %>
+          <.live_component id={ref} module={SongEntryComponent} changeset={changeset} index={i} />
         <% end %>
 
         <!-- upload -->
@@ -51,7 +49,7 @@
                   <label for={@uploads.mp3.ref} class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
                     Upload files
                   </label>
-                  <%= live_file_input @uploads.mp3, class: "sr-only" %>
+                  <%= live_file_input @uploads.mp3, class: "sr-only", tabindex: "0" %>
                   <p class="pl-1">or drag and drop</p>
                 </div>
                 <p class="text-xs text-gray-500">

@@ -17,6 +17,9 @@ defmodule LiveBeatsWeb.LayoutComponent do
       case assigns[:show] do
         %{module: _module, confirm: {text, attrs}} = show ->
           show
+          |> Map.put_new(:title, show[:title])
+          |> Map.put_new(:on_cancel, show[:on_cancel] || %JS{})
+          |> Map.put_new(:on_confirm, show[:on_confirm] || %JS{})
           |> Map.put_new(:patch, nil)
           |> Map.put_new(:navigate, nil)
           |> Map.merge(%{confirm_text: text, confirm_attrs: attrs})
@@ -32,7 +35,15 @@ defmodule LiveBeatsWeb.LayoutComponent do
     ~H"""
     <div class={unless @show, do: "hidden"}>
       <%= if @show do %>
-        <.modal show id={@id} navigate={@show.navigate} patch={@show.patch}>
+        <.modal
+          show
+          id={@id}
+          navigate={@show.navigate}
+          patch={@show.patch}
+          on_cancel={@show.on_cancel}
+          on_confirm={@show.on_confirm}
+        >
+          <:title><%= @show.title %></:title>
           <.live_component module={@show.module} {@show} />
           <:cancel>Cancel</:cancel>
           <:confirm {@show.confirm_attrs}><%= @show.confirm_text %></:confirm>
