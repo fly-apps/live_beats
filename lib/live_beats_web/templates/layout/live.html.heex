@@ -149,6 +149,12 @@
     </div>
   </div>
 
+  <.flash flash={@flash} kind={:info}/>
+  <.flash flash={@flash} kind={:error}/>
+  <.connection_status>
+    Re-establishing connection...
+  </.connection_status>
+
   <.live_component module={LiveBeatsWeb.LayoutComponent} id="layout" />
 
   <%= if @current_user do %>
@@ -156,12 +162,6 @@
   <% end %>
 
   <main class="flex-1 relative z-0 overflow-y-auto focus:outline-none">
-    <.flash flash={@flash} kind={:info}/>
-    <.flash flash={@flash} kind={:error}/>
-    <.connection_status>
-      Re-establishing connection...
-    </.connection_status>
-
     <%= @inner_content %>
   </main>
   <div class="relative">
