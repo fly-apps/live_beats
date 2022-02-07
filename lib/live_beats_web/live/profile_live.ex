@@ -51,12 +51,13 @@ defmodule LiveBeatsWeb.ProfileLive do
       <%= for song <- if(@owns_profile?, do: @songs, else: []), id = "delete-modal-#{song.id}" do %>
         <.modal
           id={id}
-          on_cancel={focus("##{id}", "#delete-song-#{song.id}")}
           on_confirm={
             JS.push("delete", value: %{id: song.id})
             |> hide_modal(id)
             |> focus_closest("#song-#{song.id}")
-            |> hide("#song-#{song.id}")}
+            |> hide("#song-#{song.id}")
+          }
+          on_cancel={focus("##{id}", "#delete-song-#{song.id}")}
         >
           Are you sure you want to delete "<%= song.title %>"?
           <:cancel>Cancel</:cancel>
