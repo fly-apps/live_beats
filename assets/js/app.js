@@ -191,6 +191,10 @@ Hooks.Ping = {
     })
     this.ping(null)
   },
+  reconnected(){
+    clearTimeout(this.timer)
+    this.ping(null)
+  },
   destroyed(){ clearTimeout(this.timer) },
   ping(rtt){
     this.nowMs = Date.now()
