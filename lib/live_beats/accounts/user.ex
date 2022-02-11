@@ -49,7 +49,7 @@ defmodule LiveBeats.Accounts.User do
     else
       %User{}
       |> change()
-      |> Map.put(:value?, false)
+      |> Map.put(:valid?, false)
       |> put_assoc(:identities, [identity_changeset])
     end
   end
