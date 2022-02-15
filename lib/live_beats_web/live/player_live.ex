@@ -116,7 +116,7 @@ defmodule LiveBeatsWeb.PlayerLive do
     """
   end
 
-  def mount(_parmas, _session, socket) do
+  def mount(_params, _session, socket) do
     %{current_user: current_user} = socket.assigns
 
     if connected?(socket) do

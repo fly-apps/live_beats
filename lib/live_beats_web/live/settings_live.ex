@@ -68,7 +68,7 @@ defmodule LiveBeatsWeb.SettingsLive do
     """
   end
 
-  def mount(_parmas, _session, socket) do
+  def mount(_params, _session, socket) do
     changeset = Accounts.change_settings(socket.assigns.current_user, %{})
     {:ok, assign(socket, changeset: changeset)}
   end
