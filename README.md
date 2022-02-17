@@ -14,6 +14,7 @@ Visit [livebeats.fly.dev](http://livebeats.fly.dev) to try it out, or run locall
 
   * Install dependencies with `mix deps.get`
   * Create and migrate your database with `mix ecto.setup`
+  * Build assets with `mix assets.deploy`
   * Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
 
 Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.

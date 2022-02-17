@@ -30,4 +30,5 @@ npm-debug.log
 /assets/node_modules/
 
 /priv/uploads
+/priv/static
 /tmp
