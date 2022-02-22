@@ -85,6 +85,15 @@ defmodule LiveBeats.MP3Stat do
     parse_frames(major_version, rest, tag_size - ext_header_size, [])
   end
 
+  defp parse_tag(<<
+    _first::integer,
+    _second::integer,
+    _third::integer,
+    _rest::binary
+  >>) do
+      {%{}, binary} # has no ID3
+  end
+
   defp parse_tag(_), do: {%{}, ""}
 
   defp decode_synchsafe_integer(<<bin>>), do: bin
