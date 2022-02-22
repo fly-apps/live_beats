@@ -86,12 +86,13 @@ defmodule LiveBeats.MP3Stat do
   end
 
   defp parse_tag(<<
-    _first::integer,
-    _second::integer,
-    _third::integer,
-    _rest::binary
-  >>) do
-      {%{}, binary} # has no ID3
+         _first::integer,
+         _second::integer,
+         _third::integer,
+         rest::binary
+       >>) do
+    # has no ID3
+    {%{}, rest}
   end
 
   defp parse_tag(_), do: {%{}, ""}
