@@ -62,6 +62,7 @@ if config_env() == :prod do
     secret_key_base: secret_key_base
 
   config :live_beats, :files,
+    admin_usernames: ~w(chrismccord mrkurt),
     uploads_dir: "/app/uploads",
     host: [scheme: "https", host: host, port: 443],
     server_ip: System.fetch_env!("LIVE_BEATS_SERVER_IP"),
