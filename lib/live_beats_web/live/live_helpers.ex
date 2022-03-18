@@ -348,7 +348,10 @@ defmodule LiveBeatsWeb.LiveHelpers do
       |> assign_rest(~w(id show patch navigate on_cancel on_confirm title confirm cancel)a)
 
     ~H"""
-    <div id={@id} class={"fixed z-10 inset-0 overflow-y-auto #{if @show, do: "fade-in", else: "hidden"}"} {@rest}>
+    <div
+      id={@id}
+      phx-remove={hide_modal(@id)}
+      class={"fixed z-10 inset-0 overflow-y-auto #{if @show, do: "fade-in", else: "hidden"}"} {@rest}>
       <.focus_wrap id={"#{@id}-focus-wrap"} content={"##{@id}-container"}>
         <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0" aria-labelledby={"#{@id}-title"} aria-describedby={"#{@id}-description"} role="dialog" aria-modal="true" tabindex="0">
           <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>

@@ -1,6 +1,6 @@
 import "phoenix_html"
 import {Socket} from "phoenix"
-import {LiveSocket} from "phoenix_live_view"
+import {LiveSocket} from "./phoenix_live_view"
 import topbar from "../vendor/topbar"
 
 let nowSeconds = () => Math.round(Date.now() / 1000)
@@ -13,6 +13,10 @@ let execJS = (selector, attr) => {
 
 let Hooks = {}
 
+Hooks.Test = {
+  mounted(){ console.log("mounted test") },
+  destroyed(){ console.log("destroyed test") }
+}
 Hooks.Flash = {
   mounted(){
     let hide = () => liveSocket.execJS(this.el, this.el.getAttribute("phx-click"))
@@ -184,12 +188,12 @@ Hooks.AudioPlayer = {
 
 Hooks.Ping = {
   mounted(){
-    this.handleEvent("pong", () => {
-      let rtt = Date.now() - this.nowMs
-      this.el.innerText = `ping: ${rtt}ms`
-      this.timer = setTimeout(() => this.ping(rtt), 1000)
-    })
-    this.ping(null)
+    // this.handleEvent("pong", () => {
+    //   let rtt = Date.now() - this.nowMs
+    //   this.el.innerText = `ping: ${rtt}ms`
+    //   this.timer = setTimeout(() => this.ping(rtt), 1000)
+    // })
+    // this.ping(null)
   },
   reconnected(){
     clearTimeout(this.timer)
@@ -303,7 +307,10 @@ window.addEventListener("phx:page-loading-stop", info => topbar.hide())
 // Accessible routing
 window.addEventListener("phx:page-loading-stop", e => routeUpdated(e.detail))
 
-window.addEventListener("js:exec", e => e.target[e.detail.call](...e.detail.args))
+window.addEventListener("js:exec", e => {
+  console.log(e.detail)
+  e.target[e.detail.call](...e.detail.args)
+})
 window.addEventListener("js:focus", e => {
   let parent = document.querySelector(e.detail.parent)
   if(parent && isVisible(parent)){ e.target.focus() }

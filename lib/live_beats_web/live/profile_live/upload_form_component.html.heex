@@ -1,5 +1,5 @@
 <div>
-  <p class="inline text-gray-500 text-sm">(songs expire every six hours)</p>
+  <p class="inline text-gray-500 text-sm" id="test" phx-hook="Test">(songs expire every six hours)</p>
 
   <.form
     for={:songs}
@@ -12,12 +12,12 @@
     <div class="space-y-8 divide-y divide-gray-200 sm:space-y-5">
       <div class="space-y-2 sm:space-y-2">
         <%= for {{ref, changeset}, i} <- Enum.with_index(@changesets) do %>
-          <.live_component id={ref} module={SongEntryComponent} changeset={changeset} index={i} />
+          <.live_component id={ref} module={SongEntryComponent} changeset={changeset} index={i}/>
         <% end %>
 
         <!-- upload -->
         <div class="sm:grid sm:border-t sm:border-gray-200 sm:pt-5">
-          <div class="mt-1 sm:mt-0" phx-drop-target={@uploads.mp3.ref}>
+          <div class="mt-1 sm:mt-0" phx-drop-target={@uploads.mp3.ref}  phx-click={JS.dispatch("click", to: "##{@uploads.mp3.ref}", bubbles: false)}>
             <%= if Enum.any?(@error_messages) do %>
               <div class="rounded-md bg-red-50 p-4 mb-2">
                 <div class="flex">
@@ -47,7 +47,7 @@
                 </svg>
                 <div class="flex text-sm text-gray-600">
                   <label for="file-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
-                     <span phx-click={js_exec("##{@uploads.mp3.ref}", "click", [])}>Upload files</span>
+                     <span>Upload files</span>
                      <%= live_file_input @uploads.mp3, class: "sr-only", tabindex: "0" %>
                   </label>
                   <p class="pl-1">or drag and drop</p>

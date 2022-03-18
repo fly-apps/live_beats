@@ -44,6 +44,7 @@ defmodule LiveBeatsWeb.ProfileLive.UploadFormComponent do
   end
 
   def handle_event("validate", %{"songs" => params, "_target" => ["songs", _, _]}, socket) do
+    IO.inspect(params)
     {:noreply, apply_params(socket, params, :validate)}
   end
 

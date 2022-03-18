@@ -240,6 +240,14 @@ defmodule LiveBeats.MediaLibrary do
     Repo.replica().all(Genre, order_by: [asc: :title])
   end
 
+  def suggest_genres(like) do
+    Repo.replica().all(from g in Genre, where: ilike(g.title, ^"%#{like}%"))
+  end
+
+  def get_genre!(id) do
+    Repo.replica().get!(Genre, id)
+  end
+
   def list_profile_songs(%Profile{} = profile, limit \\ 100) do
     from(s in Song, where: s.user_id == ^profile.user_id, limit: ^limit)
     |> order_by_playlist(:asc)
