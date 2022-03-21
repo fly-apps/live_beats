@@ -1,5 +1,4 @@
 defmodule LiveBeats.PresenceClient do
-  @behaviour Phoenix.Presence.Client
 
   @presence LiveBeatsWeb.Presence
   @pubsub LiveBeats.PubSub
@@ -7,7 +6,8 @@ defmodule LiveBeats.PresenceClient do
   alias LiveBeats.MediaLibrary
 
   def track(%MediaLibrary.Profile{} = profile, current_user_id) do
-    Phoenix.Presence.Client.track(
+    @presence.track(
+      self(),
       "proxy:" <> topic(profile),
       current_user_id,
       %{}
@@ -15,7 +15,8 @@ defmodule LiveBeats.PresenceClient do
   end
 
   def untrack(%MediaLibrary.Profile{} = profile, current_user_id) do
-    Phoenix.Presence.Client.untrack(
+    @presence.untrack(
+      self(),
       "proxy:" <> topic(profile),
       current_user_id
     )
@@ -33,21 +34,29 @@ defmodule LiveBeats.PresenceClient do
     @presence.list(topic)
   end
 
-  @impl Phoenix.Presence.Client
   def init(_opts) do
     # user-land state
     {:ok, %{}}
   end
 
-  @impl Phoenix.Presence.Client
-  def handle_join(topic, _key, presence, state) do
-    local_broadcast(topic, {__MODULE__, %{user_joined: presence}})
-    {:ok, state}
-  end
+  def handle_metas(topic, %{joins: joins, leaves: leaves}, presences, state) do
+    for {user_id, presence} <- joins do
+      user_data = %{user: presence.user, metas: Map.fetch!(presences, user_id)}
+      local_broadcast(topic, {LiveBeats.PresenceClient, %{user_joined: user_data}})
+    end
 
-  @impl Phoenix.Presence.Client
-  def handle_leave(topic, _key, presence, state) do
-    local_broadcast(topic, {__MODULE__, %{user_left: presence}})
+    for {user_id, presence} <- leaves do
+      metas =
+      case Map.fetch(presences, user_id) do
+        {:ok, presence_metas} -> presence_metas
+        :error -> []
+      end
+
+      user_data = %{user: presence.user, metas: metas}
+
+      local_broadcast(topic, {LiveBeats.PresenceClient, %{user_left: user_data}})
+    end
+
     {:ok, state}
   end
 

@@ -7,13 +7,23 @@ defmodule LiveBeatsWeb.Presence do
   """
   use Phoenix.Presence,
     otp_app: :live_beats,
-    pubsub_server: LiveBeats.PubSub
+    pubsub_server: LiveBeats.PubSub,
+    presence: __MODULE__
+
 
   import Phoenix.LiveView.Helpers
   import LiveBeatsWeb.LiveHelpers
 
   alias LiveBeats.{Accounts, MediaLibrary}
   alias LiveBeatsWeb.Presence.BadgeComponent
+
+  def init(state) do
+    LiveBeats.PresenceClient.init(state)
+  end
+
+  def handle_metas(topic, presences_diff, presences, state) do
+    LiveBeats.PresenceClient.handle_metas(topic, presences_diff, presences, state)
+  end
 
   def subscribe(%MediaLibrary.Profile{} = profile) do
     LiveBeats.PresenceClient.subscribe(profile)

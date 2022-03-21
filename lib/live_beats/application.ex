@@ -22,11 +22,6 @@ defmodule LiveBeats.Application do
       {Phoenix.PubSub, name: LiveBeats.PubSub},
       # start presence
       LiveBeatsWeb.Presence,
-      {Phoenix.Presence.Client,
-       client: LiveBeats.PresenceClient,
-       pubsub: LiveBeats.PubSub,
-       presence: LiveBeatsWeb.Presence,
-       name: PresenceClient},
       # Start the Endpoint (http/https)
       LiveBeatsWeb.Endpoint,
       # Expire songs every six hours
