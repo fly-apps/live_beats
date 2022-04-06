@@ -101,7 +101,7 @@ defmodule LiveBeatsWeb.ProfileLive do
     if connected?(socket) do
       MediaLibrary.subscribe_to_profile(profile)
       Accounts.subscribe(current_user.id)
-      LiveBeatsWeb.Presence.subscribe(profile)
+      Presence.subscribe(profile)
     end
 
     active_song_id =
@@ -157,11 +157,11 @@ defmodule LiveBeatsWeb.ProfileLive do
     {:noreply, socket}
   end
 
-  def handle_info({LiveBeats.PresenceClient, %{user_joined: presence}}, socket) do
+  def handle_info({LiveBeatsWeb.Presence, %{user_joined: presence}}, socket) do
     {:noreply, assign_presence(socket, presence)}
   end
 
-  def handle_info({LiveBeats.PresenceClient, %{user_left: presence}}, socket) do
+  def handle_info({LiveBeatsWeb.Presence, %{user_left: presence}}, socket) do
     %{user: user} = presence
 
     if presence.metas == [] do
@@ -286,7 +286,7 @@ defmodule LiveBeatsWeb.ProfileLive do
 
     if profile = connected?(socket) && socket.assigns.profile do
       profile
-      |> LiveBeats.PresenceClient.list()
+      |> LiveBeatsWeb.Presence.list_profile_users()
       |> Enum.reduce(socket, fn {_, presence}, acc -> assign_presence(acc, presence) end)
     else
       socket

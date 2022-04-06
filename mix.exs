@@ -33,7 +33,7 @@ defmodule LiveBeats.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:phoenix, github: "bemesa21/phoenix", branch: "presence_client",  override: true},
+      {:phoenix, github: "phoenixframework/phoenix", override: true},
       {:phoenix_ecto, "~> 4.4"},
       {:ecto_sql, "~> 3.6"},
       {:ecto_network, "~> 1.3.0"},

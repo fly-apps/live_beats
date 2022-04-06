@@ -3,6 +3,7 @@ defmodule LiveBeatsWeb.PlayerLive do
 
   alias LiveBeats.{Accounts, MediaLibrary}
   alias LiveBeats.MediaLibrary.Song
+  alias LiveBeatsWeb.Presence
 
   on_mount {LiveBeatsWeb.UserAuth, :current_user}
 
@@ -141,7 +142,7 @@ defmodule LiveBeatsWeb.PlayerLive do
     current_user = Accounts.update_active_profile(socket.assigns.current_user, nil)
 
     if profile = connected?(socket) and socket.assigns.profile do
-      LiveBeats.PresenceClient.untrack(profile, current_user.id)
+      Presence.untrack_profile_user(profile, current_user.id)
     end
 
     socket
@@ -157,9 +158,9 @@ defmodule LiveBeatsWeb.PlayerLive do
       current_user = Accounts.update_active_profile(current_user, profile.user_id)
       #untrack last profile the user was listening
       if socket.assigns.profile do
-        LiveBeats.PresenceClient.untrack(socket.assigns.profile, current_user.id)
+        Presence.untrack_profile_user(socket.assigns.profile, current_user.id)
       end
-      LiveBeats.PresenceClient.track(profile, current_user.id)
+      Presence.track_profile_user(profile, current_user.id)
       send(self(), :play_current)
 
       socket
@@ -256,8 +257,8 @@ defmodule LiveBeatsWeb.PlayerLive do
     %{current_user: current_user} = socket.assigns
 
     if update.profile.user_id == socket.assigns.current_user.id do
-      LiveBeats.PresenceClient.untrack(socket.assigns.profile, current_user.id)
-      LiveBeats.PresenceClient.track(update.profile, current_user.id)
+      Presence.untrack_profile_user(socket.assigns.profile, current_user.id)
+      Presence.track_profile_user(update.profile, current_user.id)
     end
 
     {:noreply, assign_profile(socket, update.profile)}

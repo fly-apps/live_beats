@@ -10,6 +10,7 @@ defmodule LiveBeatsWeb.Presence do
     pubsub_server: LiveBeats.PubSub,
     presence: __MODULE__
 
+  @pubsub LiveBeats.PubSub
 
   import Phoenix.LiveView.Helpers
   import LiveBeatsWeb.LiveHelpers
@@ -17,16 +18,54 @@ defmodule LiveBeatsWeb.Presence do
   alias LiveBeats.{Accounts, MediaLibrary}
   alias LiveBeatsWeb.Presence.BadgeComponent
 
-  def init(state) do
-    LiveBeats.PresenceClient.init(state)
+  def track_profile_user(%MediaLibrary.Profile{} = profile, current_user_id) do
+    track(
+      self(),
+      "proxy:" <> topic(profile),
+      current_user_id,
+      %{}
+    )
   end
 
-  def handle_metas(topic, presences_diff, presences, state) do
-    LiveBeats.PresenceClient.handle_metas(topic, presences_diff, presences, state)
+  def untrack_profile_user(%MediaLibrary.Profile{} = profile, current_user_id) do
+    untrack(
+      self(),
+      "proxy:" <> topic(profile),
+      current_user_id
+    )
+  end
+
+  def init(_opts) do
+    {:ok, %{}}
+  end
+
+  def handle_metas(topic, %{joins: joins, leaves: leaves}, presences, state) do
+    for {user_id, presence} <- joins do
+      user_data = %{user: presence.user, metas: Map.fetch!(presences, user_id)}
+      local_broadcast(topic, {__MODULE__, %{user_joined: user_data}})
+    end
+
+    for {user_id, presence} <- leaves do
+      metas =
+        case Map.fetch(presences, user_id) do
+          {:ok, presence_metas} -> presence_metas
+          :error -> []
+        end
+
+      user_data = %{user: presence.user, metas: metas}
+
+      local_broadcast(topic, {__MODULE__, %{user_left: user_data}})
+    end
+
+    {:ok, state}
+  end
+
+  def list_profile_users(%MediaLibrary.Profile{} = profile) do
+    list("proxy:" <> topic(profile))
   end
 
   def subscribe(%MediaLibrary.Profile{} = profile) do
-    LiveBeats.PresenceClient.subscribe(profile)
+    Phoenix.PubSub.subscribe(@pubsub, topic(profile))
   end
 
   def fetch(_topic, presences) do
@@ -72,6 +111,14 @@ defmodule LiveBeatsWeb.Presence do
       <% end %>
     </div>
     """
+  end
+
+  defp local_broadcast("proxy:" <> topic, payload) do
+    Phoenix.PubSub.local_broadcast(@pubsub, topic, payload)
+  end
+
+  defp topic(%MediaLibrary.Profile{} = profile) do
+    "active_profiles:#{profile.user_id}"
   end
 end
 
