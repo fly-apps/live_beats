@@ -126,9 +126,9 @@ defmodule LiveBeatsWeb.LiveHelpers do
     assigns = assign_new(assigns, :class, fn -> nil end)
 
     ~H"""
-    <a href={@navigate} data-phx-link="redirect" data-phx-link-state="push" class={@class}>
+    <%= live_redirect to: @navigate, class: @class do %>
       <%= render_slot(@inner_block) %>
-    </a>
+    <% end %>
     """
   end
 
