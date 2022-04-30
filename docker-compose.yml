@@ -1,0 +1,31 @@
+version: "3"
+services:
+  web:
+    container_name: "live_beats_dev"
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    environment:
+      # Review the readme on how to register a github oauth app.
+      LIVE_BEATS_GITHUB_CLIENT_ID: "FIX_ME"
+      LIVE_BEATS_GITHUB_CLIENT_SECRET: "FIX_ME"
+      DEV_CONTAINER: "true"
+      DATABASE_URL: "ecto://postgres:postgres@db/live_beats_dev"
+    depends_on:
+      - db
+    ports:
+      - "4000:4000"
+  db:
+    container_name: "live_beats_data"
+    image: "postgres:14.2"
+    command: postgres -c shared_preload_libraries=pg_stat_statements -c pg_stat_statements.max=10000 -c pg_stat_statements.track=all
+    environment:
+      POSTGRES_DB: "live_beats_dev"
+      POSTGRES_HOST_AUTH_METHOD: "trust"
+    ports:
+      - "5432:5432"
+    volumes:
+      - data:/var/lib/postgresql/data
+volumes:
+  data:
+    driver: local
