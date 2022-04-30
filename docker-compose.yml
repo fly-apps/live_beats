@@ -11,10 +11,15 @@ services:
       LIVE_BEATS_GITHUB_CLIENT_SECRET: "FIX_ME"
       DEV_CONTAINER: "true"
       DATABASE_URL: "ecto://postgres:postgres@db/live_beats_dev"
+      MIX_ENV: dev
+    volumes:
+      - .:/app/:cached
     depends_on:
       - db
     ports:
       - "4000:4000"
+    command:
+      - ./run.sh
   db:
     container_name: "live_beats_data"
     image: "postgres:14.2"
