@@ -1,6 +1,5 @@
 defmodule LiveBeatsWeb.LiveHelpers do
-  import Phoenix.LiveView
-  import Phoenix.LiveView.Helpers
+  use Phoenix.Component
 
   alias LiveBeatsWeb.Router.Helpers, as: Routes
   alias Phoenix.LiveView.JS
@@ -35,9 +34,21 @@ defmodule LiveBeatsWeb.LiveHelpers do
     >
       <div class="flex">
         <div class="flex-shrink-0">
-          <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-red-800" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          <svg
+            class="animate-spin -ml-1 mr-3 h-5 w-5 text-red-800"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+            </circle>
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            >
+            </path>
           </svg>
         </div>
         <div class="ml-3">
@@ -50,21 +61,30 @@ defmodule LiveBeatsWeb.LiveHelpers do
     """
   end
 
+  attr :flash, :map
+  attr :kiny, :atom
   def flash(%{kind: :error} = assigns) do
     ~H"""
     <%= if live_flash(@flash, @kind) do %>
       <div
         id="flash"
         class="rounded-md bg-red-50 p-4 fixed top-1 right-1 w-96 fade-in-scale z-50"
-        phx-click={JS.push("lv:clear-flash") |> JS.remove_class("fade-in-scale", to: "#flash") |> hide("#flash")}
+        phx-click={
+          JS.push("lv:clear-flash")
+          |> JS.remove_class("fade-in-scale", to: "#flash")
+          |> hide("#flash")
+        }
         phx-hook="Flash"
       >
         <div class="flex justify-between items-center space-x-3 text-red-700">
-          <.icon name={:exclamation_circle} class="w-5 w-5"/>
+          <.icon name={:exclamation_circle} class="w-5 w-5" />
           <p class="flex-1 text-sm font-medium" role="alert">
             <%= live_flash(@flash, @kind) %>
           </p>
-          <button type="button" class="inline-flex bg-red-50 rounded-md p-1.5 text-red-500 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-red-50 focus:ring-red-600">
+          <button
+            type="button"
+            class="inline-flex bg-red-50 rounded-md p-1.5 text-red-500 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-red-50 focus:ring-red-600"
+          >
             <.icon name={:x} class="w-4 h-4" />
           </button>
         </div>
@@ -84,11 +104,14 @@ defmodule LiveBeatsWeb.LiveHelpers do
         phx-hook="Flash"
       >
         <div class="flex justify-between items-center space-x-3 text-green-700">
-          <.icon name={:check_circle} class="w-5 h-5"/>
+          <.icon name={:check_circle} class="w-5 h-5" />
           <p class="flex-1 text-sm font-medium" role="alert">
             <%= live_flash(@flash, @kind) %>
           </p>
-          <button type="button" class="inline-flex bg-green-50 rounded-md p-1.5 text-green-500 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-green-50 focus:ring-green-600">
+          <button
+            type="button"
+            class="inline-flex bg-green-50 rounded-md p-1.5 text-green-500 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-green-50 focus:ring-green-600"
+          >
             <.icon name={:x} class="w-4 h-4" />
           </button>
         </div>
@@ -99,54 +122,73 @@ defmodule LiveBeatsWeb.LiveHelpers do
 
   def spinner(assigns) do
     ~H"""
-    <svg class="inline-block animate-spin h-2.5 w-2.5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+    <svg
+      class="inline-block animate-spin h-2.5 w-2.5 text-gray-400"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+      </circle>
+      <path
+        class="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+      >
+      </path>
     </svg>
     """
   end
 
+  attr :name, :atom, required: true
+  attr :outlined, :boolean, default: false
+  attr :rest, :global, default: %{class: "w-4 h-4 inline-block"}
   def icon(assigns) do
-    assigns =
-      assigns
-      |> assign_new(:outlined, fn -> false end)
-      |> assign_new(:class, fn -> "w-4 h-4 inline-block" end)
-      |> assign_new(:"aria-hidden", fn -> !Map.has_key?(assigns, :"aria-label") end)
+    assigns = assign_new(assigns, :"aria-hidden", fn -> !Map.has_key?(assigns, :"aria-label") end)
 
     ~H"""
     <%= if @outlined do %>
-      <%= apply(Heroicons.Outline, @name, [assigns_to_attributes(assigns, [:outlined, :name])]) %>
+      <%= apply(Heroicons.Outline, @name, [Map.to_list(@rest)]) %>
     <% else %>
-      <%= apply(Heroicons.Solid, @name, [assigns_to_attributes(assigns, [:outlined, :name])]) %>
+      <%= apply(Heroicons.Solid, @name, [Map.to_list(@rest)]) %>
     <% end %>
     """
   end
 
+  attr :navigate, :string
+  attr :patch, :string
+  attr :href, :string, default: nil
+  attr :replace, :string, default: false
+  attr :rest, :global
   def link(%{navigate: _to} = assigns) do
     assigns = assign_new(assigns, :class, fn -> nil end)
 
     ~H"""
-    <a href={@navigate} data-phx-link="redirect" data-phx-link-state="push" class={@class}>
+    <a href={@navigate} data-phx-link="redirect" data-phx-link-state="push" {@rest}>
       <%= render_slot(@inner_block) %>
     </a>
     """
   end
 
-  def link(%{patch: to} = assigns) do
-    opts = assigns |> assigns_to_attributes() |> Keyword.put(:to, to)
-    assigns = assign(assigns, :opts, opts)
-
+  def link(%{patch: _to} = assigns) do
     ~H"""
-    <%= live_patch @opts do %><%= render_slot(@inner_block) %><% end %>
+    <a
+      href={@patch}
+      data-phx-link="patch"
+      data-phx-link-state={if @replace, do: "replace", else: "push"}
+      {@rest}
+    >
+      <%= render_slot(@inner_block) %>
+    </a>
     """
   end
 
   def link(%{} = assigns) do
-    opts = assigns |> assigns_to_attributes() |> Keyword.put(:to, assigns[:href] || "#")
-    assigns = assign(assigns, :opts, opts)
-
     ~H"""
-    <%= Phoenix.HTML.Link.link @opts do %><%= render_slot(@inner_block) %><% end %>
+    <a href={@href || "#"} {@rest}>
+      <%= render_slot(@inner_block) %>
+    </a>
     """
   end
 
@@ -171,13 +213,13 @@ defmodule LiveBeatsWeb.LiveHelpers do
         <:link navigate={Routes.settings_path(LiveBeatsWeb.Endpoint, :edit)}Settings</:link>
       </.dropdown>
   """
+  attr :id, :string, required: true
+  attr :ok, :string, required: true
+  attr :img, :list, default: []
+  attr :title, :list, default: []
+  attr :subtitle, :list, default: []
+  attr :link, :list, default: []
   def dropdown(assigns) do
-    assigns =
-      assigns
-      |> assign_new(:img, fn -> nil end)
-      |> assign_new(:title, fn -> nil end)
-      |> assign_new(:subtitle, fn -> nil end)
-
     ~H"""
     <!-- User account dropdown -->
     <div class="px-3 mt-6 relative inline-block text-left">
@@ -194,19 +236,32 @@ defmodule LiveBeatsWeb.LiveHelpers do
           <span class="flex w-full justify-between items-center">
             <span class="flex min-w-0 items-center justify-between space-x-3">
               <%= for img <- @img do %>
-                <img class="w-10 h-10 bg-gray-300 rounded-full flex-shrink-0" alt="" {assigns_to_attributes(img)}/>
+                <img
+                  class="w-10 h-10 bg-gray-300 rounded-full flex-shrink-0"
+                  alt=""
+                  {assigns_to_attributes(img)}
+                />
               <% end %>
               <span class="flex-1 flex flex-col min-w-0">
-                <span class="text-gray-900 text-sm font-medium truncate"><%= render_slot(@title) %></span>
+                <span class="text-gray-900 text-sm font-medium truncate">
+                  <%= render_slot(@title) %>
+                </span>
                 <span class="text-gray-500 text-sm truncate"><%= render_slot(@subtitle) %></span>
               </span>
             </span>
-            <svg class="flex-shrink-0 h-5 w-5 text-gray-400 group-hover:text-gray-500"
-              xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
-              fill="currentColor" aria-hidden="true">
-              <path fill-rule="evenodd"
+            <svg
+              class="flex-shrink-0 h-5 w-5 text-gray-400 group-hover:text-gray-500"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                fill-rule="evenodd"
                 d="M10 3a1 1 0 01.707.293l3 3a1 1 0 01-1.414 1.414L10 5.414 7.707 7.707a1 1 0 01-1.414-1.414l3-3A1 1 0 0110 3zm-3.707 9.293a1 1 0 011.414 0L10 14.586l2.293-2.293a1 1 0 011.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
-                clip-rule="evenodd"></path>
+                clip-rule="evenodd"
+              >
+              </path>
             </svg>
           </span>
         </button>
@@ -223,8 +278,11 @@ defmodule LiveBeatsWeb.LiveHelpers do
             <.link
               tabindex="-1"
               role="menuitem"
-              class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-purple-500" {link}
-            ><%= render_slot(link) %></.link>
+              class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-purple-500"
+              {link}
+            >
+              <%= render_slot(link) %>
+            </.link>
           <% end %>
         </div>
       </div>
@@ -333,30 +391,45 @@ defmodule LiveBeatsWeb.LiveHelpers do
     |> JS.dispatch("click", to: "##{id} [data-modal-return]")
   end
 
+  attr :id, :string, required: true
+  attr :show, :boolean, default: false
+  attr :patch, :string, default: nil
+  attr :navigate, :string, default: nil
+  attr :on_cancel, JS, default: %JS{}
+  attr :on_confirm, JS, default: %JS{}
+  # slots
+  attr :title, :list, default: []
+  attr :confirm, :list, default: []
+  attr :cancel, :list, default: []
+  attr :rest, :global
   def modal(assigns) do
-    assigns =
-      assigns
-      |> assign_new(:show, fn -> false end)
-      |> assign_new(:patch, fn -> nil end)
-      |> assign_new(:navigate, fn -> nil end)
-      |> assign_new(:on_cancel, fn -> %JS{} end)
-      |> assign_new(:on_confirm, fn -> %JS{} end)
-      # slots
-      |> assign_new(:title, fn -> [] end)
-      |> assign_new(:confirm, fn -> [] end)
-      |> assign_new(:cancel, fn -> [] end)
-      |> assign_rest(~w(id show patch navigate on_cancel on_confirm title confirm cancel)a)
-
     ~H"""
-    <div id={@id} class={"fixed z-10 inset-0 overflow-y-auto #{if @show, do: "fade-in", else: "hidden"}"} {@rest}>
+    <div
+      id={@id}
+      class={"fixed z-10 inset-0 overflow-y-auto #{if @show, do: "fade-in", else: "hidden"}"}
+      {@rest}
+    >
       <.focus_wrap id={"#{@id}-focus-wrap"} content={"##{@id}-container"}>
-        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0" aria-labelledby={"#{@id}-title"} aria-describedby={"#{@id}-description"} role="dialog" aria-modal="true" tabindex="0">
-          <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
-          <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div
+          class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+          aria-labelledby={"#{@id}-title"}
+          aria-describedby={"#{@id}-description"}
+          role="dialog"
+          aria-modal="true"
+          tabindex="0"
+        >
+          <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true">
+          </div>
+          <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
+            &#8203;
+          </span>
           <div
             id={"#{@id}-container"}
-            class={"#{if @show, do: "fade-in-scale", else: "hidden"} sticky inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform sm:my-8 sm:align-middle sm:max-w-xl sm:w-full sm:p-6"}
-            phx-window-keydown={hide_modal(@on_cancel, @id)} phx-key="escape"
+            class={
+              "#{if @show, do: "fade-in-scale", else: "hidden"} sticky inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform sm:my-8 sm:align-middle sm:max-w-xl sm:w-full sm:p-6"
+            }
+            phx-window-keydown={hide_modal(@on_cancel, @id)}
+            phx-key="escape"
             phx-click-away={hide_modal(@on_cancel, @id)}
           >
             <%= if @patch do %>
@@ -366,16 +439,16 @@ defmodule LiveBeatsWeb.LiveHelpers do
               <.link navigate={@navigate} data-modal-return class="hidden"></.link>
             <% end %>
             <div class="sm:flex sm:items-start">
-              <div class={"mx-auto flex-shrink-0 flex items-center justify-center h-8 w-8 rounded-full bg-purple-100 sm:mx-0"}>
+              <div class="mx-auto flex-shrink-0 flex items-center justify-center h-8 w-8 rounded-full bg-purple-100 sm:mx-0">
                 <!-- Heroicon name: outline/plus -->
-                <.icon name={:information_circle} outlined class="h-6 w-6 text-purple-600"/>
+                <.icon name={:information_circle} outlined class="h-6 w-6 text-purple-600" />
               </div>
               <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full mr-12">
                 <h3 class="text-lg leading-6 font-medium text-gray-900" id={"#{@id}-title"}>
                   <%= render_slot(@title) %>
                 </h3>
                 <div class="mt-2">
-                  <p id={"#{@id}-content"} class={"text-sm text-gray-500"}>
+                  <p id={"#{@id}-content"} class="text-sm text-gray-500">
                     <%= render_slot(@inner_block) %>
                   </p>
                 </div>
@@ -410,6 +483,8 @@ defmodule LiveBeatsWeb.LiveHelpers do
     """
   end
 
+  attr :id, :string, required: true
+  attr :content, :string
   def focus_wrap(assigns) do
     ~H"""
     <div id={@id} phx-hook="FocusWrap" data-content={@content}>
@@ -420,29 +495,33 @@ defmodule LiveBeatsWeb.LiveHelpers do
     """
   end
 
+  attr :id, :string, required: true
+  attr :min, :integer, default: 0
+  attr :max, :integer, default: 100
+  attr :value, :integer
   def progress_bar(assigns) do
-    assigns =
-      assigns
-      |> assign_new(:min, fn -> 0 end)
-      |> assign_new(:max, fn -> 100 end)
-      |> assign_new(:value, fn -> assigns[:min] || 0 end)
+    assigns = assign_new(assigns, :value, fn -> assigns[:min] || 0 end)
 
     ~H"""
-    <div id={"#{@id}-container"} class="bg-gray-200 flex-auto dark:bg-black rounded-full overflow-hidden" phx-update="ignore">
+    <div
+      id={"#{@id}-container"}
+      class="bg-gray-200 flex-auto dark:bg-black rounded-full overflow-hidden"
+      phx-update="ignore"
+    >
       <div
         id={@id}
         class="bg-lime-500 dark:bg-lime-400 h-1.5 w-0"
         data-min={@min}
         data-max={@max}
-        data-val={@value}>
+        data-val={@value}
+      >
       </div>
     </div>
     """
   end
 
+  attr :actions, :list, default: []
   def title_bar(assigns) do
-    assigns = assign_new(assigns, :actions, fn -> [] end)
-
     ~H"""
     <!-- Page title & actions -->
     <div class="border-b border-gray-200 px-4 py-4 sm:flex sm:items-center sm:justify-between sm:px-6 lg:px-8 sm:h-16">
@@ -460,13 +539,14 @@ defmodule LiveBeatsWeb.LiveHelpers do
     """
   end
 
+  attr :patch, :string
+  attr :primary, :boolean, default: false
+  attr :rest, :global
   def button(%{patch: _} = assigns) do
-    assigns = assign_new(assigns, :primary, fn -> false end)
-
     ~H"""
     <%= if @primary do %>
       <%= live_patch [to: @patch, class: "order-0 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3"] ++
-        assigns_to_attributes(assigns, [:primary, :patch]) do %>
+        Map.to_list(@rest) do %>
         <%= render_slot(@inner_block) %>
       <% end %>
     <% else %>
@@ -479,24 +559,31 @@ defmodule LiveBeatsWeb.LiveHelpers do
   end
 
   def button(%{} = assigns) do
-    assigns =
-      assigns
-      |> assign_new(:primary, fn -> false end)
-      |> assign(:rest, assigns_to_attributes(assigns))
-
     ~H"""
     <%= if @primary do %>
-      <button type="button" class="order-0 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3" {@rest}>
+      <button
+        type="button"
+        class="order-0 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3"
+        {@rest}
+      >
         <%= render_slot(@inner_block) %>
       </button>
     <% else %>
-      <button type="button" class="order-1 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-0 sm:ml-0 lg:ml-3" {@rest}>
+      <button
+        type="button"
+        class="order-1 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-0 sm:ml-0 lg:ml-3"
+        {@rest}
+      >
         <%= render_slot(@inner_block) %>
       </button>
     <% end %>
     """
   end
 
+  attr :row_id, :any, default: false
+  attr :rows, :list, required: true
+  # slots
+  attr :col, :list, required: true
   def table(assigns) do
     assigns =
       assigns
@@ -510,8 +597,7 @@ defmodule LiveBeatsWeb.LiveHelpers do
           <thead>
             <tr class="border-t border-gray-200">
               <%= for col <- @col do %>
-                <th
-                  class="px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th class="px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   <span class="lg:pl-2"><%= col.label %></span>
                 </th>
               <% end %>
@@ -521,7 +607,9 @@ defmodule LiveBeatsWeb.LiveHelpers do
             <%= for {row, i} <- Enum.with_index(@rows) do %>
               <tr id={@row_id && @row_id.(row)} class="hover:bg-gray-50">
                 <%= for col <- @col do %>
-                  <td class={"px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900 #{if i == 0, do: "max-w-0 w-full"} #{col[:class]}"}>
+                  <td class={
+                    "px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900 #{if i == 0, do: "max-w-0 w-full"} #{col[:class]}"
+                  }>
                     <div class="flex items-center space-x-3 lg:pl-2">
                       <%= render_slot(col, row) %>
                     </div>
@@ -536,13 +624,16 @@ defmodule LiveBeatsWeb.LiveHelpers do
     """
   end
 
+  attr :id, :any, required: true
+  attr :module, :atom, required: true
+  attr :row_id, :any, default: false
+  attr :rows, :list, required: true
+  attr :owns_profile?, :boolean, default: false
+  attr :active_id, :any, default: nil
+  # slots
+  attr :col, :list
   def live_table(assigns) do
-    assigns =
-      assigns
-      |> assign_new(:row_id, fn -> false end)
-      |> assign_new(:active_id, fn -> nil end)
-      |> assign_new(:owns_profile?, fn -> assigns.owns_profile? end)
-      |> assign(:col, for(col <- assigns.col, col[:if] != false, do: col))
+    assigns = assign(assigns, :col, for(col <- assigns.col, col[:if] != false, do: col))
 
     ~H"""
     <div class="hidden mt-8 sm:block">
@@ -551,8 +642,7 @@ defmodule LiveBeatsWeb.LiveHelpers do
           <thead>
             <tr class="border-t border-gray-200">
               <%= for col <- @col do %>
-                <th
-                  class="px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th class="px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   <span class="lg:pl-2"><%= col.label %></span>
                 </th>
               <% end %>
@@ -563,10 +653,12 @@ defmodule LiveBeatsWeb.LiveHelpers do
               <.live_component
                 module={@module}
                 id={@row_id.(row)}
-                row={row} col={@col}
+                row={row}
+                col={@col}
                 index={i}
                 active_id={@active_id}
-                class="hover:bg-gray-50",
+                class="hover:bg-gray-50"
+                ,
                 owns_profile?={@owns_profile?}
               />
             <% end %>
@@ -594,9 +686,5 @@ defmodule LiveBeatsWeb.LiveHelpers do
     js
     |> JS.dispatch("js:focus-closest", to: to)
     |> hide(to)
-  end
-
-  defp assign_rest(assigns, exclude) do
-    assign(assigns, :rest, assigns_to_attributes(assigns, exclude))
   end
 end
