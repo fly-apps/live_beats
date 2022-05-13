@@ -1,5 +1,6 @@
 defmodule LiveBeatsWeb.LayoutView do
   use LiveBeatsWeb, :view
+  use Phoenix.Component
 
   # Phoenix LiveDashboard is available only in development by default,
   # so we instruct Elixir to not warn if the dashboard route is missing.
@@ -69,7 +70,7 @@ defmodule LiveBeatsWeb.LayoutView do
 
   def sidebar_account_dropdown(assigns) do
     ~H"""
-    <.dropdown id={@id}>
+    <.dropdown id={@id} foo="bar">
       <:img src={@current_user.avatar_url}/>
       <:title><%= @current_user.name %></:title>
       <:subtitle>@<%= @current_user.username %></:subtitle>
