@@ -63,6 +63,7 @@ defmodule LiveBeatsWeb.LiveHelpers do
 
   attr :flash, :map
   attr :kiny, :atom
+
   def flash(%{kind: :error} = assigns) do
     ~H"""
     <%= if live_flash(@flash, @kind) do %>
@@ -144,6 +145,7 @@ defmodule LiveBeatsWeb.LiveHelpers do
   attr :name, :atom, required: true
   attr :outlined, :boolean, default: false
   attr :rest, :global, default: %{class: "w-4 h-4 inline-block"}
+
   def icon(assigns) do
     assigns = assign_new(assigns, :"aria-hidden", fn -> !Map.has_key?(assigns, :"aria-label") end)
 
@@ -219,6 +221,7 @@ defmodule LiveBeatsWeb.LiveHelpers do
   attr :title, :list, default: []
   attr :subtitle, :list, default: []
   attr :link, :list, default: []
+
   def dropdown(assigns) do
     ~H"""
     <!-- User account dropdown -->
@@ -402,6 +405,7 @@ defmodule LiveBeatsWeb.LiveHelpers do
   attr :confirm, :list, default: []
   attr :cancel, :list, default: []
   attr :rest, :global
+
   def modal(assigns) do
     ~H"""
     <div
@@ -485,6 +489,7 @@ defmodule LiveBeatsWeb.LiveHelpers do
 
   attr :id, :string, required: true
   attr :content, :string
+
   def focus_wrap(assigns) do
     ~H"""
     <div id={@id} phx-hook="FocusWrap" data-content={@content}>
@@ -499,6 +504,7 @@ defmodule LiveBeatsWeb.LiveHelpers do
   attr :min, :integer, default: 0
   attr :max, :integer, default: 100
   attr :value, :integer
+
   def progress_bar(assigns) do
     assigns = assign_new(assigns, :value, fn -> assigns[:min] || 0 end)
 
@@ -521,6 +527,7 @@ defmodule LiveBeatsWeb.LiveHelpers do
   end
 
   attr :actions, :list, default: []
+
   def title_bar(assigns) do
     ~H"""
     <!-- Page title & actions -->
@@ -542,6 +549,7 @@ defmodule LiveBeatsWeb.LiveHelpers do
   attr :patch, :string
   attr :primary, :boolean, default: false
   attr :rest, :global
+
   def button(%{patch: _} = assigns) do
     ~H"""
     <%= if @primary do %>
@@ -584,6 +592,7 @@ defmodule LiveBeatsWeb.LiveHelpers do
   attr :rows, :list, required: true
   # slots
   attr :col, :list, required: true
+
   def table(assigns) do
     assigns =
       assigns
@@ -632,6 +641,7 @@ defmodule LiveBeatsWeb.LiveHelpers do
   attr :active_id, :any, default: nil
   # slots
   attr :col, :list
+
   def live_table(assigns) do
     assigns = assign(assigns, :col, for(col <- assigns.col, col[:if] != false, do: col))
 
