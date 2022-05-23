@@ -291,7 +291,7 @@ let liveSocket = new LiveSocket("/live", Socket, {
   }
 })
 
-let routeUpdated = ({kind}) => {
+let routeUpdated = () => {
   Focus.focusMain()
 }
 
@@ -301,7 +301,7 @@ window.addEventListener("phx:page-loading-start", info => topbar.show())
 window.addEventListener("phx:page-loading-stop", info => topbar.hide())
 
 // Accessible routing
-window.addEventListener("phx:page-loading-stop", e => routeUpdated(e.detail))
+window.addEventListener("phx:page-loading-stop", routeUpdated)
 
 window.addEventListener("js:exec", e => e.target[e.detail.call](...e.detail.args))
 window.addEventListener("js:focus", e => {
