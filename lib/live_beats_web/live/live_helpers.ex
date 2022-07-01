@@ -124,9 +124,11 @@ defmodule LiveBeatsWeb.LiveHelpers do
 
   def link(%{navigate: _to} = assigns) do
     assigns = assign_new(assigns, :class, fn -> nil end)
+    opts = assigns_to_attributes(assigns, [:navigate])
+    assigns = assign(assigns, :opts, opts)
 
     ~H"""
-    <a href={@navigate} data-phx-link="redirect" data-phx-link-state="push" class={@class}>
+    <a href={@navigate} data-phx-link="redirect" data-phx-link-state="push" {@opts}>
       <%= render_slot(@inner_block) %>
     </a>
     """
