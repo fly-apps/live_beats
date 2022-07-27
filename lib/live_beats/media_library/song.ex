@@ -50,6 +50,8 @@ defmodule LiveBeats.MediaLibrary.Song do
     changeset
     |> put_duration(stat.duration)
     |> Ecto.Changeset.put_change(:mp3_filesize, stat.size)
+    |> Ecto.Changeset.put_change(:artist, stat.artist)
+    |> Ecto.Changeset.put_change(:title, stat.title)
   end
 
   defp put_duration(%Ecto.Changeset{} = changeset, duration) when is_integer(duration) do
