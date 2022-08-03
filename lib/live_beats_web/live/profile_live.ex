@@ -12,30 +12,42 @@ defmodule LiveBeatsWeb.ProfileLive do
     <.title_bar>
       <div>
         <div class="block">
-          <%= @profile.tagline %> <%= if @owns_profile? do %>(you)<% end %>
+          <%= @profile.tagline %>
+          <%= if @owns_profile? do %>
+            (you)
+          <% end %>
         </div>
         <.link href={@profile.external_homepage_url} target="_blank" class="text-sm text-gray-600">
-          <.icon name={:code}/> <span class=""><%= url_text(@profile.external_homepage_url) %></span>
+          <.icon name={:code} /> <span class=""><%= url_text(@profile.external_homepage_url) %></span>
         </.link>
       </div>
-
       <:actions>
         <%= if @active_profile_id == @profile.user_id do %>
-          <.button primary
-            phx-click={JS.push("switch_profile", value: %{user_id: nil}, target: "#player", loading: "#player")}
+          <.button
+            primary
+            phx-click={
+              JS.push("switch_profile", value: %{user_id: nil}, target: "#player", loading: "#player")
+            }
           >
-            <.icon name={:stop}/><span class="ml-2">Stop Listening</span>
+            <.icon name={:stop} /><span class="ml-2">Stop Listening</span>
           </.button>
         <% else %>
-          <.button primary
-            phx-click={JS.push("switch_profile", value: %{user_id: @profile.user_id}, target: "#player", loading: "#player")}
+          <.button
+            primary
+            phx-click={
+              JS.push("switch_profile",
+                value: %{user_id: @profile.user_id},
+                target: "#player",
+                loading: "#player"
+              )
+            }
           >
-            <.icon name={:play}/><span class="ml-2">Listen</span>
+            <.icon name={:play} /><span class="ml-2">Listen</span>
           </.button>
         <% end %>
         <%= if @owns_profile? do %>
           <.button id="upload-btn" primary patch={profile_path(@current_user, :new)}>
-            <.icon name={:upload}/><span class="ml-2">Upload Songs</span>
+            <.icon name={:upload} /><span class="ml-2">Upload Songs</span>
           </.button>
         <% end %>
       </:actions>
@@ -73,18 +85,23 @@ defmodule LiveBeatsWeb.ProfileLive do
       row_id={fn song -> "song-#{song.id}" end}
       owns_profile?={@owns_profile?}
     >
-      <:col let={%{song: song}} label="Title"><%= song.title %></:col>
-      <:col let={%{song: song}} label="Artist"><%= song.artist %></:col>
-      <:col let={%{song: song}} label="Attribution" class="max-w-5xl break-words text-gray-600 font-light"><%= song.attribution %></:col>
-      <:col let={%{song: song}} label="Duration"><%= MP3Stat.to_mmss(song.duration) %></:col>
-      <:col let={%{song: song}} label="" if={@owns_profile?}>
+      <:col :let={%{song: song}} label="Title"><%= song.title %></:col>
+      <:col :let={%{song: song}} label="Artist"><%= song.artist %></:col>
+      <:col
+        :let={%{song: song}}
+        label="Attribution"
+        class="max-w-5xl break-words text-gray-600 font-light"
+      >
+        <%= song.attribution %>
+      </:col>
+      <:col :let={%{song: song}} label="Duration"><%= MP3Stat.to_mmss(song.duration) %></:col>
+      <:col :let={%{song: song}} label="" if={@owns_profile?}>
         <.link
           id={"delete-song-#{song.id}"}
           phx-click={show_modal("delete-modal-#{song.id}")}
           class="inline-flex items-center px-3 py-2 text-sm leading-4 font-medium"
         >
-          <.icon name={:trash} class="-ml-0.5 mr-2 h-4 w-4"/>
-          Delete
+          <.icon name={:trash} class="-ml-0.5 mr-2 h-4 w-4" /> Delete
         </.link>
       </:col>
     </.live_table>

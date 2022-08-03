@@ -4,7 +4,6 @@ defmodule LiveBeats.Accounts.User do
 
   alias LiveBeats.Accounts.{User, Identity}
 
-
   schema "users" do
     field :email, :string
     field :name, :string
@@ -60,7 +59,6 @@ defmodule LiveBeats.Accounts.User do
     |> validate_required([:username, :profile_tagline])
     |> validate_username()
   end
-
 
   defp validate_email(changeset) do
     changeset

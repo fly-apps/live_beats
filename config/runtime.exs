@@ -19,8 +19,7 @@ if config_env() == :prod do
       For example: ecto://USER:PASS@HOST/DATABASE
       """
 
-  replica_database_url =
-    System.get_env("REPLICA_DATABASE_URL") || database_url
+  replica_database_url = System.get_env("REPLICA_DATABASE_URL") || database_url
 
   host = System.get_env("PHX_HOST") || "example.com"
   ecto_ipv6? = System.get_env("ECTO_IPV6") == "true"
@@ -68,7 +67,6 @@ if config_env() == :prod do
     server_ip: System.fetch_env!("LIVE_BEATS_SERVER_IP"),
     hostname: "livebeats.local",
     transport_opts: [inet6: true]
-
 
   config :live_beats, :github,
     client_id: System.fetch_env!("LIVE_BEATS_GITHUB_CLIENT_ID"),

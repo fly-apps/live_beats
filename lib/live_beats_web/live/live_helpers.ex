@@ -158,42 +158,6 @@ defmodule LiveBeatsWeb.LiveHelpers do
     """
   end
 
-  attr :navigate, :string
-  attr :patch, :string
-  attr :href, :string, default: nil
-  attr :replace, :string, default: false
-  attr :rest, :global
-  def link(%{navigate: _to} = assigns) do
-    assigns = assign_new(assigns, :class, fn -> nil end)
-
-    ~H"""
-    <a href={@navigate} data-phx-link="redirect" data-phx-link-state="push" {@rest}>
-      <%= render_slot(@inner_block) %>
-    </a>
-    """
-  end
-
-  def link(%{patch: _to} = assigns) do
-    ~H"""
-    <a
-      href={@patch}
-      data-phx-link="patch"
-      data-phx-link-state={if @replace, do: "replace", else: "push"}
-      {@rest}
-    >
-      <%= render_slot(@inner_block) %>
-    </a>
-    """
-  end
-
-  def link(%{} = assigns) do
-    ~H"""
-    <a href={@href || "#"} {@rest}>
-      <%= render_slot(@inner_block) %>
-    </a>
-    """
-  end
-
   @doc """
   Returns a button triggered dropdown with aria keyboard and focus supporrt.
 
@@ -483,19 +447,6 @@ defmodule LiveBeatsWeb.LiveHelpers do
           </div>
         </div>
       </.focus_wrap>
-    </div>
-    """
-  end
-
-  attr :id, :string, required: true
-  attr :content, :string
-
-  def focus_wrap(assigns) do
-    ~H"""
-    <div id={@id} phx-hook="FocusWrap" data-content={@content}>
-      <span id={"#{@id}-start"} tabindex="0" aria-hidden="true"></span>
-      <%= render_slot(@inner_block) %>
-      <span id={"#{@id}-end"} tabindex="0" aria-hidden="true"></span>
     </div>
     """
   end

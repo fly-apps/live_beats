@@ -263,21 +263,6 @@ let Focus = {
   },
 }
 
-// Accessible focus wrapping
-Hooks.FocusWrap = {
-  mounted(){
-    this.content = document.querySelector(this.el.getAttribute("data-content"))
-    this.focusStart = this.el.querySelector(`#${this.el.id}-start`)
-    this.focusEnd = this.el.querySelector(`#${this.el.id}-end`)
-    this.focusStart.addEventListener("focus", () => Focus.focusLastDescendant(this.content))
-    this.focusEnd.addEventListener("focus", () => Focus.focusFirstDescendant(this.content))
-    this.content.addEventListener("phx:show-end", () => this.content.focus())
-    if(window.getComputedStyle(this.content).display !== "none"){
-      Focus.focusFirstDescendant(this.content)
-    }
-  },
-}
-
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, {
   hooks: Hooks,
@@ -297,7 +282,7 @@ let routeUpdated = () => {
 
 // Show progress bar on live navigation and form submits
 topbar.config({barColors: {0: "rgba(147, 51, 234, 1)"}, shadowColor: "rgba(0, 0, 0, .3)"})
-window.addEventListener("phx:page-loading-start", info => topbar.show())
+window.addEventListener("phx:page-loading-start", info => topbar.delayedShow(200))
 window.addEventListener("phx:page-loading-stop", info => topbar.hide())
 
 // Accessible routing
@@ -334,4 +319,3 @@ liveSocket.connect()
 // >> liveSocket.enableLatencySim(1000)  // enabled for duration of browser session
 // >> liveSocket.disableLatencySim()
 window.liveSocket = liveSocket
-

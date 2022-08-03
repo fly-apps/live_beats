@@ -9,6 +9,7 @@ defmodule LiveBeats.AccountsFixtures do
 
   def user_fixture(attrs \\ %{}) do
     primary_email = attrs[:email] || unique_user_email()
+
     info = %{
       "avatar_url" => "https://avatars3.githubusercontent.com/u/576796?v=4",
       "bio" => nil,
@@ -43,11 +44,11 @@ defmodule LiveBeats.AccountsFixtures do
       "updated_at" => "2020-09-18T19:34:45Z",
       "url" => "https://api.github.com/users/chrismccord"
     }
+
     emails = []
     token = "token"
 
-    {:ok, user} =
-      LiveBeats.Accounts.register_github_user(primary_email, info, emails, token)
+    {:ok, user} = LiveBeats.Accounts.register_github_user(primary_email, info, emails, token)
 
     user
   end

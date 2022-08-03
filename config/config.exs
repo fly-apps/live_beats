@@ -11,9 +11,7 @@ config :live_beats,
   replica: LiveBeats.ReplicaRepo,
   ecto_repos: [LiveBeats.Repo]
 
-
-config :live_beats, :files,
-  admin_usernames: []
+config :live_beats, :files, admin_usernames: []
 
 # Configures the endpoint
 config :live_beats, LiveBeatsWeb.Endpoint,

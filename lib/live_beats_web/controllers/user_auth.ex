@@ -19,7 +19,9 @@ defmodule LiveBeatsWeb.UserAuth do
   def on_mount(:ensure_authenticated, _params, session, socket) do
     case session do
       %{"user_id" => user_id} ->
-        new_socket = LiveView.assign_new(socket, :current_user, fn -> Accounts.get_user!(user_id) end)
+        new_socket =
+          LiveView.assign_new(socket, :current_user, fn -> Accounts.get_user!(user_id) end)
+
         %Accounts.User{} = new_socket.assigns.current_user
         {:cont, new_socket}
 

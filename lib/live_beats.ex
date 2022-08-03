@@ -19,6 +19,7 @@ defmodule LiveBeats do
   """
   def config([main_key | rest] = keyspace) when is_list(keyspace) do
     main = Application.fetch_env!(:live_beats, main_key)
+
     Enum.reduce(rest, main, fn next_key, current ->
       case Keyword.fetch(current, next_key) do
         {:ok, val} -> val
@@ -85,11 +86,11 @@ defmodule LiveBeats do
       target.handle_execute({src_mod, event_struct})
     catch
       kind, err ->
-        Logger.error """
+        Logger.error("""
         executing {#{inspect(src_mod)}, #{inspect(event_mod)}} failed with #{inspect(kind)}
 
             #{inspect(err)}
-        """
+        """)
     end
   end
 end

@@ -24,7 +24,9 @@ defmodule LiveBeatsWeb.ErrorHelpers do
     <%= for error <- @error_values do %>
       <span
         phx-feedback-for={@input_name}
-        class={"invalid-feedback inline-block pl-2 pr-2 text-sm text-white bg-red-600 rounded-md #{@class}"}
+        class={
+          "invalid-feedback inline-block pl-2 pr-2 text-sm text-white bg-red-600 rounded-md #{@class}"
+        }
       >
         <%= translate_error(error) %>
       </span>

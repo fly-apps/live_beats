@@ -30,7 +30,6 @@ config :live_beats, LiveBeats.ReplicaRepo,
   pool_size: 10,
   priv: "priv/repo"
 
-
 # We don't run a server during test. If one is required,
 # you can enable the server option below.
 config :live_beats, LiveBeatsWeb.Endpoint,

@@ -1,6 +1,7 @@
 defmodule Phoenix.Presence.ClientTest.Presence do
-  use Phoenix.Presence, otp_app: :live_beats,
-                        pubsub_server: LiveBeats.PubSub
+  use Phoenix.Presence,
+    otp_app: :live_beats,
+    pubsub_server: LiveBeats.PubSub
 end
 
 defmodule Phoenix.Presence.ClientTest do

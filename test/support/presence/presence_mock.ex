@@ -2,7 +2,6 @@ defmodule Phoenix.Presence.Client.PresenceMock do
   use GenServer
   alias Phoenix.Presence.Client
 
-
   def start_link(opts \\ []) do
     GenServer.start_link(__MODULE__, opts[:id], opts)
   end

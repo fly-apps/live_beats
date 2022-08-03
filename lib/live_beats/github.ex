@@ -1,6 +1,7 @@
 defmodule LiveBeats.Github do
   def authorize_url() do
     state = random_string()
+
     "https://github.com/login/oauth/authorize?client_id=#{client_id()}&state=#{state}&scope=user:email"
   end
 
@@ -34,6 +35,7 @@ defmodule LiveBeats.Github do
   end
 
   defp fetch_user_info({:error, _reason} = error), do: error
+
   defp fetch_user_info({:ok, token}) do
     resp =
       http(
@@ -43,6 +45,7 @@ defmodule LiveBeats.Github do
         [],
         [{"accept", "application/vnd.github.v3+json"}, {"Authorization", "token #{token}"}]
       )
+
     case resp do
       {:ok, info} -> {:ok, %{info: Jason.decode!(info), token: token}}
       {:error, _reason} = err -> err
@@ -50,6 +53,7 @@ defmodule LiveBeats.Github do
   end
 
   defp fetch_emails({:error, _} = err), do: err
+
   defp fetch_emails({:ok, user}) do
     resp =
       http(
@@ -59,6 +63,7 @@ defmodule LiveBeats.Github do
         [],
         [{"accept", "application/vnd.github.v3+json"}, {"Authorization", "token #{user.token}"}]
       )
+
     case resp do
       {:ok, info} ->
         emails = Jason.decode!(info)

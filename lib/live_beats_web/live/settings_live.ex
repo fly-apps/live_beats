@@ -10,7 +10,13 @@ defmodule LiveBeatsWeb.SettingsLive do
     </.title_bar>
 
     <div class="max-w-3xl px-4 mx-auto mt-6">
-      <.form let={f} for={@changeset} phx-change="validate" phx-submit="save" class="space-y-8 divide-y divide-gray-200">
+      <.form
+        :let={f}
+        for={@changeset}
+        phx-change="validate"
+        phx-submit="save"
+        class="space-y-8 divide-y divide-gray-200"
+      >
         <div class="space-y-8 divide-y divide-gray-200">
           <div>
             <div>
@@ -28,8 +34,16 @@ defmodule LiveBeatsWeb.SettingsLive do
                   <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
                     <%= URI.parse(LiveBeatsWeb.Endpoint.url()).host %>/
                   </span>
-                  <%= text_input f, :username, class: "flex-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300" %>
-                  <.error field={:username} input_name="user[username]" errors={@changeset.errors} class="pt-2 pl-4 pr-4 ml-2 text-center" />
+                  <%= text_input(f, :username,
+                    class:
+                      "flex-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
+                  ) %>
+                  <.error
+                    field={:username}
+                    input_name="user[username]"
+                    errors={@changeset.errors}
+                    class="pt-2 pl-4 pr-4 ml-2 text-center"
+                  />
                 </div>
               </div>
 
@@ -38,7 +52,11 @@ defmodule LiveBeatsWeb.SettingsLive do
                   Email (from GitHub)
                 </label>
                 <div class="mt-1 flex rounded-md shadow-sm">
-                  <%= text_input f, :email, disabled: true, class: "flex-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full min-w-0 rounded-md sm:text-sm border-gray-300 bg-gray-50" %>
+                  <%= text_input(f, :email,
+                    disabled: true,
+                    class:
+                      "flex-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full min-w-0 rounded-md sm:text-sm border-gray-300 bg-gray-50"
+                  ) %>
                 </div>
               </div>
 
@@ -47,8 +65,16 @@ defmodule LiveBeatsWeb.SettingsLive do
                   Profile Tagline
                 </label>
                 <div class="mt-1">
-                  <%= text_input f, :profile_tagline, class: "flex-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full min-w-0 rounded-md sm:text-sm border-gray-300" %>
-                  <.error field={:profile_tagline} input_name="user[profile_tagline]" errors={@changeset.errors} class="pt-2 pl-4 pr-4 ml-2 text-center" />
+                  <%= text_input(f, :profile_tagline,
+                    class:
+                      "flex-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full min-w-0 rounded-md sm:text-sm border-gray-300"
+                  ) %>
+                  <.error
+                    field={:profile_tagline}
+                    input_name="user[profile_tagline]"
+                    errors={@changeset.errors}
+                    class="pt-2 pl-4 pr-4 ml-2 text-center"
+                  />
                 </div>
                 <p class="text-sm text-gray-500">Write a short tagline for your beats page.</p>
               </div>
@@ -58,7 +84,10 @@ defmodule LiveBeatsWeb.SettingsLive do
 
         <div class="pt-5">
           <div class="flex justify-end">
-            <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            <button
+              type="submit"
+              class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
               Save
             </button>
           </div>

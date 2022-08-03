@@ -29,9 +29,11 @@ defmodule LiveBeatsWeb.PlayerLive do
 
           <.progress_bar id="player-progress" />
 
-          <div id="player-info"
+          <div
+            id="player-info"
             class="text-gray-500 dark:text-gray-400 flex-row justify-between text-sm font-medium tabular-nums"
-            phx-update="ignore">
+            phx-update="ignore"
+          >
             <div id="player-time"></div>
             <div id="player-duration"></div>
           </div>
@@ -43,7 +45,7 @@ defmodule LiveBeatsWeb.PlayerLive do
             navigate={profile_path(@profile)}
             class="mx-auto flex border-2 border-white border-opacity-20 rounded-md p-1 pr-2"
           >
-            <span class="mt-1"><.icon name={:user_circle} class="w-4 h-4 block"/></span>
+            <span class="mt-1"><.icon name={:user_circle} class="w-4 h-4 block" /></span>
             <p class="ml-2"><%= @profile.username %></p>
           </.link>
         <% else %>
@@ -52,7 +54,12 @@ defmodule LiveBeatsWeb.PlayerLive do
 
         <%= if is_nil(@profile) or @own_profile? do %>
           <!-- prev -->
-          <button type="button" class="sm:block xl:block mx-auto scale-75" phx-click={js_prev(@own_profile?)} aria-label="Previous">
+          <button
+            type="button"
+            class="sm:block xl:block mx-auto scale-75"
+            phx-click={js_prev(@own_profile?)}
+            aria-label="Previous"
+          >
             <svg width="17" height="18">
               <path d="M0 0h2v18H0V0zM4 9l13-9v18L4 9z" fill="currentColor" />
             </svg>
@@ -60,23 +67,70 @@ defmodule LiveBeatsWeb.PlayerLive do
           <!-- /prev -->
 
           <!-- play/pause -->
-          <button type="button" class="mx-auto scale-75" phx-click={js_play_pause(@own_profile?)} aria-label={if @playing do "Pause" else "Play" end}>
+          <button
+            type="button"
+            class="mx-auto scale-75"
+            phx-click={js_play_pause(@own_profile?)}
+            aria-label={
+              if @playing do
+                "Pause"
+              else
+                "Play"
+              end
+            }
+          >
             <%= if @playing do %>
               <svg id="player-pause" width="50" height="50" fill="none">
-                <circle class="text-gray-300 dark:text-gray-500" cx="25" cy="25" r="24" stroke="currentColor" stroke-width="1.5" />
+                <circle
+                  class="text-gray-300 dark:text-gray-500"
+                  cx="25"
+                  cy="25"
+                  r="24"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                />
                 <path d="M18 16h4v18h-4V16zM28 16h4v18h-4z" fill="currentColor" />
               </svg>
             <% else %>
-              <svg id="player-play" width="50" height="50" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <circle id="svg_1" stroke-width="0.8" stroke="currentColor" r="11.4" cy="12" cx="12" class="text-gray-300 dark:text-gray-500"/>
-                <path stroke="null" fill="currentColor" transform="rotate(90 12.8947 12.3097)" id="svg_6" d="m9.40275,15.10014l3.49194,-5.58088l3.49197,5.58088l-6.98391,0z" stroke-width="1.5" fill="none"/>
+              <svg
+                id="player-play"
+                width="50"
+                height="50"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <circle
+                  id="svg_1"
+                  stroke-width="0.8"
+                  stroke="currentColor"
+                  r="11.4"
+                  cy="12"
+                  cx="12"
+                  class="text-gray-300 dark:text-gray-500"
+                />
+                <path
+                  stroke="null"
+                  fill="currentColor"
+                  transform="rotate(90 12.8947 12.3097)"
+                  id="svg_6"
+                  d="m9.40275,15.10014l3.49194,-5.58088l3.49197,5.58088l-6.98391,0z"
+                  stroke-width="1.5"
+                  fill="none"
+                />
               </svg>
             <% end %>
           </button>
           <!-- /play/pause -->
 
           <!-- next -->
-          <button type="button" class="mx-auto scale-75" phx-click={js_next(@own_profile?)} aria-label="Next">
+          <button
+            type="button"
+            class="mx-auto scale-75"
+            phx-click={js_next(@own_profile?)}
+            aria-label="Next"
+          >
             <svg width="17" height="18" viewBox="0 0 17 18" fill="none">
               <path d="M17 0H15V18H17V0Z" fill="currentColor" />
               <path d="M13 9L0 0V18L13 9Z" fill="currentColor" />
@@ -86,8 +140,14 @@ defmodule LiveBeatsWeb.PlayerLive do
         <% else %>
           <button type="button" class="mx-auto scale-75"></button>
           <!-- stop button -->
-          <button type="button" class="mx-auto scale-75" phx-click={JS.push("switch_profile", value: %{user_id: nil}, target: "#player", loading: "#player")}>
-            <.icon name={:stop} class="h-12 w-12"/>
+          <button
+            type="button"
+            class="mx-auto scale-75"
+            phx-click={
+              JS.push("switch_profile", value: %{user_id: nil}, target: "#player", loading: "#player")
+            }
+          >
+            <.icon name={:stop} class="h-12 w-12" />
           </button>
           <!-- stop button -->
         <% end %>
@@ -106,9 +166,7 @@ defmodule LiveBeatsWeb.PlayerLive do
       <%= if @profile do %>
         <.modal id="not-authorized" on_confirm={hide_modal("not-authorized")}>
           <:title>You can't do that</:title>
-
           Only <%= @profile.username %> can control playback
-
           <:confirm>Ok</:confirm>
         </.modal>
       <% end %>
@@ -156,10 +214,11 @@ defmodule LiveBeatsWeb.PlayerLive do
 
     if profile && connected?(socket) do
       current_user = Accounts.update_active_profile(current_user, profile.user_id)
-      #untrack last profile the user was listening
+      # untrack last profile the user was listening
       if socket.assigns.profile do
         Presence.untrack_profile_user(socket.assigns.profile, current_user.id)
       end
+
       Presence.track_profile_user(profile, current_user.id)
       send(self(), :play_current)
 
@@ -311,7 +370,7 @@ defmodule LiveBeatsWeb.PlayerLive do
         vsn: 1,
         ip: to_string(song.server_ip),
         size: song.mp3_filesize,
-        uuid: song.mp3_filename,
+        uuid: song.mp3_filename
       })
 
     push_event(socket, "play", %{
