@@ -1,7 +1,7 @@
 defmodule LiveBeatsWeb.CoreComponents do
   use Phoenix.Component
+  use LiveBeatsWeb, :verified_routes
 
-  alias LiveBeatsWeb.Router.Helpers, as: Routes
   alias Phoenix.LiveView.JS
 
   alias LiveBeats.Accounts
@@ -10,18 +10,20 @@ defmodule LiveBeatsWeb.CoreComponents do
   def home_path(nil = _current_user), do: "/"
   def home_path(%Accounts.User{} = current_user), do: profile_path(current_user)
 
-  def profile_path(current_user_or_profile, action \\ :show)
-
-  def profile_path(username, action) when is_binary(username) do
-    Routes.profile_path(LiveBeatsWeb.Endpoint, action, username)
+  def profile_upload_path(%Accounts.User{} = user) do
+    ~p"/#{user.username}/songs/new"
   end
 
-  def profile_path(%Accounts.User{} = current_user, action) do
-    profile_path(current_user.username, action)
+  def profile_path(username) when is_binary(username) do
+    unverified_path(LiveBeatsWeb.Endpoint, LiveBeatsWeb.Router, ~p"/#{username}")
   end
 
-  def profile_path(%MediaLibrary.Profile{} = profile, action) do
-    profile_path(profile.username, action)
+  def profile_path(%Accounts.User{} = current_user) do
+    profile_path(current_user.username)
+  end
+
+  def profile_path(%MediaLibrary.Profile{} = profile) do
+    profile_path(profile.username)
   end
 
   slot :inner_block
@@ -176,7 +178,7 @@ defmodule LiveBeatsWeb.CoreComponents do
         <:subtitle>@<%= @current_user.username %></:subtitle>
 
         <:link navigate={profile_path(@current_user)}>View Profile</:link>
-        <:link navigate={Routes.settings_path(LiveBeatsWeb.Endpoint, :edit)}Settings</:link>
+        <:link navigate={~p"/profile/settings"}Settings</:link>
       </.dropdown>
   """
   attr :id, :string, required: true

@@ -46,7 +46,7 @@ defmodule LiveBeatsWeb.ProfileLive do
           </.button>
         <% end %>
         <%= if @owns_profile? do %>
-          <.button id="upload-btn" primary patch={profile_path(@current_user, :new)}>
+          <.button id="upload-btn" primary patch={profile_upload_path(@current_user)}>
             <.icon name={:upload} /><span class="ml-2">Upload Songs</span>
           </.button>
         <% end %>
@@ -109,7 +109,6 @@ defmodule LiveBeatsWeb.ProfileLive do
   end
 
   def mount(%{"profile_username" => profile_username}, _session, socket) do
-    IO.inspect(get_connect_params(socket))
     %{current_user: current_user} = socket.assigns
 
     profile =

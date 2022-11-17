@@ -42,7 +42,7 @@ defmodule LiveBeatsWeb.GithubCallbackTest do
 
     assert Accounts.get_user_by_email("chris@local.test") == nil
 
-    conn = get(conn, Routes.o_auth_callback_path(conn, :new, "github", params))
+    conn = get(conn, ~p"/oauth/callbacks/github?#{params}")
 
     assert redirected_to(conn, 302) == "/chrismccord"
     assert %Accounts.User{} = user = Accounts.get_user_by_email("chris@local.test")
@@ -53,9 +53,9 @@ defmodule LiveBeatsWeb.GithubCallbackTest do
     params = %{"code" => "66e1c4202275d071eced", "state" => "invalid"}
     assert Accounts.list_users(limit: 100) == []
 
-    conn = get(conn, Routes.o_auth_callback_path(conn, :new, "github", params))
+    conn = get(conn, ~p"/oauth/callbacks/github?#{params}")
 
-    assert get_flash(conn, :error) ==
+    assert Phoenix.Flash.get(conn.assigns.flash, :error) ==
              "We were unable to contact GitHub. Please try again later"
 
     assert redirected_to(conn, 302) == "/"
@@ -67,9 +67,9 @@ defmodule LiveBeatsWeb.GithubCallbackTest do
 
     assert Accounts.list_users(limit: 100) == []
 
-    conn = get(conn, Routes.o_auth_callback_path(conn, :new, "github", params))
+    conn = get(conn, ~p"/oauth/callbacks/github?#{params}")
 
-    assert get_flash(conn, :error) == "We were unable to contact GitHub. Please try again later"
+    assert Phoenix.Flash.get(conn.assigns.flash, :error) == "We were unable to contact GitHub. Please try again later"
     assert redirected_to(conn, 302) == "/"
     assert Accounts.list_users(limit: 100) == []
   end

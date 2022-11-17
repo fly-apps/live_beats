@@ -1,8 +1,6 @@
 defmodule LiveBeatsWeb.Layouts do
   use LiveBeatsWeb, :html
 
-  alias LiveBeatsWeb.Endpoint
-
   embed_templates "layouts/*"
 
   attr :id, :string
@@ -54,7 +52,7 @@ defmodule LiveBeatsWeb.Layouts do
         </.link>
 
         <.link
-          navigate={Routes.settings_path(Endpoint, :edit)}
+          navigate={~p"/profile/settings"}
           class={
             "text-gray-700 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md #{if @active_tab == :settings, do: "bg-gray-200", else: "hover:bg-gray-50"}"
           }
@@ -68,7 +66,7 @@ defmodule LiveBeatsWeb.Layouts do
         </.link>
       <% else %>
         <.link
-          navigate={Routes.sign_in_path(Endpoint, :index)}
+          navigate={~p"/signin"}
           class="text-gray-700 hover:text-gray-900 hover:bg-gray-50 group flex items-center px-2 py-2 text-sm font-medium rounded-md"
         >
           <svg
@@ -103,8 +101,8 @@ defmodule LiveBeatsWeb.Layouts do
       <:title><%= @current_user.name %></:title>
       <:subtitle>@<%= @current_user.username %></:subtitle>
       <:link navigate={profile_path(@current_user)}>View Profile</:link>
-      <:link navigate={Routes.settings_path(Endpoint, :edit)}>Settings</:link>
-      <:link href={Routes.o_auth_callback_path(Endpoint, :sign_out)} method={:delete}>Sign out</:link>
+      <:link navigate={~p"/profile/settings"}>Settings</:link>
+      <:link href={~p"/signout"} method={:delete}>Sign out</:link>
     </.dropdown>
     """
   end

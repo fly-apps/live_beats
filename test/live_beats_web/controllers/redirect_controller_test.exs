@@ -4,7 +4,7 @@ defmodule LiveBeatsWeb.RedirectControllerTest do
 
   test "GET / redirects to signin when not logged in", %{conn: conn} do
     conn = get(conn, "/")
-    assert redirected_to(conn, 302) =~ Routes.sign_in_path(conn, :index)
+    assert redirected_to(conn, 302) =~ ~p"/signin"
   end
 
   test "GET / redirects to profile page when signed in", %{conn: conn} do

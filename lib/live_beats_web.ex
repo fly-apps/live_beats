@@ -29,6 +29,7 @@ defmodule LiveBeatsWeb do
       import Plug.Conn
       import LiveBeatsWeb.Gettext
       alias LiveBeatsWeb.Router.Helpers, as: Routes
+      unquote(verified_routes())
     end
   end
 
@@ -79,7 +80,7 @@ defmodule LiveBeatsWeb do
 
   def router do
     quote do
-      use Phoenix.Router
+      use Phoenix.Router, helpers: false
 
       import Plug.Conn
       import Phoenix.Controller
@@ -106,6 +107,7 @@ defmodule LiveBeatsWeb do
       import LiveBeatsWeb.Gettext
       alias LiveBeatsWeb.Router.Helpers, as: Routes
       alias Phoenix.LiveView.JS
+      unquote(verified_routes())
     end
   end
 

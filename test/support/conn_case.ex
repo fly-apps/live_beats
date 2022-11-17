@@ -23,6 +23,7 @@ defmodule LiveBeatsWeb.ConnCase do
   using do
     quote do
       # Import conveniences for testing with connections
+      use LiveBeatsWeb, :verified_routes
       import Plug.Conn
       import Phoenix.ConnTest
       import LiveBeatsWeb.ConnCase

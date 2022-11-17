@@ -72,7 +72,7 @@ defmodule LiveBeatsWeb.UserAuthTest do
     test "redirects if user is authenticated", %{conn: conn, user: user} do
       conn = conn |> assign(:current_user, user) |> UserAuth.redirect_if_user_is_authenticated([])
       assert conn.halted
-      assert redirected_to(conn) == Routes.profile_path(conn, :show, user.username)
+      assert redirected_to(conn) == LiveBeatsWeb.CoreComponents.profile_path(user)
     end
 
     test "does not redirect if user is not authenticated", %{conn: conn} do
@@ -87,7 +87,7 @@ defmodule LiveBeatsWeb.UserAuthTest do
       conn = conn |> fetch_flash() |> UserAuth.require_authenticated_user([])
       assert conn.halted
       assert redirected_to(conn)
-      assert get_flash(conn, :error) == "You must log in to access this page."
+      assert Phoenix.Flash.get(conn.assigns.flash, :error) == "You must log in to access this page."
     end
 
     test "stores the path to redirect to on GET", %{conn: conn} do
