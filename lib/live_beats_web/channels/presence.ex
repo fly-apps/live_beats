@@ -12,8 +12,7 @@ defmodule LiveBeatsWeb.Presence do
 
   @pubsub LiveBeats.PubSub
 
-  import Phoenix.LiveView.Helpers
-  import LiveBeatsWeb.LiveHelpers
+  use LiveBeatsWeb, :html
 
   alias LiveBeats.{Accounts, MediaLibrary}
   alias LiveBeatsWeb.Presence.BadgeComponent
@@ -81,7 +80,6 @@ defmodule LiveBeatsWeb.Presence do
   end
 
   def listening_now(assigns) do
-    import Phoenix.LiveView
     count = Enum.count(assigns.presence_ids)
 
     assigns =

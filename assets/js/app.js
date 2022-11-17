@@ -1,6 +1,6 @@
 import "phoenix_html"
 import {Socket} from "phoenix"
-import {LiveSocket} from "phoenix_live_view"
+import {LiveSocket} from "./phoenix_live_view"
 import topbar from "../vendor/topbar"
 
 let nowSeconds = () => Math.round(Date.now() / 1000)
@@ -187,7 +187,7 @@ Hooks.Ping = {
     this.handleEvent("pong", () => {
       let rtt = Date.now() - this.nowMs
       this.el.innerText = `ping: ${rtt}ms`
-      this.timer = setTimeout(() => this.ping(rtt), 1000)
+      // this.timer = setTimeout(() => this.ping(rtt), 1000)
     })
     this.ping(null)
   },

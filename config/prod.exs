@@ -16,6 +16,8 @@ config :live_beats, LiveBeatsWeb.Endpoint,
 # Do not print debug messages in production
 config :logger, level: :info
 
+config :swoosh, :api_client, LiveBeats.Finch
+
 # ## SSL Support
 #
 # To get SSL working, you will need to add the `https` key

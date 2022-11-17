@@ -5,7 +5,7 @@ defmodule LiveBeatsWeb.ProfileLiveTest do
   import LiveBeats.AccountsFixtures
 
   alias LiveBeats.MediaLibrary
-  alias LiveBeatsWeb.LiveHelpers
+  alias LiveBeatsWeb.CoreComponents
 
   setup %{conn: conn} do
     current_user = user_fixture(%{username: "chrismccord"})
@@ -17,7 +17,7 @@ defmodule LiveBeatsWeb.ProfileLiveTest do
   describe "own profile" do
     test "profile page uploads", %{conn: conn, current_user: current_user} do
       profile = MediaLibrary.get_profile!(current_user)
-      {:ok, lv, dead_html} = live(conn, LiveHelpers.profile_path(current_user))
+      {:ok, lv, dead_html} = live(conn, CoreComponents.profile_path(current_user))
 
       assert dead_html =~ "chrismccord&#39;s beats"
 
@@ -59,7 +59,7 @@ defmodule LiveBeatsWeb.ProfileLiveTest do
       song = MediaLibrary.get_first_song(profile)
       assert lv |> element("#delete-modal-#{song.id}-confirm") |> render_click()
 
-      {:ok, refreshed_lv, _} = live(conn, LiveHelpers.profile_path(current_user))
+      {:ok, refreshed_lv, _} = live(conn, CoreComponents.profile_path(current_user))
       refute render(refreshed_lv) =~ "silence1s"
     end
 

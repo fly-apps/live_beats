@@ -17,32 +17,11 @@ config :live_beats, :files, admin_usernames: []
 config :live_beats, LiveBeatsWeb.Endpoint,
   url: [host: "localhost"],
   secret_key_base: "55naB2xjgnsDeN+kKz7xoeqx3vIPcpCkAmg+CoVR/F7iZ5MQgNE6ykiNXoFa7wcC",
-  render_errors: [view: LiveBeatsWeb.ErrorView, accepts: ~w(html json), layout: false],
   pubsub_server: LiveBeats.PubSub,
-  live_view: [signing_salt: "OHBVr+w4"]
-
-# Configures the mailer
-#
-# By default it uses the "Local" adapter which stores the emails
-# locally. You can see the emails in your browser, at "/dev/mailbox".
-#
-# For production it's recommended to configure a different adapter
-# at the `config/runtime.exs`.
-config :live_beats, LiveBeats.Mailer, adapter: Swoosh.Adapters.Local
-
-# Swoosh API client is needed for adapters other than SMTP.
-config :swoosh, :api_client, false
-
-# Configure esbuild (the version is required)
-config :tailwind,
-  version: "3.0.10",
-  default: [
-    args: ~w(
-      --config=tailwind.config.js
-      --input=css/app.css
-      --output=../priv/static/assets/app.css
-    ),
-    cd: Path.expand("../assets", __DIR__)
+  live_view: [signing_salt: "OHBVr+w4"],
+  render_errors: [
+    formats: [html: LiveBeatsWeb.ErrorHTML, json: LiveBeatsWeb.ErrorJSON],
+    layout: false
   ]
 
 config :esbuild,
@@ -51,6 +30,18 @@ config :esbuild,
     args: ~w(js/app.js --bundle --target=es2016 --outdir=../priv/static/assets),
     cd: Path.expand("../assets", __DIR__),
     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
+  ]
+
+# Configure tailwind (the version is required)
+config :tailwind,
+  version: "3.1.8",
+  default: [
+    args: ~w(
+      --config=tailwind.config.js
+      --input=css/app.css
+      --output=../priv/static/assets/app.css
+    ),
+    cd: Path.expand("../assets", __DIR__)
   ]
 
 # Configures Elixir's Logger

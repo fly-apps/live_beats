@@ -64,7 +64,7 @@
                     <span phx-click={js_exec("##{@uploads.mp3.ref}", "click", [])}>
                       Upload files
                     </span>
-                    <%= live_file_input(@uploads.mp3, class: "sr-only", tabindex: "0") %>
+                    <.live_file_input upload={@uploads.mp3} class="sr-only" tabindex="0" />
                   </label>
                   <p class="pl-1">or drag and drop</p>
                 </div>

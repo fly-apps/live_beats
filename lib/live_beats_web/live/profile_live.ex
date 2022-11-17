@@ -95,7 +95,7 @@ defmodule LiveBeatsWeb.ProfileLive do
         <%= song.attribution %>
       </:col>
       <:col :let={%{song: song}} label="Duration"><%= MP3Stat.to_mmss(song.duration) %></:col>
-      <:col :let={%{song: song}} label="" if={@owns_profile?}>
+      <:col :let={%{song: song}} label="" :if={@owns_profile?}>
         <.link
           id={"delete-song-#{song.id}"}
           phx-click={show_modal("delete-modal-#{song.id}")}
@@ -109,6 +109,7 @@ defmodule LiveBeatsWeb.ProfileLive do
   end
 
   def mount(%{"profile_username" => profile_username}, _session, socket) do
+    IO.inspect(get_connect_params(socket))
     %{current_user: current_user} = socket.assigns
 
     profile =

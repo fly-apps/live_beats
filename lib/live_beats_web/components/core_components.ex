@@ -1,4 +1,4 @@
-defmodule LiveBeatsWeb.LiveHelpers do
+defmodule LiveBeatsWeb.CoreComponents do
   use Phoenix.Component
 
   alias LiveBeatsWeb.Router.Helpers, as: Routes
@@ -23,6 +23,8 @@ defmodule LiveBeatsWeb.LiveHelpers do
   def profile_path(%MediaLibrary.Profile{} = profile, action) do
     profile_path(profile.username, action)
   end
+
+  slot :inner_block
 
   def connection_status(assigns) do
     ~H"""
@@ -62,62 +64,60 @@ defmodule LiveBeatsWeb.LiveHelpers do
   end
 
   attr :flash, :map
-  attr :kiny, :atom
+  attr :kind, :atom
 
   def flash(%{kind: :error} = assigns) do
     ~H"""
-    <%= if live_flash(@flash, @kind) do %>
-      <div
-        id="flash"
-        class="rounded-md bg-red-50 p-4 fixed top-1 right-1 w-96 fade-in-scale z-50"
-        phx-click={
-          JS.push("lv:clear-flash")
-          |> JS.remove_class("fade-in-scale", to: "#flash")
-          |> hide("#flash")
-        }
-        phx-hook="Flash"
-      >
-        <div class="flex justify-between items-center space-x-3 text-red-700">
-          <.icon name={:exclamation_circle} class="w-5 w-5" />
-          <p class="flex-1 text-sm font-medium" role="alert">
-            <%= live_flash(@flash, @kind) %>
-          </p>
-          <button
-            type="button"
-            class="inline-flex bg-red-50 rounded-md p-1.5 text-red-500 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-red-50 focus:ring-red-600"
-          >
-            <.icon name={:x} class="w-4 h-4" />
-          </button>
-        </div>
+    <div
+      :if={msg = Phoenix.Flash.get(@flash, @kind)}
+      id="flash"
+      class="rounded-md bg-red-50 p-4 fixed top-1 right-1 w-96 fade-in-scale z-50"
+      phx-click={
+        JS.push("lv:clear-flash")
+        |> JS.remove_class("fade-in-scale", to: "#flash")
+        |> hide("#flash")
+      }
+      phx-hook="Flash"
+    >
+      <div class="flex justify-between items-center space-x-3 text-red-700">
+        <.icon name={:exclamation_circle} class="w-5 w-5" />
+        <p class="flex-1 text-sm font-medium" role="alert">
+          <%= msg %>
+        </p>
+        <button
+          type="button"
+          class="inline-flex bg-red-50 rounded-md p-1.5 text-red-500 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-red-50 focus:ring-red-600"
+        >
+          <.icon name={:x} class="w-4 h-4" />
+        </button>
       </div>
-    <% end %>
+    </div>
     """
   end
 
   def flash(%{kind: :info} = assigns) do
     ~H"""
-    <%= if live_flash(@flash, @kind) do %>
-      <div
-        id="flash"
-        class="rounded-md bg-green-50 p-4 fixed top-1 right-1 w-96 fade-in-scale z-50"
-        phx-click={JS.push("lv:clear-flash") |> JS.remove_class("fade-in-scale") |> hide("#flash")}
-        phx-value-key="info"
-        phx-hook="Flash"
-      >
-        <div class="flex justify-between items-center space-x-3 text-green-700">
-          <.icon name={:check_circle} class="w-5 h-5" />
-          <p class="flex-1 text-sm font-medium" role="alert">
-            <%= live_flash(@flash, @kind) %>
-          </p>
-          <button
-            type="button"
-            class="inline-flex bg-green-50 rounded-md p-1.5 text-green-500 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-green-50 focus:ring-green-600"
-          >
-            <.icon name={:x} class="w-4 h-4" />
-          </button>
-        </div>
+    <div
+      :if={msg = Phoenix.Flash.get(@flash, @kind)}
+      id="flash"
+      class="rounded-md bg-green-50 p-4 fixed top-1 right-1 w-96 fade-in-scale z-50"
+      phx-click={JS.push("lv:clear-flash") |> JS.remove_class("fade-in-scale") |> hide("#flash")}
+      phx-value-key="info"
+      phx-hook="Flash"
+    >
+      <div class="flex justify-between items-center space-x-3 text-green-700">
+        <.icon name={:check_circle} class="w-5 h-5" />
+        <p class="flex-1 text-sm font-medium" role="alert">
+          <%= msg %>
+        </p>
+        <button
+          type="button"
+          class="inline-flex bg-green-50 rounded-md p-1.5 text-green-500 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-green-50 focus:ring-green-600"
+        >
+          <.icon name={:x} class="w-4 h-4" />
+        </button>
       </div>
-    <% end %>
+    </div>
     """
   end
 
@@ -180,11 +180,18 @@ defmodule LiveBeatsWeb.LiveHelpers do
       </.dropdown>
   """
   attr :id, :string, required: true
-  attr :ok, :string, required: true
-  attr :img, :list, default: []
-  attr :title, :list, default: []
-  attr :subtitle, :list, default: []
-  attr :link, :list, default: []
+
+  slot :img do
+    attr :src, :string
+  end
+
+  slot :title
+  slot :subtitle
+  slot :link do
+    attr :navigate, :string
+    attr :href, :string
+    attr :method, :any
+  end
 
   def dropdown(assigns) do
     ~H"""
@@ -364,11 +371,11 @@ defmodule LiveBeatsWeb.LiveHelpers do
   attr :navigate, :string, default: nil
   attr :on_cancel, JS, default: %JS{}
   attr :on_confirm, JS, default: %JS{}
-  # slots
-  attr :title, :list, default: []
-  attr :confirm, :list, default: []
-  attr :cancel, :list, default: []
   attr :rest, :global
+
+  slot :title
+  slot :confirm
+  slot :cancel
 
   def modal(assigns) do
     ~H"""
@@ -377,7 +384,7 @@ defmodule LiveBeatsWeb.LiveHelpers do
       class={"fixed z-10 inset-0 overflow-y-auto #{if @show, do: "fade-in", else: "hidden"}"}
       {@rest}
     >
-      <.focus_wrap id={"#{@id}-focus-wrap"} content={"##{@id}-container"}>
+      <.focus_wrap id={"#{@id}-focus-wrap"}>
         <div
           class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
           aria-labelledby={"#{@id}-title"}
@@ -477,7 +484,7 @@ defmodule LiveBeatsWeb.LiveHelpers do
     """
   end
 
-  attr :actions, :list, default: []
+  slot :actions
 
   def title_bar(assigns) do
     ~H"""
@@ -500,6 +507,8 @@ defmodule LiveBeatsWeb.LiveHelpers do
   attr :patch, :string
   attr :primary, :boolean, default: false
   attr :rest, :global
+
+  slot :inner_block
 
   def button(%{patch: _} = assigns) do
     ~H"""
@@ -541,8 +550,8 @@ defmodule LiveBeatsWeb.LiveHelpers do
 
   attr :row_id, :any, default: false
   attr :rows, :list, required: true
-  # slots
-  attr :col, :list, required: true
+
+  slot :col, required: true
 
   def table(assigns) do
     assigns =
@@ -590,8 +599,11 @@ defmodule LiveBeatsWeb.LiveHelpers do
   attr :rows, :list, required: true
   attr :owns_profile?, :boolean, default: false
   attr :active_id, :any, default: nil
-  # slots
-  attr :col, :list
+
+  slot :col do
+    attr :label, :string
+    attr :class, :string
+  end
 
   def live_table(assigns) do
     assigns = assign(assigns, :col, for(col <- assigns.col, col[:if] != false, do: col))
@@ -647,5 +659,73 @@ defmodule LiveBeatsWeb.LiveHelpers do
     js
     |> JS.dispatch("js:focus-closest", to: to)
     |> hide(to)
+  end
+
+  @doc """
+  Generates tag for inlined form input errors.
+  """
+  def error_tag(form, field) do
+    error(%{
+      errors: form.errors,
+      field: field,
+      input_name: Phoenix.HTML.Form.input_name(form, field)
+    })
+  end
+
+  def error(%{errors: errors, field: field} = assigns) do
+    assigns =
+      assigns
+      |> assign(:error_values, Keyword.get_values(errors, field))
+      |> assign_new(:class, fn -> "" end)
+
+    ~H"""
+    <%= for error <- @error_values do %>
+      <span
+        phx-feedback-for={@input_name}
+        class={
+          "invalid-feedback inline-block pl-2 pr-2 text-sm text-white bg-red-600 rounded-md #{@class}"
+        }
+      >
+        <%= translate_error(error) %>
+      </span>
+    <% end %>
+    <%= if Enum.empty?(@error_values) do %>
+      <span class={"invalid-feedback inline-block h-0 #{@class}"}></span>
+    <% end %>
+    """
+  end
+
+  @doc """
+  Translates an error message using gettext.
+  """
+  def translate_error({msg, opts}) do
+    # When using gettext, we typically pass the strings we want
+    # to translate as a static argument:
+    #
+    #     # Translate "is invalid" in the "errors" domain
+    #     dgettext("errors", "is invalid")
+    #
+    #     # Translate the number of files with plural rules
+    #     dngettext("errors", "1 file", "%{count} files", count)
+    #
+    # Because the error messages we show in our forms and APIs
+    # are defined inside Ecto, we need to translate them dynamically.
+    # This requires us to call the Gettext module passing our gettext
+    # backend as first argument.
+    #
+    # Note we use the "errors" domain, which means translations
+    # should be written to the errors.po file. The :count option is
+    # set by Ecto and indicates we should also apply plural rules.
+    if count = opts[:count] do
+      Gettext.dngettext(LiveBeatsWeb.Gettext, "errors", msg, msg, count, opts)
+    else
+      Gettext.dgettext(LiveBeatsWeb.Gettext, "errors", msg, opts)
+    end
+  end
+
+  def translate_changeset_errors(changeset) do
+    changeset.errors
+    |> Enum.map(fn {key, value} -> "#{key} #{translate_error(value)}" end)
+    |> Enum.join("\n")
   end
 end

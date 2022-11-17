@@ -5,7 +5,7 @@ defmodule LiveBeats.MP3Stat do
   MP3 decoding and duration calculation credit to:
   https://shadowfacts.net/2021/mp3-duration/
   """
-  use Bitwise
+  import Bitwise
   alias LiveBeats.MP3Stat
 
   defstruct duration: 0, size: 0, path: nil, title: nil, artist: nil, tags: nil

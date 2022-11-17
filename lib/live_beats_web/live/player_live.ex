@@ -185,6 +185,7 @@ defmodule LiveBeatsWeb.PlayerLive do
     socket =
       socket
       |> assign(
+        foo: true,
         song: nil,
         playing: false,
         profile: nil,

@@ -169,10 +169,10 @@ defmodule LiveBeatsWeb.ProfileLive.UploadFormComponent do
     do: ~H|Something went wrong|
 
   defp file_error(%{kind: %Ecto.Changeset{}} = assigns),
-    do: ~H|<%= @label %>: <%= LiveBeatsWeb.ErrorHelpers.translate_changeset_errors(@kind) %>|
+    do: ~H|<%= @label %>: translate_changeset_errors(@kind) %>|
 
   defp file_error(%{kind: {msg, opts}} = assigns) when is_binary(msg) and is_list(opts),
-    do: ~H|<%= @label %>: <%= LiveBeatsWeb.ErrorHelpers.translate_error(@kind) %>|
+    do: ~H|<%= @label %>: translate_error(@kind) %>|
 
   defp put_stats(socket, entry_ref, %MP3Stat{} = stat) do
     if changeset = get_changeset(socket, entry_ref) do
