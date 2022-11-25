@@ -11,6 +11,30 @@ if System.get_env("PHX_SERVER") && System.get_env("RELEASE_NAME") do
   config :live_beats, LiveBeatsWeb.Endpoint, server: true
 end
 
+# Used by Dockerfile.dev.
+if System.get_env("DEV_CONTAINER") do
+  database_url =
+    System.get_env("DATABASE_URL") ||
+      raise """
+      environment variable DATABASE_URL is missing.
+      For example: ecto://USER:PASS@HOST/DATABASE
+      """
+
+  replica_database_url =
+    System.get_env("REPLICA_DATABASE_URL") || database_url
+
+  config :live_beats, LiveBeats.Repo,
+    url: database_url,
+    show_sensitive_data_on_connection_error: true,
+    pool_size: 10
+
+  config :live_beats, LiveBeats.ReplicaRepo,
+    url: replica_database_url,
+    show_sensitive_data_on_connection_error: true,
+    pool_size: 10,
+    priv: "priv/repo"
+end
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||
