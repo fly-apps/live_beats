@@ -189,6 +189,7 @@ defmodule LiveBeatsWeb.CoreComponents do
 
   slot :title
   slot :subtitle
+
   slot :link do
     attr :navigate, :string
     attr :href, :string
@@ -550,21 +551,24 @@ defmodule LiveBeatsWeb.CoreComponents do
     """
   end
 
+  attr :id, :any, default: nil
   attr :row_id, :any, default: false
+  attr :row_click, :any, default: nil
   attr :rows, :list, required: true
+  attr :streamable, :boolean, default: false
+  attr :sortable_drop, :string, default: nil
 
-  slot :col, required: true
+  slot :col, required: true do
+    attr :label, :string
+    attr :class, :string
+    attr :class!, :string
+  end
 
   def table(assigns) do
-    assigns =
-      assigns
-      |> assign_new(:row_id, fn -> false end)
-      |> assign(:col, for(col <- assigns.col, col[:if] != false, do: col))
-
     ~H"""
-    <div class="hidden mt-8 sm:block">
+    <div class="mt-8 sm:block">
       <div class="align-middle inline-block min-w-full border-b border-gray-200">
-        <table class="min-w-full">
+        <table id={@id} class="min-w-full">
           <thead>
             <tr class="border-t border-gray-200">
               <%= for col <- @col do %>
@@ -574,13 +578,23 @@ defmodule LiveBeatsWeb.CoreComponents do
               <% end %>
             </tr>
           </thead>
-          <tbody class="bg-white divide-y divide-gray-100">
+          <tbody
+            id={"#{@id}-body"}
+            class="bg-white divide-y divide-gray-100"
+            phx-stream={@streamable}
+            phx-hook={@sortable_drop && "Sortable"}
+            data-drop={@sortable_drop}
+          >
             <%= for {row, i} <- Enum.with_index(@rows) do %>
               <tr id={@row_id && @row_id.(row)} class="hover:bg-gray-50">
                 <%= for col <- @col do %>
-                  <td class={
-                    "px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900 #{if i == 0, do: "max-w-0 w-full"} #{col[:class]}"
-                  }>
+                  <td
+                    phx-click={@row_click && @row_click.(row)}
+                    class={
+                      col[:class!] ||
+                        "px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900 #{if i == 0, do: "max-w-0 w-full"} #{col[:class]}"
+                    }
+                  >
                     <div class="flex items-center space-x-3 lg:pl-2">
                       <%= render_slot(col, row) %>
                     </div>
@@ -608,8 +622,6 @@ defmodule LiveBeatsWeb.CoreComponents do
   end
 
   def live_table(assigns) do
-    assigns = assign(assigns, :col, for(col <- assigns.col, col[:if] != false, do: col))
-
     ~H"""
     <div class="hidden mt-8 sm:block">
       <div class="align-middle inline-block min-w-full border-b border-gray-200">
@@ -633,7 +645,6 @@ defmodule LiveBeatsWeb.CoreComponents do
                 index={i}
                 active_id={@active_id}
                 class="hover:bg-gray-50"
-                ,
                 owns_profile?={@owns_profile?}
               />
             <% end %>

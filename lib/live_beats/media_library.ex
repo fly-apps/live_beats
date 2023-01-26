@@ -162,12 +162,15 @@ defmodule LiveBeats.MediaLibrary do
     user = Accounts.get_user!(user.id)
 
     multi =
-      Enum.reduce(changesets, Ecto.Multi.new(), fn {ref, chset}, acc ->
+      changesets
+      |> Enum.with_index()
+      |> Enum.reduce(Ecto.Multi.new(), fn {{ref, chset}, idx}, acc ->
         chset =
           chset
           |> Song.put_user(user)
           |> Song.put_mp3_path()
           |> Song.put_server_ip()
+          |> Ecto.Changeset.put_change(:position, idx)
 
         Ecto.Multi.insert(acc, {:song, ref}, chset)
       end)
@@ -241,7 +244,7 @@ defmodule LiveBeats.MediaLibrary do
   end
 
   def list_profile_songs(%Profile{} = profile, limit \\ 100) do
-    from(s in Song, where: s.user_id == ^profile.user_id, limit: ^limit)
+    from(s in Song, where: s.user_id == ^profile.user_id, limit: ^limit, order_by: [asc: :position])
     |> order_by_playlist(:asc)
     |> Repo.replica().all()
   end
@@ -340,6 +343,48 @@ defmodule LiveBeats.MediaLibrary do
       |> Repo.replica().one()
 
     prev || get_last_song(profile)
+  end
+
+  def update_song_position(%Song{} = song, new_index) do
+    old_index = song.position
+
+    multi =
+      Ecto.Multi.new()
+      |> Ecto.Multi.run(:valid_index, fn repo, _changes ->
+        case repo.one(from s in Song, where: s.user_id == ^song.user_id, select: count(s.id)) do
+          count when new_index < count -> {:ok, count}
+          _count -> {:error, :index_out_of_range}
+        end
+      end)
+      |> Ecto.Multi.update_all(:dec_positions, fn _ ->
+         from(s in Song,
+            where: s.user_id == ^song.user_id and s.id != ^song.id,
+            where: s.position > ^old_index and s.position <= ^new_index,
+            update: [inc: [position: -1]]
+         )
+      end, [])
+      |> Ecto.Multi.update_all(:inc_positions, fn _ ->
+         from(s in Song,
+            where: s.user_id == ^song.user_id and s.id != ^song.id,
+            where: s.position < ^old_index and s.position >= ^new_index,
+            update: [inc: [position: 1]]
+         )
+      end, [])
+      |> Ecto.Multi.update_all(:position, fn _ ->
+         from(s in Song,
+            where: s.id == ^song.id,
+            update: [set: [position: ^new_index]]
+         )
+      end, [])
+
+    case LiveBeats.Repo.transaction(multi) do
+      {:ok, _} ->
+        broadcast!(song.user_id, %Events.NewPosition{song: %Song{song | position: new_index}})
+        :ok
+
+      {:error, failed_op, _failed_val, _changes} ->
+        {:error, failed_op}
+    end
   end
 
   def update_song(%Song{} = song, attrs) do

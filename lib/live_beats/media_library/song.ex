@@ -21,6 +21,7 @@ defmodule LiveBeats.MediaLibrary.Song do
     field :mp3_filename, :string
     field :mp3_filesize, :integer, default: 0
     field :server_ip, EctoNetwork.INET
+    field :position, :integer, default: 0
     belongs_to :user, Accounts.User
     belongs_to :genre, LiveBeats.MediaLibrary.Genre
 

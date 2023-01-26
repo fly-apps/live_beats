@@ -3,7 +3,7 @@ defmodule LiveBeatsWeb.ProfileLive do
 
   alias LiveBeats.{Accounts, MediaLibrary, MP3Stat}
   alias LiveBeatsWeb.{LayoutComponent, Presence}
-  alias LiveBeatsWeb.ProfileLive.{SongRowComponent, UploadFormComponent}
+  alias LiveBeatsWeb.ProfileLive.{UploadFormComponent}
 
   @max_presences 20
 
@@ -60,7 +60,7 @@ defmodule LiveBeatsWeb.ProfileLive do
     />
 
     <div id="dialogs" phx-update="append">
-      <%= for song <- if(@owns_profile?, do: @songs, else: []), id = "delete-modal-#{song.id}" do %>
+      <%= for {_id, song} <- if(@owns_profile?, do: @songs, else: []), id = "delete-modal-#{song.id}" do %>
         <.modal
           id={id}
           on_confirm={
@@ -78,24 +78,48 @@ defmodule LiveBeatsWeb.ProfileLive do
       <% end %>
     </div>
 
-    <.live_table
+    <.table
       id="songs"
-      module={SongRowComponent}
       rows={@songs}
-      row_id={fn song -> "song-#{song.id}" end}
-      owns_profile?={@owns_profile?}
+      row_id={fn {id, _song} -> id end}
+      row_click={fn {_id, song} -> JS.push("play_or_pause", value: %{id: song.id}) end}
+      streamable
+      sortable_drop="row_dropped"
     >
-      <:col :let={%{song: song}} label="Title"><%= song.title %></:col>
-      <:col :let={%{song: song}} label="Artist"><%= song.artist %></:col>
+      <:col :let={{_id, song}} label="Title" class!="px-6 py-3 text-sm font-medium text-gray-900 min-w-[20rem] cursor-pointer">
+        <span :if={song.status == :playing} class="flex pt-1 relative mr-2 w-4">
+          <span class="w-3 h-3 animate-ping bg-purple-400 rounded-full absolute"></span>
+          <.icon name={:volume_up} class="h-5 w-5 -mt-1 -ml-1" aria-label="Playing" role="button" />
+        </span>
+        <span :if={song.status == :paused} class="flex pt-1 relative mr-2 w-4">
+          <.icon
+            name={:volume_up}
+            class="h-5 w-5 -mt-1 -ml-1 text-gray-400"
+            aria-label="Paused"
+            role="button"
+          />
+        </span>
+        <span :if={song.status == :stopped} class="flex relative w-6 -translate-x-1">
+          <.icon
+            :if={@owns_profile?}
+            name={:play}
+            class="h-5 w-5 text-gray-400"
+            aria-label="Play"
+            role="button"
+          />
+        </span>
+        <%= song.title %> <%= @count %>
+      </:col>
+      <:col :let={{_id, song}} label="Artist"><%= song.artist %></:col>
       <:col
-        :let={%{song: song}}
+        :let={{_id, song}}
         label="Attribution"
         class="max-w-5xl break-words text-gray-600 font-light"
       >
         <%= song.attribution %>
       </:col>
-      <:col :let={%{song: song}} label="Duration"><%= MP3Stat.to_mmss(song.duration) %></:col>
-      <:col :let={%{song: song}} label="" :if={@owns_profile?}>
+      <:col :let={{_id, song}} label="Duration"><%= MP3Stat.to_mmss(song.duration) %></:col>
+      <:col :let={{_id, song}} :if={@owns_profile?} label="">
         <.link
           id={"delete-song-#{song.id}"}
           phx-click={show_modal("delete-modal-#{song.id}")}
@@ -104,7 +128,7 @@ defmodule LiveBeatsWeb.ProfileLive do
           <.icon name={:trash} class="-ml-0.5 mr-2 h-4 w-4" /> Delete
         </.link>
       </:col>
-    </.live_table>
+    </.table>
     """
   end
 
@@ -123,22 +147,22 @@ defmodule LiveBeatsWeb.ProfileLive do
 
     active_song_id =
       if song = MediaLibrary.get_current_active_song(profile) do
-        SongRowComponent.send_status(song.id, song.status)
         song.id
       end
 
     socket =
       socket
       |> assign(
+        count: 0,
         active_song_id: active_song_id,
         active_profile_id: current_user.active_profile_user_id,
         profile: profile,
         owns_profile?: MediaLibrary.owns_profile?(current_user, profile)
       )
-      |> list_songs()
+      |> stream_songs()
       |> assign_presences()
 
-    {:ok, socket, temporary_assigns: [songs: [], presences: %{}]}
+    {:ok, socket, temporary_assigns: [presences: %{}]}
   end
 
   def handle_params(params, _url, socket) do
@@ -174,6 +198,17 @@ defmodule LiveBeatsWeb.ProfileLive do
     {:noreply, socket}
   end
 
+  def handle_event("row_dropped", %{"id" => dom_id, "old" => old_idx, "new" => new_idx}, socket) do
+    "songs-" <> id = dom_id
+    song = MediaLibrary.get_song!(id)
+    if song.user_id == socket.assigns.current_user.id and song.position == old_idx do
+      :ok = MediaLibrary.update_song_position(song, new_idx)
+      {:noreply, socket}
+    else
+      {:noreply, socket}
+    end
+  end
+
   def handle_info({LiveBeatsWeb.Presence, %{user_joined: presence}}, socket) do
     {:noreply, assign_presence(socket, presence)}
   end
@@ -199,12 +234,16 @@ defmodule LiveBeatsWeb.ProfileLive do
      |> push_patch(to: profile_path(update.profile))}
   end
 
+  def handle_info({MediaLibrary, %MediaLibrary.Events.NewPosition{song: song}}, socket) do
+    {:noreply, stream_insert(socket, :songs, song, at: song.position)}
+  end
+
   def handle_info({MediaLibrary, %MediaLibrary.Events.Play{song: song}}, socket) do
     {:noreply, play_song(socket, song)}
   end
 
   def handle_info({MediaLibrary, %MediaLibrary.Events.Pause{song: song}}, socket) do
-    {:noreply, pause_song(socket, song.id)}
+    {:noreply, pause_song(socket, song)}
   end
 
   def handle_info({MediaLibrary, %MediaLibrary.Events.SongsImported{songs: songs}}, socket) do
@@ -227,18 +266,20 @@ defmodule LiveBeatsWeb.ProfileLive do
   def handle_info({Accounts, _}, socket), do: {:noreply, socket}
 
   defp stop_song(socket, song_id) do
-    SongRowComponent.send_status(song_id, :stopped)
+    song = MediaLibrary.get_song!(song_id)
 
-    if socket.assigns.active_song_id == song_id do
-      assign(socket, :active_song_id, nil)
-    else
-      socket
-    end
+    socket =
+      if socket.assigns.active_song_id == song_id do
+        assign(socket, :active_song_id, nil)
+      else
+        socket
+      end
+
+    stream_insert(socket, :songs, %MediaLibrary.Song{song | status: :stopped})
   end
 
-  defp pause_song(socket, song_id) do
-    SongRowComponent.send_status(song_id, :paused)
-    socket
+  defp pause_song(socket, %MediaLibrary.Song{} = song) do
+    stream_insert(socket, :songs, %MediaLibrary.Song{song | status: :paused})
   end
 
   defp play_song(socket, %MediaLibrary.Song{} = song) do
@@ -246,19 +287,18 @@ defmodule LiveBeatsWeb.ProfileLive do
 
     cond do
       active_song_id == song.id ->
-        SongRowComponent.send_status(song.id, :playing)
-        socket
+        stream_insert(socket, :songs, %MediaLibrary.Song{song | status: :playing})
 
       active_song_id ->
-        SongRowComponent.send_status(song.id, :playing)
-
         socket
         |> stop_song(active_song_id)
+        |> stream_insert(:songs, %MediaLibrary.Song{song | status: :playing})
         |> assign(active_song_id: song.id)
 
       true ->
-        SongRowComponent.send_status(song.id, :playing)
-        assign(socket, active_song_id: song.id)
+        socket
+        |> stream_insert(:songs, %MediaLibrary.Song{song | status: :playing})
+        |> assign(active_song_id: song.id)
     end
   end
 
@@ -294,8 +334,8 @@ defmodule LiveBeatsWeb.ProfileLive do
     socket
   end
 
-  defp list_songs(socket) do
-    assign(socket, songs: MediaLibrary.list_profile_songs(socket.assigns.profile, 50))
+  defp stream_songs(socket) do
+    stream(socket, :songs, MediaLibrary.list_profile_songs(socket.assigns.profile, 50))
   end
 
   defp assign_presences(socket) do

@@ -14,4 +14,8 @@ defmodule LiveBeats.MediaLibrary.Events do
   defmodule SongsImported do
     defstruct user_id: nil, songs: []
   end
+
+  defmodule NewPosition do
+    defstruct song: nil
+  end
 end
