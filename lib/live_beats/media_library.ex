@@ -162,17 +162,23 @@ defmodule LiveBeats.MediaLibrary do
     user = Accounts.get_user!(user.id)
 
     multi =
+      Ecto.Multi.new()
+      |> Ecto.Multi.run(:starting_position, fn repo, _changes ->
+        count = repo.one(from s in Song, where: s.user_id == ^user.id, select: count(s.id))
+        {:ok, count - 1}
+      end)
+
+    multi =
       changesets
       |> Enum.with_index()
-      |> Enum.reduce(Ecto.Multi.new(), fn {{ref, chset}, idx}, acc ->
-        chset =
+      |> Enum.reduce(multi, fn {{ref, chset}, i}, acc ->
+        Ecto.Multi.insert(acc, {:song, ref}, fn %{starting_position: pos_start} ->
           chset
           |> Song.put_user(user)
           |> Song.put_mp3_path()
           |> Song.put_server_ip()
-          |> Ecto.Changeset.put_change(:position, idx)
-
-        Ecto.Multi.insert(acc, {:song, ref}, chset)
+          |> Ecto.Changeset.put_change(:position, pos_start + i + 1)
+        end)
       end)
       |> Ecto.Multi.run(:valid_songs_count, fn _repo, changes ->
         new_songs_count = changes |> Enum.filter(&match?({{:song, _ref}, _}, &1)) |> Enum.count()
@@ -244,7 +250,10 @@ defmodule LiveBeats.MediaLibrary do
   end
 
   def list_profile_songs(%Profile{} = profile, limit \\ 100) do
-    from(s in Song, where: s.user_id == ^profile.user_id, limit: ^limit, order_by: [asc: :position])
+    from(s in Song,
+      where: s.user_id == ^profile.user_id,
+      limit: ^limit
+    )
     |> order_by_playlist(:asc)
     |> Repo.replica().all()
   end
@@ -323,7 +332,7 @@ defmodule LiveBeats.MediaLibrary do
   def get_next_song(%Song{} = song, %Profile{} = profile) do
     next =
       from(s in Song,
-        where: s.user_id == ^song.user_id and s.id > ^song.id,
+        where: s.user_id == ^song.user_id and s.position > ^song.position,
         limit: 1
       )
       |> order_by_playlist(:asc)
@@ -335,8 +344,7 @@ defmodule LiveBeats.MediaLibrary do
   def get_prev_song(%Song{} = song, %Profile{} = profile) do
     prev =
       from(s in Song,
-        where: s.user_id == ^song.user_id and s.id < ^song.id,
-        order_by: [desc: s.inserted_at, desc: s.id],
+        where: s.user_id == ^song.user_id and s.position < ^song.position,
         limit: 1
       )
       |> order_by_playlist(:desc)
@@ -356,26 +364,26 @@ defmodule LiveBeats.MediaLibrary do
           _count -> {:error, :index_out_of_range}
         end
       end)
-      |> Ecto.Multi.update_all(:dec_positions, fn _ ->
-         from(s in Song,
-            where: s.user_id == ^song.user_id and s.id != ^song.id,
-            where: s.position > ^old_index and s.position <= ^new_index,
-            update: [inc: [position: -1]]
-         )
-      end, [])
-      |> Ecto.Multi.update_all(:inc_positions, fn _ ->
-         from(s in Song,
-            where: s.user_id == ^song.user_id and s.id != ^song.id,
-            where: s.position < ^old_index and s.position >= ^new_index,
-            update: [inc: [position: 1]]
-         )
-      end, [])
-      |> Ecto.Multi.update_all(:position, fn _ ->
-         from(s in Song,
-            where: s.id == ^song.id,
-            update: [set: [position: ^new_index]]
-         )
-      end, [])
+      |> multi_update_all(:dec_positions, fn _ ->
+        from(s in Song,
+          where: s.user_id == ^song.user_id and s.id != ^song.id,
+          where: s.position > ^old_index and s.position <= ^new_index,
+          update: [inc: [position: -1]]
+        )
+      end)
+      |> multi_update_all(:inc_positions, fn _ ->
+        from(s in Song,
+          where: s.user_id == ^song.user_id and s.id != ^song.id,
+          where: s.position < ^old_index and s.position >= ^new_index,
+          update: [inc: [position: 1]]
+        )
+      end)
+      |> multi_update_all(:position, fn _ ->
+        from(s in Song,
+          where: s.id == ^song.id,
+          update: [set: [position: ^new_index]]
+        )
+      end)
 
     case LiveBeats.Repo.transaction(multi) do
       {:ok, _} ->
@@ -395,14 +403,26 @@ defmodule LiveBeats.MediaLibrary do
 
   def delete_song(%Song{} = song) do
     delete_song_file(song)
+    old_index = song.position
 
     Ecto.Multi.new()
     |> Ecto.Multi.delete(:delete, song)
+    |> multi_update_all(:dec_positions, fn _ ->
+      from(s in Song,
+        where: s.user_id == ^song.user_id,
+        where: s.position > ^old_index,
+        update: [inc: [position: -1]]
+      )
+    end)
     |> update_user_songs_count(song.user_id, -1)
     |> Repo.transaction()
     |> case do
-      {:ok, _} -> :ok
-      other -> other
+      {:ok, _} ->
+        broadcast!(song.user_id, %Events.SongDeleted{song: song})
+        :ok
+
+      other ->
+        other
     end
   end
 
@@ -493,7 +513,7 @@ defmodule LiveBeats.MediaLibrary do
   end
 
   defp order_by_playlist(%Ecto.Query{} = query, direction) when direction in [:asc, :desc] do
-    from(s in query, order_by: [{^direction, s.inserted_at}, {^direction, s.id}])
+    from(s in query, order_by: [{^direction, s.position}])
   end
 
   defp broadcast!(user_id, msg) when is_integer(user_id) do
@@ -508,5 +528,9 @@ defmodule LiveBeats.MediaLibrary do
     else
       {:error, :songs_limit_exceeded}
     end
+  end
+
+  defp multi_update_all(multi, name, func, opts \\ []) do
+    Ecto.Multi.update_all(multi, name, func, opts)
   end
 end

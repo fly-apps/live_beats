@@ -18,4 +18,8 @@ defmodule LiveBeats.MediaLibrary.Events do
   defmodule NewPosition do
     defstruct song: nil
   end
+
+  defmodule SongDeleted do
+    defstruct song: nil
+  end
 end

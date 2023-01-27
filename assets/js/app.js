@@ -3,6 +3,7 @@ import {Socket} from "phoenix"
 // import {LiveSocket} from "phoenix_live_view"
 import {LiveSocket} from "/Users/chris/oss/phoenix_live_view/assets/js/phoenix_live_view"
 import topbar from "../vendor/topbar"
+import Sortable from "../vendor/sortable"
 
 let nowSeconds = () => Math.round(Date.now() / 1000)
 let rand = (min, max) => Math.floor(Math.random() * (max - min) + min)

@@ -83,6 +83,7 @@ defmodule LiveBeatsWeb.ProfileLive do
       rows={@songs}
       row_id={fn {id, _song} -> id end}
       row_click={fn {_id, song} -> JS.push("play_or_pause", value: %{id: song.id}) end}
+      row_remove={fn {id, _song} -> hide("##{id}") end}
       streamable
       sortable_drop="row_dropped"
     >
@@ -108,7 +109,7 @@ defmodule LiveBeatsWeb.ProfileLive do
             role="button"
           />
         </span>
-        <%= song.title %> <%= @count %>
+        <%= song.title %>
       </:col>
       <:col :let={{_id, song}} label="Artist"><%= song.artist %></:col>
       <:col
@@ -153,7 +154,6 @@ defmodule LiveBeatsWeb.ProfileLive do
     socket =
       socket
       |> assign(
-        count: 0,
         active_song_id: active_song_id,
         active_profile_id: current_user.active_profile_user_id,
         profile: profile,
@@ -247,7 +247,11 @@ defmodule LiveBeatsWeb.ProfileLive do
   end
 
   def handle_info({MediaLibrary, %MediaLibrary.Events.SongsImported{songs: songs}}, socket) do
-    {:noreply, update(socket, :songs, &(&1 ++ songs))}
+    {:noreply, Enum.reduce(songs, socket, fn song, acc -> stream_insert(acc, :songs, song) end)}
+  end
+
+  def handle_info({MediaLibrary, %MediaLibrary.Events.SongDeleted{song: song}}, socket) do
+    {:noreply, stream_delete(socket, :songs, song)}
   end
 
   def handle_info({MediaLibrary, {:ping, ping}}, socket) do

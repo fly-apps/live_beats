@@ -554,6 +554,7 @@ defmodule LiveBeatsWeb.CoreComponents do
   attr :id, :any, default: nil
   attr :row_id, :any, default: false
   attr :row_click, :any, default: nil
+  attr :row_remove, :any, default: nil
   attr :rows, :list, required: true
   attr :streamable, :boolean, default: false
   attr :sortable_drop, :string, default: nil
@@ -585,23 +586,25 @@ defmodule LiveBeatsWeb.CoreComponents do
             phx-hook={@sortable_drop && "Sortable"}
             data-drop={@sortable_drop}
           >
-            <%= for {row, i} <- Enum.with_index(@rows) do %>
-              <tr id={@row_id && @row_id.(row)} class="hover:bg-gray-50">
-                <%= for col <- @col do %>
-                  <td
-                    phx-click={@row_click && @row_click.(row)}
-                    class={
-                      col[:class!] ||
-                        "px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900 #{if i == 0, do: "max-w-0 w-full"} #{col[:class]}"
-                    }
-                  >
-                    <div class="flex items-center space-x-3 lg:pl-2">
-                      <%= render_slot(col, row) %>
-                    </div>
-                  </td>
-                <% end %>
-              </tr>
-            <% end %>
+            <tr
+              :for={{row, i} <- Enum.with_index(@rows)}
+              id={@row_id && @row_id.(row)}
+              phx-remove={@row_remove && @row_remove.(row)}
+              class="hover:bg-gray-50"
+            >
+              <td
+                :for={col <- @col}
+                phx-click={@row_click && @row_click.(row)}
+                class={
+                  col[:class!] ||
+                    "px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900 #{if i == 0, do: "max-w-0 w-full"} #{col[:class]}"
+                }
+              >
+                <div class="flex items-center space-x-3 lg:pl-2">
+                  <%= render_slot(col, row) %>
+                </div>
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
