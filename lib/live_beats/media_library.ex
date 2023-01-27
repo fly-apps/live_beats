@@ -163,6 +163,7 @@ defmodule LiveBeats.MediaLibrary do
 
     multi =
       Ecto.Multi.new()
+      |> lock_playlist(user.id)
       |> Ecto.Multi.run(:starting_position, fn repo, _changes ->
         count = repo.one(from s in Song, where: s.user_id == ^user.id, select: count(s.id))
         {:ok, count - 1}
@@ -358,6 +359,7 @@ defmodule LiveBeats.MediaLibrary do
 
     multi =
       Ecto.Multi.new()
+      |> lock_playlist(song.user_id)
       |> Ecto.Multi.run(:valid_index, fn repo, _changes ->
         case repo.one(from s in Song, where: s.user_id == ^song.user_id, select: count(s.id)) do
           count when new_index < count -> {:ok, count}
@@ -406,6 +408,7 @@ defmodule LiveBeats.MediaLibrary do
     old_index = song.position
 
     Ecto.Multi.new()
+    |> lock_playlist(song.user_id)
     |> Ecto.Multi.delete(:delete, song)
     |> multi_update_all(:dec_positions, fn _ ->
       from(s in Song,
@@ -532,5 +535,9 @@ defmodule LiveBeats.MediaLibrary do
 
   defp multi_update_all(multi, name, func, opts \\ []) do
     Ecto.Multi.update_all(multi, name, func, opts)
+  end
+
+  defp lock_playlist(%Ecto.Multi{} = multi, user_id) do
+    Repo.multi_transaction_lock(multi, :playlist, user_id)
   end
 end

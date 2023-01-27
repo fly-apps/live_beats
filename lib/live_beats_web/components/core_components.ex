@@ -582,7 +582,7 @@ defmodule LiveBeatsWeb.CoreComponents do
           <tbody
             id={"#{@id}-body"}
             class="bg-white divide-y divide-gray-100"
-            phx-stream={@streamable}
+            phx-update={@streamable && "stream"}
             phx-hook={@sortable_drop && "Sortable"}
             data-drop={@sortable_drop}
           >

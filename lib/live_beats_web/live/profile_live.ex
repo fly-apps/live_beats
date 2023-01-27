@@ -159,7 +159,7 @@ defmodule LiveBeatsWeb.ProfileLive do
         profile: profile,
         owns_profile?: MediaLibrary.owns_profile?(current_user, profile)
       )
-      |> stream_songs()
+      |> stream(:songs, MediaLibrary.list_profile_songs(profile, 50))
       |> assign_presences()
 
     {:ok, socket, temporary_assigns: [presences: %{}]}
@@ -201,6 +201,7 @@ defmodule LiveBeatsWeb.ProfileLive do
   def handle_event("row_dropped", %{"id" => dom_id, "old" => old_idx, "new" => new_idx}, socket) do
     "songs-" <> id = dom_id
     song = MediaLibrary.get_song!(id)
+
     if song.user_id == socket.assigns.current_user.id and song.position == old_idx do
       :ok = MediaLibrary.update_song_position(song, new_idx)
       {:noreply, socket}
@@ -336,10 +337,6 @@ defmodule LiveBeatsWeb.ProfileLive do
     })
 
     socket
-  end
-
-  defp stream_songs(socket) do
-    stream(socket, :songs, MediaLibrary.list_profile_songs(socket.assigns.profile, 50))
   end
 
   defp assign_presences(socket) do
