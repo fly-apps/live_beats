@@ -360,27 +360,27 @@ defmodule LiveBeats.MediaLibrary do
     multi =
       Ecto.Multi.new()
       |> lock_playlist(song.user_id)
-      |> Ecto.Multi.run(:valid_index, fn repo, _changes ->
+      |> Ecto.Multi.run(:index, fn repo, _changes ->
         case repo.one(from s in Song, where: s.user_id == ^song.user_id, select: count(s.id)) do
-          count when new_index < count -> {:ok, count}
-          _count -> {:error, :index_out_of_range}
+          count when new_index < count -> {:ok, new_index}
+          count -> {:ok, count - 1}
         end
       end)
-      |> multi_update_all(:dec_positions, fn _ ->
+      |> multi_update_all(:dec_positions, fn %{index: new_index} ->
         from(s in Song,
           where: s.user_id == ^song.user_id and s.id != ^song.id,
           where: s.position > ^old_index and s.position <= ^new_index,
           update: [inc: [position: -1]]
         )
       end)
-      |> multi_update_all(:inc_positions, fn _ ->
+      |> multi_update_all(:inc_positions, fn %{index: new_index} ->
         from(s in Song,
           where: s.user_id == ^song.user_id and s.id != ^song.id,
           where: s.position < ^old_index and s.position >= ^new_index,
           update: [inc: [position: 1]]
         )
       end)
-      |> multi_update_all(:position, fn _ ->
+      |> multi_update_all(:position, fn %{index: new_index} ->
         from(s in Song,
           where: s.id == ^song.id,
           update: [set: [position: ^new_index]]

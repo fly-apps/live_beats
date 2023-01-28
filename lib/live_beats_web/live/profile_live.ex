@@ -16,6 +16,7 @@ defmodule LiveBeatsWeb.ProfileLive do
           <%= if @owns_profile? do %>
             (you)
           <% end %>
+          <%= @songs_count %>
         </div>
         <.link href={@profile.external_homepage_url} target="_blank" class="text-sm text-gray-600">
           <.icon name={:code} /> <span class=""><%= url_text(@profile.external_homepage_url) %></span>
@@ -59,8 +60,8 @@ defmodule LiveBeatsWeb.ProfileLive do
       total_count={@presences_count}
     />
 
-    <div id="dialogs" phx-update="append">
-      <%= for {_id, song} <- if(@owns_profile?, do: @songs, else: []), id = "delete-modal-#{song.id}" do %>
+    <div id="dialogs" phx-update="stream">
+      <%= for {_id, song} <- if(@owns_profile?, do: @streams.songs, else: []), id = "delete-modal-#{song.id}" do %>
         <.modal
           id={id}
           on_confirm={
@@ -80,14 +81,18 @@ defmodule LiveBeatsWeb.ProfileLive do
 
     <.table
       id="songs"
-      rows={@songs}
+      rows={@streams.songs}
       row_id={fn {id, _song} -> id end}
       row_click={fn {_id, song} -> JS.push("play_or_pause", value: %{id: song.id}) end}
       row_remove={fn {id, _song} -> hide("##{id}") end}
       streamable
       sortable_drop="row_dropped"
     >
-      <:col :let={{_id, song}} label="Title" class!="px-6 py-3 text-sm font-medium text-gray-900 min-w-[20rem] cursor-pointer">
+      <:col
+        :let={{_id, song}}
+        label="Title"
+        class!="px-6 py-3 text-sm font-medium text-gray-900 md:min-w-[20rem] cursor-pointer"
+      >
         <span :if={song.status == :playing} class="flex pt-1 relative mr-2 w-4">
           <span class="w-3 h-3 animate-ping bg-purple-400 rounded-full absolute"></span>
           <.icon name={:volume_up} class="h-5 w-5 -mt-1 -ml-1" aria-label="Playing" role="button" />
@@ -117,7 +122,7 @@ defmodule LiveBeatsWeb.ProfileLive do
         label="Attribution"
         class="max-w-5xl break-words text-gray-600 font-light"
       >
-        <%= song.attribution %>
+        <%= song.position %>
       </:col>
       <:col :let={{_id, song}} label="Duration"><%= MP3Stat.to_mmss(song.duration) %></:col>
       <:col :let={{_id, song}} :if={@owns_profile?} label="">
@@ -151,15 +156,18 @@ defmodule LiveBeatsWeb.ProfileLive do
         song.id
       end
 
+    songs = MediaLibrary.list_profile_songs(profile, 50)
+
     socket =
       socket
       |> assign(
         active_song_id: active_song_id,
         active_profile_id: current_user.active_profile_user_id,
         profile: profile,
-        owns_profile?: MediaLibrary.owns_profile?(current_user, profile)
+        owns_profile?: MediaLibrary.owns_profile?(current_user, profile),
+        songs_count: Enum.count(songs)
       )
-      |> stream(:songs, MediaLibrary.list_profile_songs(profile, 50))
+      |> stream(:songs, songs)
       |> assign_presences()
 
     {:ok, socket, temporary_assigns: [presences: %{}]}
@@ -248,11 +256,19 @@ defmodule LiveBeatsWeb.ProfileLive do
   end
 
   def handle_info({MediaLibrary, %MediaLibrary.Events.SongsImported{songs: songs}}, socket) do
-    {:noreply, Enum.reduce(songs, socket, fn song, acc -> stream_insert(acc, :songs, song) end)}
+    {:noreply,
+     Enum.reduce(songs, socket, fn song, acc ->
+       acc
+       |> update(:songs_count, &(&1 + 1))
+       |> stream_insert(:songs, song)
+     end)}
   end
 
   def handle_info({MediaLibrary, %MediaLibrary.Events.SongDeleted{song: song}}, socket) do
-    {:noreply, stream_delete(socket, :songs, song)}
+    {:noreply,
+     socket
+     |> update(:songs_count, &(&1 - 1))
+     |> stream_delete(:songs, song)}
   end
 
   def handle_info({MediaLibrary, {:ping, ping}}, socket) do
