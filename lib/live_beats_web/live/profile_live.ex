@@ -16,7 +16,7 @@ defmodule LiveBeatsWeb.ProfileLive do
           <%= if @owns_profile? do %>
             (you)
           <% end %>
-          <%= @songs_count %>
+          – <%= ngettext("%{count} song", "%{count} songs", @songs_count) %>
         </div>
         <.link href={@profile.external_homepage_url} target="_blank" class="text-sm text-gray-600">
           <.icon name={:code} /> <span class=""><%= url_text(@profile.external_homepage_url) %></span>
@@ -91,7 +91,7 @@ defmodule LiveBeatsWeb.ProfileLive do
       <:col
         :let={{_id, song}}
         label="Title"
-        class!="px-6 py-3 text-sm font-medium text-gray-900 md:min-w-[20rem] cursor-pointer"
+        class!="px-6 py-3 text-sm font-medium text-gray-900 min-w-[200px] md:min-w-[20rem] cursor-pointer"
       >
         <span :if={song.status == :playing} class="flex pt-1 relative mr-2 w-4">
           <span class="w-3 h-3 animate-ping bg-purple-400 rounded-full absolute"></span>
@@ -122,7 +122,7 @@ defmodule LiveBeatsWeb.ProfileLive do
         label="Attribution"
         class="max-w-5xl break-words text-gray-600 font-light"
       >
-        <%= song.position %>
+        <%= song.attribution %>
       </:col>
       <:col :let={{_id, song}} label="Duration"><%= MP3Stat.to_mmss(song.duration) %></:col>
       <:col :let={{_id, song}} :if={@owns_profile?} label="">
