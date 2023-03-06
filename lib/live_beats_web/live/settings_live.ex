@@ -11,6 +11,7 @@ defmodule LiveBeatsWeb.SettingsLive do
 
     <div class="max-w-3xl px-4 mx-auto mt-6">
       <.form
+        id="settings-form"
         :let={f}
         for={@changeset}
         phx-change="validate"
@@ -41,7 +42,7 @@ defmodule LiveBeatsWeb.SettingsLive do
                   <.error
                     field={:username}
                     input_name="user[username]"
-                    errors={@changeset.errors}
+                    errors={f.errors}
                     class="pt-2 pl-4 pr-4 ml-2 text-center"
                   />
                 </div>
@@ -72,7 +73,7 @@ defmodule LiveBeatsWeb.SettingsLive do
                   <.error
                     field={:profile_tagline}
                     input_name="user[profile_tagline]"
-                    errors={@changeset.errors}
+                    errors={f.errors}
                     class="pt-2 pl-4 pr-4 ml-2 text-center"
                   />
                 </div>
@@ -104,7 +105,7 @@ defmodule LiveBeatsWeb.SettingsLive do
 
   def handle_event("validate", %{"user" => params}, socket) do
     changeset = Accounts.change_settings(socket.assigns.current_user, params)
-    {:noreply, assign(socket, changeset: changeset)}
+    {:noreply, assign(socket, changeset: Map.put(changeset, :action, :validate))}
   end
 
   def handle_event("save", %{"user" => params}, socket) do

@@ -33,6 +33,7 @@ defmodule LiveBeats.MixProject do
   defp deps do
     [
       {:phoenix, "~> 1.7.0-rc.2", override: true},
+      # {:phoenix, "~> 1.7.0-rc.2", override: true},
       # {:phoenix_live_view, "~> 0.18.3"},
       {:phoenix_live_view, path: "~/oss/phoenix_live_view", override: true},
       {:phoenix_live_dashboard, "~> 0.7.2"},
@@ -40,7 +41,7 @@ defmodule LiveBeats.MixProject do
       {:ecto_sql, "~> 3.6"},
       {:ecto_network, "~> 1.3.0"},
       {:postgrex, ">= 0.0.0"},
-      {:phoenix_html, "~> 3.0"},
+      {:phoenix_html, "~> 3.3", override: true},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:floki, ">= 0.30.0", only: :test},
       {:esbuild, "~> 0.2", runtime: Mix.env() == :dev},
