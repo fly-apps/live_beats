@@ -84,7 +84,6 @@ defmodule LiveBeatsWeb.ProfileLive do
       rows={@streams.songs}
       row_id={fn {id, _song} -> id end}
       row_click={fn {_id, song} -> JS.push("play_or_pause", value: %{id: song.id}) end}
-      row_remove={fn {id, _song} -> hide("##{id}") end}
       streamable
       sortable_drop="row_dropped"
     >
