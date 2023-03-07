@@ -5,39 +5,21 @@ defmodule LiveBeats.Application do
 
   use Application
 
-  def speech_to_text(serving, path, chunk_time_sec \\ 5) do
+  def speech_to_text(serving, path, chunk_time \\ 5) do
     {:ok, stat} = LiveBeats.MP3Stat.parse(path)
-    chunks = trunc(Float.ceil(stat.duration / chunk_time_sec))
 
-    {ffmpeg_args, _} =
-      Enum.reduce(1..(chunks - 1), {[], 0}, fn _chunk, {args, ss} ->
-        chunk_args = ~w(
-            -i #{path}
-            -ac 1
-            -ar 16000
-            -f f32le
-            -ss #{ss}
-            -t #{chunk_time_sec}
-            -hide_banner
-            -loglevel quiet
-            pipe:1
-            )
-
-        {[chunk_args | args], ss + chunk_time_sec}
-      end)
-
-    ffmpeg_args
-    |> Enum.reverse()
-    |> Task.async_stream(
-      fn args ->
-        {data, 0} = System.cmd("ffmpeg", args)
-        Nx.Serving.batched_run(serving, Nx.from_binary(data, :f32))
-      end,
-      timeout: 20_000
-    )
+    0..stat.duration//chunk_time
+    |> Task.async_stream(&ffmpeg_to_nx(serving, path, &1, chunk_time), timeout: 20_000)
     |> Enum.each(fn {:ok, %{results: [%{text: text} | _]}} ->
       IO.puts(">> #{text}")
     end)
+  end
+
+  defp ffmpeg_to_nx(serving, path, ss, duration) do
+    args = ~w(-i #{path} -ac 1 -ar 16000 -f f32le -ss #{ss} -t #{duration} -v quiet pipe:1)
+    {data, 0} = System.cmd("ffmpeg", args)
+
+    Nx.Serving.batched_run(serving, Nx.from_binary(data, :f32))
   end
 
   @impl true
@@ -53,7 +35,7 @@ defmodule LiveBeats.Application do
       {Nx.Serving,
        serving:
          Bumblebee.Audio.speech_to_text(whisper, featurizer, tokenizer,
-           max_new_tokens: 100,
+           max_new_tokens: 50,
            defn_options: [batch_size: 10, compiler: EXLA]
          ),
        name: WhisperServing,
