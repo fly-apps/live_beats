@@ -5,23 +5,6 @@ defmodule LiveBeats.Application do
 
   use Application
 
-  def speech_to_text(serving, path, chunk_time \\ 5) do
-    {:ok, stat} = LiveBeats.MP3Stat.parse(path)
-
-    0..stat.duration//chunk_time
-    |> Task.async_stream(&ffmpeg_to_nx(serving, path, &1, chunk_time), timeout: 20_000)
-    |> Enum.each(fn {:ok, %{results: [%{text: text} | _]}} ->
-      IO.puts(">> #{text}")
-    end)
-  end
-
-  defp ffmpeg_to_nx(serving, path, ss, duration) do
-    args = ~w(-i #{path} -ac 1 -ar 16000 -f f32le -ss #{ss} -t #{duration} -v quiet pipe:1)
-    {data, 0} = System.cmd("ffmpeg", args)
-
-    Nx.Serving.batched_run(serving, Nx.from_binary(data, :f32))
-  end
-
   @impl true
   def start(_type, _args) do
     LiveBeats.MediaLibrary.attach()
@@ -35,7 +18,7 @@ defmodule LiveBeats.Application do
       {Nx.Serving,
        serving:
          Bumblebee.Audio.speech_to_text(whisper, featurizer, tokenizer,
-           max_new_tokens: 50,
+           max_new_tokens: 200,
            defn_options: [batch_size: 10, compiler: EXLA]
          ),
        name: WhisperServing,

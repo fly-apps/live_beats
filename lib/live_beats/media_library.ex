@@ -6,7 +6,7 @@ defmodule LiveBeats.MediaLibrary do
   require Logger
   import Ecto.Query, warn: false
   alias LiveBeats.{Repo, MP3Stat, Accounts}
-  alias LiveBeats.MediaLibrary.{Profile, Song, Events, Genre}
+  alias LiveBeats.MediaLibrary.{Profile, Song, Events, Genre, TextSegment}
   alias Ecto.{Multi, Changeset}
 
   @pubsub LiveBeats.PubSub
@@ -209,6 +209,18 @@ defmodule LiveBeats.MediaLibrary do
           |> Enum.filter(&match?({{:song, _ref}, _}, &1))
           |> Enum.map(fn {{:song, ref}, song} ->
             consume_file.(ref, fn tmp_path -> store_mp3(song, tmp_path) end)
+
+            Task.Supervisor.start_child(LiveBeats.TaskSupervisor, fn ->
+              segments =
+                LiveBeats.Audio.speech_to_text(song.mp3_filepath, 20.0, fn ss, text ->
+                  segment = %TextSegment{start_time: ss, text: text}
+                  broadcast!(user.id, %Events.SpeechToText{song_id: song.id, segment: segment})
+                  segment
+                end)
+
+              insert_text_segments(song, segments)
+            end)
+
             {ref, song}
           end)
 
@@ -226,6 +238,10 @@ defmodule LiveBeats.MediaLibrary do
 
         {:error, {failed_op, failed_val}}
     end
+  end
+
+  defp insert_text_segments(song, segments) do
+    Repo.update_all(from(s in Song, where: s.id == ^song.id), set: [text_segments: segments])
   end
 
   defp broadcast_imported(%Accounts.User{} = user, songs) do

@@ -54,6 +54,19 @@ defmodule LiveBeatsWeb.ProfileLive do
       </:actions>
     </.title_bar>
 
+    <div
+      id={"text-to-speech-#{@active_song_id}"}
+      phx-update="stream"
+      class="p-6 max-h-[200px] overflow-y-scroll"
+    >
+      <div :for={{id, segment} <- @streams.speech_segments} id={id}>
+        <span class="min-w-[40px] inline-block text-gray-400">
+          [<%= seconds_to_mm_ss(segment.start_time) %>]
+        </span>
+        <%= segment.text %>
+      </div>
+    </div>
+
     <Presence.listening_now
       presences={@presences}
       presence_ids={@presence_ids}
@@ -150,23 +163,22 @@ defmodule LiveBeatsWeb.ProfileLive do
       Presence.subscribe(profile)
     end
 
-    active_song_id =
-      if song = MediaLibrary.get_current_active_song(profile) do
-        song.id
-      end
+    active_song = MediaLibrary.get_current_active_song(profile)
+    speech_segments = if active_song, do: active_song.text_segments, else: []
 
     songs = MediaLibrary.list_profile_songs(profile, 50)
 
     socket =
       socket
       |> assign(
-        active_song_id: active_song_id,
+        active_song_id: active_song && active_song.id,
         active_profile_id: current_user.active_profile_user_id,
         profile: profile,
         owns_profile?: MediaLibrary.owns_profile?(current_user, profile),
         songs_count: Enum.count(songs)
       )
       |> stream(:songs, songs)
+      |> stream(:speech_segments, speech_segments, dom_id: &"ss-#{&1.start_time}")
       |> assign_presences()
 
     {:ok, socket, temporary_assigns: [presences: %{}]}
@@ -202,7 +214,11 @@ defmodule LiveBeatsWeb.ProfileLive do
       :ok = MediaLibrary.delete_song(song)
     end
 
-    {:noreply, socket}
+    if song.id == socket.assigns.active_song_id do
+      {:noreply, assign(socket, :active_song_id, nil)}
+    else
+      {:noreply, socket}
+    end
   end
 
   def handle_event("row_dropped", %{"id" => dom_id, "old" => old_idx, "new" => new_idx}, socket) do
@@ -255,12 +271,30 @@ defmodule LiveBeatsWeb.ProfileLive do
   end
 
   def handle_info({MediaLibrary, %MediaLibrary.Events.SongsImported{songs: songs}}, socket) do
+    %{current_user: current_user, active_song_id: active_song_id} = socket.assigns
+    first = hd(songs)
+
+    if !active_song_id && MediaLibrary.can_control_playback?(current_user, first) do
+      MediaLibrary.play_song(first.id)
+    end
+
     {:noreply,
      Enum.reduce(songs, socket, fn song, acc ->
        acc
        |> update(:songs_count, &(&1 + 1))
        |> stream_insert(:songs, song)
      end)}
+  end
+
+  def handle_info(
+        {MediaLibrary, %MediaLibrary.Events.SpeechToText{song_id: id, segment: segment}},
+        socket
+      ) do
+    if socket.assigns.active_song_id == id do
+      {:noreply, stream_insert(socket, :speech_segments, segment)}
+    else
+      {:noreply, socket}
+    end
   end
 
   def handle_info({MediaLibrary, %MediaLibrary.Events.SongDeleted{song: song}}, socket) do
@@ -310,7 +344,9 @@ defmodule LiveBeatsWeb.ProfileLive do
         stream_insert(socket, :songs, %MediaLibrary.Song{song | status: :playing})
 
       active_song_id ->
-        socket
+        Enum.reduce(song.text_segments, socket, fn seg, acc ->
+          stream_insert(acc, :speech_segments, seg)
+        end)
         |> stop_song(active_song_id)
         |> stream_insert(:songs, %MediaLibrary.Song{song | status: :playing})
         |> assign(active_song_id: song.id)
@@ -397,5 +433,9 @@ defmodule LiveBeatsWeb.ProfileLive do
   defp url_text(url_str) do
     uri = URI.parse(url_str)
     uri.host <> uri.path
+  end
+
+  defp seconds_to_mm_ss(seconds) do
+    seconds |> trunc() |> Time.from_seconds_after_midnight() |> Calendar.strftime("%M:%S")
   end
 end

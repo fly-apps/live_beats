@@ -332,6 +332,14 @@ defmodule LiveBeatsWeb.PlayerLive do
     {:noreply, play_song(socket, play.song, play.elapsed)}
   end
 
+  def handle_info({MediaLibrary, %MediaLibrary.Events.SongDeleted{song: song}}, socket) do
+    if socket.assigns.song && socket.assigns.song.id == song.id do
+      {:noreply, stop_song(socket)}
+    else
+      {:noreply, socket}
+    end
+  end
+
   def handle_info({MediaLibrary, _}, socket), do: {:noreply, socket}
 
   defp play_song(socket, %Song{} = song, elapsed) do
