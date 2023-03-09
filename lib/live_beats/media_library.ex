@@ -209,17 +209,7 @@ defmodule LiveBeats.MediaLibrary do
           |> Enum.filter(&match?({{:song, _ref}, _}, &1))
           |> Enum.map(fn {{:song, ref}, song} ->
             consume_file.(ref, fn tmp_path -> store_mp3(song, tmp_path) end)
-
-            Task.Supervisor.start_child(LiveBeats.TaskSupervisor, fn ->
-              segments =
-                LiveBeats.Audio.speech_to_text(song.mp3_filepath, 20.0, fn ss, text ->
-                  segment = %TextSegment{start_time: ss, text: text}
-                  broadcast!(user.id, %Events.SpeechToText{song_id: song.id, segment: segment})
-                  segment
-                end)
-
-              insert_speech_segments(song, segments)
-            end)
+            async_text_to_speech(song, user)
 
             {ref, song}
           end)
@@ -240,8 +230,17 @@ defmodule LiveBeats.MediaLibrary do
     end
   end
 
-  defp insert_speech_segments(song, segments) do
-    Repo.update_all(from(s in Song, where: s.id == ^song.id), set: [speech_segments: segments])
+  defp async_text_to_speech(%Song{} = song, %Accounts.User{} = user) do
+    Task.Supervisor.start_child(LiveBeats.TaskSupervisor, fn ->
+      segments =
+        LiveBeats.Audio.speech_to_text(song.mp3_filepath, 20.0, fn ss, text ->
+          segment = %TextSegment{start_time: ss, text: text}
+          broadcast!(user.id, %Events.SpeechToText{song_id: song.id, segment: segment})
+          segment
+        end)
+
+      Repo.update_all(from(s in Song, where: s.id == ^song.id), set: [speech_segments: segments])
+    end)
   end
 
   defp broadcast_imported(%Accounts.User{} = user, songs) do

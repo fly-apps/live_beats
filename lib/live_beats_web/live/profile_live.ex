@@ -54,19 +54,6 @@ defmodule LiveBeatsWeb.ProfileLive do
       </:actions>
     </.title_bar>
 
-    <div
-      id={"text-to-speech-#{@active_song_id}"}
-      phx-update="stream"
-      class="p-6 max-h-[200px] overflow-y-scroll"
-    >
-      <div :for={{id, segment} <- @streams.speech_segments} id={id}>
-        <span class="min-w-[40px] inline-block text-gray-400">
-          [<%= seconds_to_mm_ss(segment.start_time) %>]
-        </span>
-        <%= segment.text %>
-      </div>
-    </div>
-
     <Presence.listening_now
       presences={@presences}
       presence_ids={@presence_ids}
@@ -433,9 +420,5 @@ defmodule LiveBeatsWeb.ProfileLive do
   defp url_text(url_str) do
     uri = URI.parse(url_str)
     uri.host <> uri.path
-  end
-
-  defp seconds_to_mm_ss(seconds) do
-    seconds |> trunc() |> Time.from_seconds_after_midnight() |> Calendar.strftime("%M:%S")
   end
 end
