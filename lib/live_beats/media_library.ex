@@ -218,7 +218,7 @@ defmodule LiveBeats.MediaLibrary do
                   segment
                 end)
 
-              insert_text_segments(song, segments)
+              insert_speech_segments(song, segments)
             end)
 
             {ref, song}
@@ -240,8 +240,8 @@ defmodule LiveBeats.MediaLibrary do
     end
   end
 
-  defp insert_text_segments(song, segments) do
-    Repo.update_all(from(s in Song, where: s.id == ^song.id), set: [text_segments: segments])
+  defp insert_speech_segments(song, segments) do
+    Repo.update_all(from(s in Song, where: s.id == ^song.id), set: [speech_segments: segments])
   end
 
   defp broadcast_imported(%Accounts.User{} = user, songs) do

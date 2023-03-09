@@ -24,7 +24,7 @@ defmodule LiveBeats.MediaLibrary.Song do
     field :position, :integer, default: 0
     belongs_to :user, Accounts.User
     belongs_to :genre, LiveBeats.MediaLibrary.Genre
-    embeds_many :text_segments, LiveBeats.MediaLibrary.TextSegment
+    embeds_many :speech_segments, LiveBeats.MediaLibrary.TextSegment
 
     timestamps()
   end

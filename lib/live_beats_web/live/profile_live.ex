@@ -164,7 +164,7 @@ defmodule LiveBeatsWeb.ProfileLive do
     end
 
     active_song = MediaLibrary.get_current_active_song(profile)
-    speech_segments = if active_song, do: active_song.text_segments, else: []
+    speech_segments = if active_song, do: active_song.speech_segments, else: []
 
     songs = MediaLibrary.list_profile_songs(profile, 50)
 
@@ -344,7 +344,7 @@ defmodule LiveBeatsWeb.ProfileLive do
         stream_insert(socket, :songs, %MediaLibrary.Song{song | status: :playing})
 
       active_song_id ->
-        Enum.reduce(song.text_segments, socket, fn seg, acc ->
+        Enum.reduce(song.speech_segments, socket, fn seg, acc ->
           stream_insert(acc, :speech_segments, seg)
         end)
         |> stop_song(active_song_id)
