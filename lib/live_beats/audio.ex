@@ -10,7 +10,7 @@ defmodule LiveBeats.Audio do
         {data, 0} = System.cmd("ffmpeg", args)
         {ss, Nx.Serving.batched_run(WhisperServing, Nx.from_binary(data, :f32))}
       end,
-      timeout: :infinity, max_concurrency: 2
+      timeout: :infinity, max_concurrency: 4
     )
     |> Enum.map(fn {:ok, {ss, %{results: [%{text: text}]}}} -> func.(ss, text) end)
   end

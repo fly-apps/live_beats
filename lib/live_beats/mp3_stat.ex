@@ -45,7 +45,7 @@ defmodule LiveBeats.MP3Stat do
 
         attrib =
           case tag_info["COMM"] do
-            {_, _, info} -> info
+            {_, _, info} -> String.trim_leading(info, "//")
             _ -> nil
           end
 

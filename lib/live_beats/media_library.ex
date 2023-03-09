@@ -235,7 +235,7 @@ defmodule LiveBeats.MediaLibrary do
       segments =
         LiveBeats.Audio.speech_to_text(song.mp3_filepath, 20.0, fn ss, text ->
           segment = %TextSegment{start_time: ss, text: text}
-          broadcast!(user.id, %Events.SpeechToText{song_id: song.id, segment: segment})
+          broadcast!(user.id, %Events.SpeechToText{song_id: song.id, segment: %{segment | in_progress?: true}})
           segment
         end)
 

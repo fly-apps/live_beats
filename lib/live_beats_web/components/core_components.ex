@@ -305,6 +305,15 @@ defmodule LiveBeatsWeb.CoreComponents do
     )
   end
 
+  def fade_in(js \\ %JS{}, id) do
+    JS.show(js,
+      to: "##{id}",
+      time: 1000,
+      display: "inline-block",
+      transition: {"ease-out duration-1000", "opacity-0", "opacity-100"}
+    )
+  end
+
   def hide(js \\ %JS{}, selector) do
     JS.hide(js,
       to: selector,
@@ -597,7 +606,7 @@ defmodule LiveBeatsWeb.CoreComponents do
                 phx-click={@row_click && @row_click.(row)}
                 class={
                   col[:class!] ||
-                    "px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900 #{if i == 0, do: "max-w-0 w-full"} #{col[:class]}"
+                    "px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900 #{col[:class]}"
                 }
               >
                 <div class="flex items-center space-x-3 lg:pl-2">
