@@ -60,13 +60,6 @@ defmodule LiveBeatsWeb.ProfileLive do
       total_count={@presences_count}
     />
 
-    <div id={"speech-#{@active_song_id}"} phx-update="stream" class="mt-6 px-6 max-h-60 overflow-y-scroll">
-      <div :for={{id, segment} <- @streams.speech_segments} id={id}>
-        <span class="text-gray-400">[<%= MP3Stat.to_mmss(trunc(segment.start_time)) %>]</span>
-        <%= segment.text %>
-      </div>
-    </div>
-
     <div id="dialogs" phx-update="stream">
       <%= for {_id, song} <- if(@owns_profile?, do: @streams.songs, else: []), id = "delete-modal-#{song.id}" do %>
         <.modal
@@ -158,7 +151,6 @@ defmodule LiveBeatsWeb.ProfileLive do
     end
 
     active_song = MediaLibrary.get_current_active_song(profile)
-    speech_segments = if active_song, do: active_song.speech_segments, else: []
 
     songs = MediaLibrary.list_profile_songs(profile, 50)
 
@@ -169,10 +161,9 @@ defmodule LiveBeatsWeb.ProfileLive do
         active_profile_id: current_user.active_profile_user_id,
         profile: profile,
         owns_profile?: MediaLibrary.owns_profile?(current_user, profile),
-        songs_count: Enum.count(songs),
+        songs_count: Enum.count(songs)
       )
       |> stream(:songs, songs)
-      |> stream(:speech_segments, speech_segments, dom_id: &"ss-#{trunc(&1.start_time)}")
       |> assign_presences()
 
     {:ok, socket, temporary_assigns: [presences: %{}]}
@@ -328,9 +319,6 @@ defmodule LiveBeatsWeb.ProfileLive do
         stream_insert(socket, :songs, song)
 
       active_song_id ->
-        Enum.reduce(song.speech_segments, socket, fn seg, acc ->
-          stream_insert(acc, :speech_segments, seg)
-        end)
         |> stop_song(active_song_id)
         |> stream_insert(:songs, song)
         |> assign(active_song_id: song.id)
