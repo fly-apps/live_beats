@@ -155,7 +155,6 @@ defmodule LiveBeatsWeb.ProfileLive do
       MediaLibrary.subscribe_to_profile(profile)
       Accounts.subscribe(current_user.id)
       Presence.subscribe(profile)
-      send(self(), :mounted)
     end
 
     active_song = MediaLibrary.get_current_active_song(profile)
@@ -171,7 +170,6 @@ defmodule LiveBeatsWeb.ProfileLive do
         profile: profile,
         owns_profile?: MediaLibrary.owns_profile?(current_user, profile),
         songs_count: Enum.count(songs),
-        mounted?: false
       )
       |> stream(:songs, songs)
       |> stream(:speech_segments, speech_segments, dom_id: &"ss-#{trunc(&1.start_time)}")
@@ -229,8 +227,6 @@ defmodule LiveBeatsWeb.ProfileLive do
     end
   end
 
-  def handle_info(:mounted, socket), do: {:noreply, assign(socket, :mounted?, true) }
-
   def handle_info({LiveBeatsWeb.Presence, %{user_joined: presence}}, socket) do
     {:noreply, assign_presence(socket, presence)}
   end
@@ -282,17 +278,6 @@ defmodule LiveBeatsWeb.ProfileLive do
        |> update(:songs_count, &(&1 + 1))
        |> stream_insert(:songs, song)
      end)}
-  end
-
-  def handle_info(
-        {MediaLibrary, %MediaLibrary.Events.SpeechToText{song_id: id, segment: segment}},
-        socket
-      ) do
-    if socket.assigns.active_song_id == id do
-      {:noreply, stream_insert(socket, :speech_segments, segment)}
-    else
-      {:noreply, socket}
-    end
   end
 
   def handle_info({MediaLibrary, %MediaLibrary.Events.SongDeleted{song: song}}, socket) do

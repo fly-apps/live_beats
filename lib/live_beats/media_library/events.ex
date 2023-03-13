@@ -22,8 +22,4 @@ defmodule LiveBeats.MediaLibrary.Events do
   defmodule SongDeleted do
     defstruct song: nil
   end
-
-  defmodule SpeechToText do
-    defstruct song_id: nil, segment: nil
-  end
 end
