@@ -305,9 +305,11 @@ defmodule LiveBeatsWeb.CoreComponents do
     )
   end
 
+  def fade_in, do: fade_in(nil)
+
   def fade_in(js \\ %JS{}, id) do
     JS.show(js,
-      to: "##{id}",
+      to: id && "##{id}",
       time: 1000,
       display: "inline-block",
       transition: {"ease-out duration-1000", "opacity-0", "opacity-100"}

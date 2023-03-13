@@ -61,12 +61,7 @@ defmodule LiveBeatsWeb.ProfileLive do
     />
 
     <div id={"speech-#{@active_song_id}"} phx-update="stream" class="mt-6 px-6 max-h-60 overflow-y-scroll">
-      <div
-        :for={{id, segment} <- @streams.speech_segments}
-        id={id}
-        class={segment.in_progress? && "hidden"}
-        phx-mounted={segment.in_progress? && fade_in(id)}
-      >
+      <div :for={{id, segment} <- @streams.speech_segments} id={id}>
         <span class="text-gray-400">[<%= MP3Stat.to_mmss(trunc(segment.start_time)) %>]</span>
         <%= segment.text %>
       </div>
@@ -160,6 +155,7 @@ defmodule LiveBeatsWeb.ProfileLive do
       MediaLibrary.subscribe_to_profile(profile)
       Accounts.subscribe(current_user.id)
       Presence.subscribe(profile)
+      send(self(), :mounted)
     end
 
     active_song = MediaLibrary.get_current_active_song(profile)
@@ -174,7 +170,8 @@ defmodule LiveBeatsWeb.ProfileLive do
         active_profile_id: current_user.active_profile_user_id,
         profile: profile,
         owns_profile?: MediaLibrary.owns_profile?(current_user, profile),
-        songs_count: Enum.count(songs)
+        songs_count: Enum.count(songs),
+        mounted?: false
       )
       |> stream(:songs, songs)
       |> stream(:speech_segments, speech_segments, dom_id: &"ss-#{trunc(&1.start_time)}")
@@ -231,6 +228,8 @@ defmodule LiveBeatsWeb.ProfileLive do
       {:noreply, socket}
     end
   end
+
+  def handle_info(:mounted, socket), do: {:noreply, assign(socket, :mounted?, true) }
 
   def handle_info({LiveBeatsWeb.Presence, %{user_joined: presence}}, socket) do
     {:noreply, assign_presence(socket, presence)}
@@ -337,22 +336,23 @@ defmodule LiveBeatsWeb.ProfileLive do
 
   defp play_song(socket, %MediaLibrary.Song{} = song) do
     %{active_song_id: active_song_id} = socket.assigns
+    song = %MediaLibrary.Song{song | status: :playing}
 
     cond do
       active_song_id == song.id ->
-        stream_insert(socket, :songs, %MediaLibrary.Song{song | status: :playing})
+        stream_insert(socket, :songs, song)
 
       active_song_id ->
         Enum.reduce(song.speech_segments, socket, fn seg, acc ->
           stream_insert(acc, :speech_segments, seg)
         end)
         |> stop_song(active_song_id)
-        |> stream_insert(:songs, %MediaLibrary.Song{song | status: :playing})
+        |> stream_insert(:songs, song)
         |> assign(active_song_id: song.id)
 
       true ->
         socket
-        |> stream_insert(:songs, %MediaLibrary.Song{song | status: :playing})
+        |> stream_insert(:songs, song)
         |> assign(active_song_id: song.id)
     end
   end
