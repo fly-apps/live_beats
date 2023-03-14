@@ -319,6 +319,7 @@ defmodule LiveBeatsWeb.ProfileLive do
         stream_insert(socket, :songs, song)
 
       active_song_id ->
+        socket
         |> stop_song(active_song_id)
         |> stream_insert(:songs, song)
         |> assign(active_song_id: song.id)
