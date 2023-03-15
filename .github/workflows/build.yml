@@ -1,0 +1,45 @@
+name: Build
+
+on:
+  pull_request:
+    branches:
+      - '*'
+      
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    env:
+      LIVE_BEATS_GITHUB_CLIENT_ID: ${{ secrets.LIVE_BEATS_GITHUB_CLIENT_ID }}
+      LIVE_BEATS_GITHUB_CLIENT_SECRET: ${{ secrets.LIVE_BEATS_GITHUB_CLIENT_SECRET }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v17
+        with:
+          # Mostly to avoid GitHub rate limiting
+          extra_nix_config: |
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+
+      # FIXME: results in error: file 'nixpkgs' was not found in the Nix search path (add it using $NIX_PATH or -I)
+      # - name: Print nixpkgs version
+      #   run: nix-instantiate --eval -E '(import <nixpkgs> {}).lib.version'
+
+      - name: Cache Nix derivations
+        uses: cachix/cachix-action@v12
+        with:
+          name: garrettmichaelgeorge-public
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+          extraPullNames: nix-community
+
+      # FIXME: requires mix deps.get to be run first to avoid the error:
+      # "the dependency is not available, run "mix deps.get""
+      # NOTE: this would only work if Elixir is included in the Nix shell
+      # - run: nix develop --command mix compile
+      #   continue-on-error: true
+
+      - run: nix build

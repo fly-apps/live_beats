@@ -31,3 +31,12 @@ npm-debug.log
 
 /priv/uploads
 /tmp
+
+# Ignore direnv
+/.direnv/
+
+# Ignore Nix artifacts
+/postgres_data
+.nix-mix
+.nix-hex
+result
