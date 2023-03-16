@@ -43,3 +43,7 @@ jobs:
       #   continue-on-error: true
 
       - run: nix build
+
+      # To get image and layered image into binary cache
+      - run: nix build .#image
+      - run: nix build .#layeredImage
