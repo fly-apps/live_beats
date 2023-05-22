@@ -53,8 +53,11 @@ defmodule LiveBeats.MixProject do
       {:mint, "~> 1.0"},
       {:heroicons, "~> 0.2.2"},
       {:castore, "~> 0.1.13"},
-      {:tailwind, "~> 0.1"},
-      {:libcluster, "~> 3.3.1"}
+      {:tailwind, "~> 0.2.0"},
+      {:libcluster, "~> 3.3.1"},
+      {:bumblebee, github: "elixir-nx/bumblebee"},
+      {:exla, ">= 0.0.0"},
+      {:req, "~> 0.3.7"}
     ]
   end
 

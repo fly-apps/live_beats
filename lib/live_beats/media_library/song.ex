@@ -25,6 +25,11 @@ defmodule LiveBeats.MediaLibrary.Song do
     belongs_to :user, Accounts.User
     belongs_to :genre, LiveBeats.MediaLibrary.Genre
 
+    embeds_many :transcript_segments, TranscriptSegment do
+      field :ss, :integer
+      field :text, :string
+    end
+
     timestamps()
   end
 

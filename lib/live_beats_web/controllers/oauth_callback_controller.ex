@@ -15,7 +15,7 @@ defmodule LiveBeatsWeb.OAuthCallbackController do
       |> LiveBeatsWeb.UserAuth.log_in_user(user)
     else
       {:error, %Ecto.Changeset{} = changeset} ->
-        Logger.debug("failed GitHub insert #{inspect(changeset.errors)}")
+        Logger.info("failed GitHub insert #{inspect(changeset.errors)}")
 
         conn
         |> put_flash(
@@ -25,7 +25,7 @@ defmodule LiveBeatsWeb.OAuthCallbackController do
         |> redirect(to: "/")
 
       {:error, reason} ->
-        Logger.debug("failed GitHub exchange #{inspect(reason)}")
+        Logger.info("failed GitHub exchange #{inspect(reason)}")
 
         conn
         |> put_flash(:error, "We were unable to contact GitHub. Please try again later")

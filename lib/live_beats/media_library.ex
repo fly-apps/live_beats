@@ -52,13 +52,7 @@ defmodule LiveBeats.MediaLibrary do
     user.id == song.user_id
   end
 
-  def play_song(%Song{id: id}) do
-    play_song(id)
-  end
-
-  def play_song(id) do
-    song = get_song!(id)
-
+  def play_song(%Song{} = song) do
     played_at =
       cond do
         playing?(song) ->
@@ -95,6 +89,12 @@ defmodule LiveBeats.MediaLibrary do
     broadcast!(song.user_id, %Events.Play{song: song, elapsed: elapsed})
 
     new_song
+  end
+
+  def play_song(id) do
+    id
+    |> get_song!()
+    |> play_song()
   end
 
   def pause_song(%Song{} = song) do
@@ -211,6 +211,7 @@ defmodule LiveBeats.MediaLibrary do
           |> Enum.filter(&match?({{:song, _ref}, _}, &1))
           |> Enum.map(fn {{:song, ref}, song} ->
             consume_file.(ref, fn tmp_path -> store_mp3(song, tmp_path) end)
+            async_transcribe(song, user)
 
             {ref, song}
           end)
@@ -229,6 +230,22 @@ defmodule LiveBeats.MediaLibrary do
 
         {:error, {failed_op, failed_val}}
     end
+  end
+
+  defp async_transcribe(%Song{} = song, %Accounts.User{} = user) do
+    Task.Supervisor.start_child(LiveBeats.TaskSupervisor, fn ->
+      segments =
+        LiveBeats.Audio.speech_to_text(song.mp3_filepath, 20, fn ss, text ->
+          segment = %Song.TranscriptSegment{ss: ss, text: text}
+          broadcast!(user.id, {segment, song.id})
+
+          segment
+        end)
+
+      Repo.update_all(from(s in Song, where: s.id == ^song.id),
+        set: [transcript_segments: segments]
+      )
+    end)
   end
 
   defp broadcast_imported(%Accounts.User{} = user, songs) do
