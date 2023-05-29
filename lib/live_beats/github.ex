@@ -90,20 +90,18 @@ defmodule LiveBeats.Github do
   defp secret, do: LiveBeats.config([:github, :client_secret])
 
   defp http(host, method, path, query, headers, body \\ "") do
-    {:ok, conn} = Mint.HTTP.connect(:https, host, 443)
-
     path = path <> "?" <> URI.encode_query([{:client_id, client_id()} | query])
 
-    {:ok, conn, ref} =
-      Mint.HTTP.request(
-        conn,
-        method,
-        path,
-        headers,
-        body
-      )
-
-    receive_resp(conn, ref, nil, nil, false)
+    with {:ok, conn} <- Mint.HTTP.connect(:https, host, 443),
+         {:ok, conn, ref} <-
+           Mint.HTTP.request(
+             conn,
+             method,
+             path,
+             headers,
+             body
+           ),
+         do: receive_resp(conn, ref, nil, nil, false)
   end
 
   defp receive_resp(conn, ref, status, data, done?) do
