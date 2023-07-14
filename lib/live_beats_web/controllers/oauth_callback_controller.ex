@@ -20,7 +20,7 @@ defmodule LiveBeatsWeb.OAuthCallbackController do
         conn
         |> put_flash(
           :error,
-          "We were unable to fetch the necessary information from your GithHub account"
+          "We were unable to fetch the necessary information from your GitHub account"
         )
         |> redirect(to: "/")
 
