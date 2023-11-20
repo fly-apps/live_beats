@@ -21,7 +21,7 @@ defmodule LiveBeatsWeb.ProfileLive.SongRowComponent do
                 <span class="flex pt-1 relative mr-2 w-4">
                   <span class="w-3 h-3 animate-ping bg-purple-400 rounded-full absolute"></span>
                   <.icon
-                    name={:volume_up}
+                    name={:speaker_wave}
                     class="h-5 w-5 -mt-1 -ml-1"
                     aria-label="Playing"
                     role="button"
@@ -31,7 +31,7 @@ defmodule LiveBeatsWeb.ProfileLive.SongRowComponent do
               <%= if @status == :paused do %>
                 <span class="flex pt-1 relative mr-2 w-4">
                   <.icon
-                    name={:volume_up}
+                    name={:speaker_wave}
                     class="h-5 w-5 -mt-1 -ml-1 text-gray-400"
                     aria-label="Paused"
                     role="button"
