@@ -588,7 +588,7 @@ defmodule LiveBeatsWeb.CoreComponents do
             data-drop={@sortable_drop}
           >
             <tr
-              :for={{row, i} <- Enum.with_index(@rows)}
+              :for={row <- @rows}
               id={@row_id && @row_id.(row)}
               phx-remove={@row_remove && @row_remove.(row)}
               class="hover:bg-gray-50"
@@ -598,7 +598,7 @@ defmodule LiveBeatsWeb.CoreComponents do
                 phx-click={@row_click && @row_click.(row)}
                 class={
                   col[:class!] ||
-                    "px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900 #{if i == 0, do: "max-w-0 w-full"} #{col[:class]}"
+                    "px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900 #{col[:class]}"
                 }
               >
                 <div class="flex items-center space-x-3 lg:pl-2">
