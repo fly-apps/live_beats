@@ -149,14 +149,15 @@ defmodule LiveBeatsWeb.CoreComponents do
   attr :rest, :global, default: %{class: "w-4 h-4 inline-block"}
 
   def icon(assigns) do
-    assigns = assign_new(assigns, :"aria-hidden", fn -> !Map.has_key?(assigns, :"aria-label") end)
+    key = if Map.get(assigns, :outlined, false), do: :outline, else: :solid
+
+    assigns =
+      assigns
+      |> assign_new(:"aria-hidden", fn -> !Map.has_key?(assigns, :"aria-label") end)
+      |> assign(key, true)
 
     ~H"""
-    <%= if @outlined do %>
-      <%= apply(Heroicons.Outline, @name, [Map.to_list(@rest)]) %>
-    <% else %>
-      <%= apply(Heroicons.Solid, @name, [Map.to_list(@rest)]) %>
-    <% end %>
+    <%= apply(Heroicons, @name, [assigns]) %>
     """
   end
 
