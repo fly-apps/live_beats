@@ -90,7 +90,7 @@ defmodule LiveBeatsWeb.CoreComponents do
           type="button"
           class="inline-flex bg-red-50 rounded-md p-1.5 text-red-500 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-red-50 focus:ring-red-600"
         >
-          <.icon name={:x} class="w-4 h-4" />
+          <.icon name={:x_mark} class="w-4 h-4" />
         </button>
       </div>
     </div>
@@ -116,7 +116,7 @@ defmodule LiveBeatsWeb.CoreComponents do
           type="button"
           class="inline-flex bg-green-50 rounded-md p-1.5 text-green-500 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-green-50 focus:ring-green-600"
         >
-          <.icon name={:x} class="w-4 h-4" />
+          <.icon name={:x_mark} class="w-4 h-4" />
         </button>
       </div>
     </div>
@@ -149,14 +149,15 @@ defmodule LiveBeatsWeb.CoreComponents do
   attr :rest, :global, default: %{class: "w-4 h-4 inline-block"}
 
   def icon(assigns) do
-    assigns = assign_new(assigns, :"aria-hidden", fn -> !Map.has_key?(assigns, :"aria-label") end)
+    key = if Map.get(assigns, :outlined, false), do: :outline, else: :solid
+
+    assigns =
+      assigns
+      |> assign_new(:"aria-hidden", fn -> !Map.has_key?(assigns, :"aria-label") end)
+      |> assign(key, true)
 
     ~H"""
-    <%= if @outlined do %>
-      <%= apply(Heroicons.Outline, @name, [Map.to_list(@rest)]) %>
-    <% else %>
-      <%= apply(Heroicons.Solid, @name, [Map.to_list(@rest)]) %>
-    <% end %>
+    <%= apply(Heroicons, @name, [assigns]) %>
     """
   end
 
@@ -516,15 +517,21 @@ defmodule LiveBeatsWeb.CoreComponents do
   def button(%{patch: _} = assigns) do
     ~H"""
     <%= if @primary do %>
-      <%= live_patch [to: @patch, class: "order-0 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3"] ++
-        Map.to_list(@rest) do %>
+      <.link
+        patch={@patch} 
+        class="order-0 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3"
+        {@rest}
+      >
         <%= render_slot(@inner_block) %>
-      <% end %>
+      </.link>
     <% else %>
-      <%= live_patch [to: @patch, class: "order-1 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-0 sm:ml-0 lg:ml-3"] ++
-        assigns_to_attributes(assigns, [:primary, :patch]) do %>
+      <.link
+        patch={@patch}
+        class="order-1 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-0 sm:ml-0 lg:ml-3"
+        {@rest}
+      >
         <%= render_slot(@inner_block) %>
-      <% end %>
+      </.link>
     <% end %>
     """
   end
@@ -587,7 +594,7 @@ defmodule LiveBeatsWeb.CoreComponents do
             data-drop={@sortable_drop}
           >
             <tr
-              :for={{row, i} <- Enum.with_index(@rows)}
+              :for={row <- @rows}
               id={@row_id && @row_id.(row)}
               phx-remove={@row_remove && @row_remove.(row)}
               class="hover:bg-gray-50"
@@ -597,7 +604,7 @@ defmodule LiveBeatsWeb.CoreComponents do
                 phx-click={@row_click && @row_click.(row)}
                 class={
                   col[:class!] ||
-                    "px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900 #{if i == 0, do: "max-w-0 w-full"} #{col[:class]}"
+                    "px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900 #{col[:class]}"
                 }
               >
                 <div class="flex items-center space-x-3 lg:pl-2">

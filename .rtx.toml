@@ -1,0 +1,7 @@
+[tools]
+elixir = "1.15.7-otp-25"
+erlang = "25.3.2.7"
+
+[env]
+LIVE_BEATS_GITHUB_CLIENT_ID = ""
+LIVE_BEATS_GITHUB_CLIENT_SECRET = ""

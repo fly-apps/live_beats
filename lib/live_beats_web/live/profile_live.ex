@@ -19,7 +19,7 @@ defmodule LiveBeatsWeb.ProfileLive do
           – <%= ngettext("%{count} song", "%{count} songs", @songs_count) %>
         </div>
         <.link href={@profile.external_homepage_url} target="_blank" class="text-sm text-gray-600">
-          <.icon name={:code} /> <span class=""><%= url_text(@profile.external_homepage_url) %></span>
+          <.icon name={:code_bracket} /> <span class=""><%= url_text(@profile.external_homepage_url) %></span>
         </.link>
       </div>
       <:actions>
@@ -48,7 +48,7 @@ defmodule LiveBeatsWeb.ProfileLive do
         <% end %>
         <%= if @owns_profile? do %>
           <.button id="upload-btn" primary patch={profile_upload_path(@current_user)}>
-            <.icon name={:upload} /><span class="ml-2">Upload Songs</span>
+            <.icon name={:arrow_up_tray} /><span class="ml-2">Upload Songs</span>
           </.button>
         <% end %>
       </:actions>
@@ -95,11 +95,11 @@ defmodule LiveBeatsWeb.ProfileLive do
       >
         <span :if={song.status == :playing} class="flex pt-1 relative mr-2 w-4">
           <span class="w-3 h-3 animate-ping bg-purple-400 rounded-full absolute"></span>
-          <.icon name={:volume_up} class="h-5 w-5 -mt-1 -ml-1" aria-label="Playing" role="button" />
+          <.icon name={:speaker_wave} class="h-5 w-5 -mt-1 -ml-1" aria-label="Playing" role="button" />
         </span>
         <span :if={song.status == :paused} class="flex pt-1 relative mr-2 w-4">
           <.icon
-            name={:volume_up}
+            name={:speaker_wave}
             class="h-5 w-5 -mt-1 -ml-1 text-gray-400"
             aria-label="Paused"
             role="button"
