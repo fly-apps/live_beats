@@ -33,7 +33,7 @@ defmodule LiveBeats.MixProject do
   defp deps do
     [
       {:phoenix, "~> 1.7.1"},
-      {:phoenix_live_view, "~> 0.18.16"},
+      {:phoenix_live_view, "~> 0.18.17"},
       {:phoenix_live_dashboard, "~> 0.7.2"},
       {:phoenix_ecto, "~> 4.4"},
       {:ecto_sql, "~> 3.6"},
@@ -53,8 +53,11 @@ defmodule LiveBeats.MixProject do
       {:mint, "~> 1.0"},
       {:heroicons, "~> 0.2.2"},
       {:castore, "~> 0.1.13"},
-      {:tailwind, "~> 0.1"},
-      {:libcluster, "~> 3.3.1"}
+      {:tailwind, "~> 0.2.0"},
+      {:libcluster, "~> 3.3.1"},
+      {:bumblebee, github: "elixir-nx/bumblebee"},
+      {:exla, ">= 0.0.0"},
+      {:req, "~> 0.3.7"}
     ]
   end
 

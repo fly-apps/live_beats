@@ -25,6 +25,11 @@ defmodule LiveBeats.MediaLibrary.Song do
     belongs_to :user, Accounts.User
     belongs_to :genre, LiveBeats.MediaLibrary.Genre
 
+    embeds_many :transcript_segments, TranscriptSegment do
+      field :ss, :integer
+      field :text, :string
+    end
+
     timestamps()
   end
 
@@ -50,7 +55,17 @@ defmodule LiveBeats.MediaLibrary.Song do
   def put_stats(%Ecto.Changeset{} = changeset, %LiveBeats.MP3Stat{} = stat) do
     changeset
     |> put_duration(stat.duration)
+    |> maybe_put(:artist, stat.artist)
+    |> maybe_put(:attribution, stat.attrib)
     |> Ecto.Changeset.put_change(:mp3_filesize, stat.size)
+  end
+
+  def maybe_put(%Ecto.Changeset{} = changeset, field, value) do
+    if Ecto.Changeset.get_field(changeset, field) in [nil, ""] do
+      Ecto.Changeset.change(changeset, %{field => value})
+    else
+      changeset
+    end
   end
 
   defp put_duration(%Ecto.Changeset{} = changeset, duration) when is_integer(duration) do

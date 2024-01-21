@@ -52,13 +52,7 @@ defmodule LiveBeats.MediaLibrary do
     user.id == song.user_id
   end
 
-  def play_song(%Song{id: id}) do
-    play_song(id)
-  end
-
-  def play_song(id) do
-    song = get_song!(id)
-
+  def play_song(%Song{} = song) do
     played_at =
       cond do
         playing?(song) ->
@@ -79,9 +73,10 @@ defmodule LiveBeats.MediaLibrary do
       })
 
     stopped_query =
-      from s in Song,
+      from(s in Song,
         where: s.user_id == ^song.user_id and s.status in [:playing, :paused],
         update: [set: [status: :stopped]]
+      )
 
     {:ok, %{now_playing: new_song}} =
       Multi.new()
@@ -96,15 +91,22 @@ defmodule LiveBeats.MediaLibrary do
     new_song
   end
 
+  def play_song(id) do
+    id
+    |> get_song!()
+    |> play_song()
+  end
+
   def pause_song(%Song{} = song) do
     now = DateTime.truncate(DateTime.utc_now(), :second)
     set = [status: :paused, paused_at: now]
     pause_query = from(s in Song, where: s.id == ^song.id, update: [set: ^set])
 
     stopped_query =
-      from s in Song,
+      from(s in Song,
         where: s.user_id == ^song.user_id and s.status in [:playing, :paused],
         update: [set: [status: :stopped]]
+      )
 
     {:ok, _} =
       Multi.new()
@@ -165,7 +167,7 @@ defmodule LiveBeats.MediaLibrary do
       Ecto.Multi.new()
       |> lock_playlist(user.id)
       |> Ecto.Multi.run(:starting_position, fn repo, _changes ->
-        count = repo.one(from s in Song, where: s.user_id == ^user.id, select: count(s.id))
+        count = repo.one(from(s in Song, where: s.user_id == ^user.id, select: count(s.id)))
         {:ok, count - 1}
       end)
 
@@ -209,6 +211,8 @@ defmodule LiveBeats.MediaLibrary do
           |> Enum.filter(&match?({{:song, _ref}, _}, &1))
           |> Enum.map(fn {{:song, ref}, song} ->
             consume_file.(ref, fn tmp_path -> store_mp3(song, tmp_path) end)
+            async_transcribe(song, user)
+
             {ref, song}
           end)
 
@@ -226,6 +230,22 @@ defmodule LiveBeats.MediaLibrary do
 
         {:error, {failed_op, failed_val}}
     end
+  end
+
+  defp async_transcribe(%Song{} = song, %Accounts.User{} = user) do
+    Task.Supervisor.start_child(LiveBeats.TaskSupervisor, fn ->
+      segments =
+        LiveBeats.Audio.speech_to_text(song.mp3_filepath, 20, fn ss, text ->
+          segment = %Song.TranscriptSegment{ss: ss, text: text}
+          broadcast!(user.id, {segment, song.id})
+
+          segment
+        end)
+
+      Repo.update_all(from(s in Song, where: s.id == ^song.id),
+        set: [transcript_segments: segments]
+      )
+    end)
   end
 
   defp broadcast_imported(%Accounts.User{} = user, songs) do
@@ -274,7 +294,7 @@ defmodule LiveBeats.MediaLibrary do
 
   def get_current_active_song(%Profile{user_id: user_id}) do
     Repo.replica().one(
-      from s in Song, where: s.user_id == ^user_id and s.status in [:playing, :paused]
+      from(s in Song, where: s.user_id == ^user_id and s.status in [:playing, :paused])
     )
   end
 
@@ -361,7 +381,7 @@ defmodule LiveBeats.MediaLibrary do
       Ecto.Multi.new()
       |> lock_playlist(song.user_id)
       |> Ecto.Multi.run(:index, fn repo, _changes ->
-        case repo.one(from s in Song, where: s.user_id == ^song.user_id, select: count(s.id)) do
+        case repo.one(from(s in Song, where: s.user_id == ^song.user_id, select: count(s.id))) do
           count when new_index < count -> {:ok, new_index}
           count -> {:ok, count - 1}
         end
