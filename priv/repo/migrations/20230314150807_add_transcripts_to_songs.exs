@@ -3,7 +3,7 @@ defmodule LiveBeats.Repo.Migrations.AddTranscriptsToSongs do
 
   def change do
     alter table(:songs) do
-      add :transcript_segments, {:array, :map}, null: false, default: []
+      add :transcript, :jsonb, null: false, default: "{\"segments\": []}"
     end
   end
 end

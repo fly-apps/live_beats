@@ -1,4 +1,4 @@
-<div>
+<div id="upload-form">
   <p class="inline text-gray-500 text-sm">(songs expire every six hours)</p>
 
   <.form
@@ -8,7 +8,8 @@
     class="space-y-8"
     phx-target={@myself}
     phx-change="validate"
-    phx-submit="save"
+    phx-auto-recover="ignore"
+    phx-submit={JS.push("save", target: @myself, loading: "#song-form, #upload")}
   >
     <div class="space-y-8 divide-y divide-gray-200 sm:space-y-5">
       <div class="space-y-2 sm:space-y-2">
@@ -62,7 +63,7 @@
                     for="file-upload"
                     class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500"
                   >
-                    <span phx-click={js_exec("##{@uploads.mp3.ref}", "click", [])}>
+                    <span phx-click={js_call("##{@uploads.mp3.ref}", "click", [])}>
                       Upload files
                     </span>
                     <.live_file_input upload={@uploads.mp3} class="sr-only" tabindex="0" />

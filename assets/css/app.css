@@ -82,15 +82,24 @@
   display: none;
 }
 
+tbody.phx-click-loading { animation: none; }
+
 .phx-click-loading {
-  opacity: 0.5;
-  transition: opacity 1s ease-out;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .phx-loading{
   cursor: wait;
 }
-
 
 .phx-modal {
   opacity: 1!important;

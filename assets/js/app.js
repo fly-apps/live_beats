@@ -3,6 +3,7 @@ import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 import Sortable from "../vendor/sortable"
+import phxFeedbackDom from "./phx_feedback_dom"
 
 let nowSeconds = () => Math.round(Date.now() / 1000)
 let rand = (min, max) => Math.floor(Math.random() * (max - min) + min)
@@ -199,7 +200,7 @@ Hooks.Ping = {
     this.handleEvent("pong", () => {
       let rtt = Date.now() - this.nowMs
       this.el.innerText = `ping: ${rtt}ms`
-      // this.timer = setTimeout(() => this.ping(rtt), 1000)
+      this.timer = setTimeout(() => this.ping(rtt), 5000)
     })
     this.ping(null)
   },
@@ -277,15 +278,16 @@ let Focus = {
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, {
+  timeout: 20000,
   hooks: Hooks,
   params: {_csrf_token: csrfToken},
-  dom: {
+  dom: phxFeedbackDom({
     onNodeAdded(node){
       if(node instanceof HTMLElement && node.autofocus){
         node.focus()
       }
     }
-  }
+  })
 })
 
 let routeUpdated = () => {
@@ -300,7 +302,8 @@ window.addEventListener("phx:page-loading-stop", info => topbar.hide())
 // Accessible routing
 window.addEventListener("phx:page-loading-stop", routeUpdated)
 
-window.addEventListener("js:exec", e => e.target[e.detail.call](...e.detail.args))
+window.addEventListener("phx:js:exec", e => liveSocket.execJS(liveSocket.main.el, e.detail.cmd))
+window.addEventListener("js:call", e => e.target[e.detail.call](...e.detail.args))
 window.addEventListener("js:focus", e => {
   let parent = document.querySelector(e.detail.parent)
   if(parent && isVisible(parent)){ e.target.focus() }

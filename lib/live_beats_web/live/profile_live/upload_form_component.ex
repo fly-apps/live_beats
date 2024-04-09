@@ -7,6 +7,10 @@ defmodule LiveBeatsWeb.ProfileLive.UploadFormComponent do
   @max_songs 10
 
   @impl true
+  def update(%{action: :reset}, socket) do
+    {:ok, reset_assigns(socket)}
+  end
+
   def update(%{action: {:duration, entry_ref, result}}, socket) do
     case result do
       {:ok, %MP3Stat{} = stat} ->
@@ -17,20 +21,37 @@ defmodule LiveBeatsWeb.ProfileLive.UploadFormComponent do
     end
   end
 
-  def update(%{song: song} = assigns, socket) do
+  def update(%{} = assigns, socket) do
     {:ok,
      socket
      |> assign(assigns)
-     |> assign(changesets: %{}, error_messages: [])
-     |> allow_upload(:mp3,
-       song_id: song.id,
-       auto_upload: true,
-       progress: &handle_progress/3,
-       accept: ~w(.mp3),
-       max_entries: @max_songs,
-       max_file_size: 20_000_000,
-       chunk_size: 64_000 * 3
-     )}
+     |> reset_assigns()}
+  end
+
+  defp reset_assigns(socket) do
+    socket =
+      assign(socket,
+        song: %MediaLibrary.Song{},
+        changesets: %{},
+        error_messages: []
+      )
+
+    uploads = socket.assigns[:uploads][:mp3]
+
+    if uploads do
+      Enum.reduce(uploads.entries, socket, fn entry, acc ->
+        cancel_upload(acc, :mp3, entry.ref)
+      end)
+    else
+      allow_upload(socket, :mp3,
+        auto_upload: true,
+        progress: &handle_progress/3,
+        accept: ~w(.mp3),
+        max_entries: @max_songs,
+        max_file_size: 20_000_000,
+        chunk_size: 64_000 * 3
+      )
+    end
   end
 
   @impl true
@@ -57,12 +78,15 @@ defmodule LiveBeatsWeb.ProfileLive.UploadFormComponent do
     else
       case MediaLibrary.import_songs(current_user, changesets, &consume_entry(socket, &1, &2)) do
         {:ok, songs} ->
+          send_update(socket.assigns.myself, %{action: :reset})
+
           {:noreply,
            socket
            |> put_flash(:info, "#{map_size(songs)} song(s) uploaded")
-           |> push_patch(to: profile_path(current_user))}
+           |> push_js_cmd(socket.assigns.on_complete)}
 
         {:error, {failed_op, reason}} ->
+          IO.inspect({failed_op, reason})
           {:noreply, put_error(socket, {failed_op, reason})}
       end
     end
@@ -70,6 +94,10 @@ defmodule LiveBeatsWeb.ProfileLive.UploadFormComponent do
 
   def handle_event("save", %{} = _params, socket) do
     {:noreply, socket}
+  end
+
+  def handle_event("cancel", _, socket) do
+    {:noreply, reset_assigns(socket)}
   end
 
   defp pending_stats?(socket) do

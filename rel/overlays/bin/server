@@ -1,3 +1,20 @@
 #!/bin/sh
+if [ -n "${BUCKET_MOUNT}" ]; then
+  mkdir -p "${BUCKET_MOUNT}"
+  chown nobody:nogroup "${BUCKET_MOUNT}"
+  echo "Mounting S3 bucket at ${BUCKET_MOUNT}"
+  echo $AWS_ACCESS_KEY_ID:$AWS_SECRET_ACCESS_KEY > ${HOME}/.passwd-s3fs
+  chmod 600 ${HOME}/.passwd-s3fs
+  s3fs livebeats-store "${BUCKET_MOUNT}" \
+    -o url="${AWS_ENDPOINT_URL_S3}" \
+    -o dbglevel=info \
+    -o curldbg \
+    -o use_path_request_style \
+    -o allow_other \
+    -o _netdev \
+    -o uid="$(id -u nobody)" \
+    -o gid="$(id -g nobody)"
+fi
 cd -P -- "$(dirname -- "$0")"
-PHX_SERVER=true exec ./live_beats start
+su -s /bin/bash nobody -c 'PHX_SERVER=true exec ./live_beats start'
+

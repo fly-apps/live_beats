@@ -8,7 +8,6 @@
 import Config
 
 config :live_beats,
-  replica: LiveBeats.ReplicaRepo,
   ecto_repos: [LiveBeats.Repo]
 
 config :live_beats, :files, admin_usernames: []
@@ -27,7 +26,7 @@ config :live_beats, LiveBeatsWeb.Endpoint,
 config :esbuild,
   version: "0.12.18",
   default: [
-    args: ~w(js/app.js --bundle --target=es2016 --outdir=../priv/static/assets),
+    args: ~w(js/app.js --bundle --outdir=../priv/static/assets),
     cd: Path.expand("../assets", __DIR__),
     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
   ]

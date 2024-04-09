@@ -20,14 +20,16 @@ defmodule LiveBeats.MediaLibrary.Song do
     field :mp3_filepath, :string
     field :mp3_filename, :string
     field :mp3_filesize, :integer, default: 0
-    field :server_ip, EctoNetwork.INET
+    field :server_ip, :string
     field :position, :integer, default: 0
     belongs_to :user, Accounts.User
     belongs_to :genre, LiveBeats.MediaLibrary.Genre
 
-    embeds_many :transcript_segments, TranscriptSegment do
-      field :ss, :integer
-      field :text, :string
+    embeds_one :transcript, Transcript do
+      embeds_many :segments, Segment do
+        field :ss, :integer
+        field :text, :string
+      end
     end
 
     timestamps()

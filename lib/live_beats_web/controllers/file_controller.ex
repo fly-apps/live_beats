@@ -9,6 +9,17 @@ defmodule LiveBeatsWeb.FileController do
   require Logger
 
   def show(conn, %{"id" => filename_uuid, "token" => token}) do
+    case Phoenix.Token.decrypt(conn, "file", token, max_age: :timer.minutes(1)) do
+      {:ok, %{vsn: 1, uuid: ^filename_uuid, size: _size}} ->
+       path = MediaLibrary.local_filepath(filename_uuid)
+       do_send_file(conn, path)
+
+      _ ->
+        send_resp(conn, :unauthorized, "")
+    end
+  end
+
+  def old_show(conn, %{"id" => filename_uuid, "token" => token}) do
     path = MediaLibrary.local_filepath(filename_uuid)
     mime_type = MIME.from_path(path)
 

@@ -7,7 +7,7 @@ defmodule LiveBeats.Audio do
       fn ss ->
         args = ~w(-ac 1 -ar 16k -f f32le -ss #{ss} -t #{chunk_time} -v quiet -)
         {data, 0} = System.cmd("ffmpeg", ["-i", path] ++ args)
-        {ss, Nx.Serving.batched_run(WhisperServing, Nx.from_binary(data, :f32))}
+        {ss, Nx.Serving.batched_run({:local, LiveBeats.WhisperServing}, Nx.from_binary(data, :f32))}
       end,
       max_concurrency: 2,
       timeout: :infinity

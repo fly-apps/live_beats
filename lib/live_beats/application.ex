@@ -19,32 +19,39 @@ defmodule LiveBeats.Application do
 
   @impl true
   def start(_type, _args) do
+    parent = FLAME.Parent.get()
     LiveBeats.MediaLibrary.attach()
-    topologies = Application.get_env(:libcluster, :topologies) || []
 
     children =
       [
-        {Nx.Serving, name: WhisperServing, serving: load_serving()},
-        {Cluster.Supervisor, [topologies, [name: LiveBeats.ClusterSupervisor]]},
+        {Nx.Serving, name: LiveBeats.WhisperServing, serving: load_serving()},
+        !parent && {DNSCluster, query: Application.get_env(:wps, :dns_cluster_query) || :ignore},
         {Task.Supervisor, name: LiveBeats.TaskSupervisor},
-        {Task.Supervisor, name: Fly.Machine.TaskSupervisor},
         # Start the Ecto repository
         LiveBeats.Repo,
-        LiveBeats.ReplicaRepo,
         # Start the Telemetry supervisor
         LiveBeatsWeb.Telemetry,
         # Start the PubSub system
         {Phoenix.PubSub, name: LiveBeats.PubSub},
         # start presence
-        LiveBeatsWeb.Presence,
+        !parent && LiveBeatsWeb.Presence,
         {Finch, name: LiveBeats.Finch},
+        {FLAME.Pool,
+         name: LiveBeats.WhisperRunner,
+         min: 0,
+         max: 5,
+         max_concurrency: 10,
+         min_idle_shutdown_after: :timer.seconds(30),
+         idle_shutdown_after: :timer.seconds(30),
+         log: :info},
         # Start the Endpoint (http/https)
-        LiveBeatsWeb.Endpoint,
+        !parent && LiveBeatsWeb.Endpoint,
         # Expire songs every six hours
-        {LiveBeats.SongsCleaner, interval: {3600 * 6, :second}}
+        !parent && {LiveBeats.SongsCleaner, interval: {3600 * 6, :second}}
         # Start a worker by calling: LiveBeats.Worker.start_link(arg)
         # {LiveBeats.Worker, arg}
       ]
+      |> Enum.filter(& &1)
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options

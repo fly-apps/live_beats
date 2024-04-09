@@ -4,7 +4,7 @@
 #
 
 app = "livebeats"
-primary_region = "ord"
+primary_region = "iad"
 kill_signal = "SIGTERM"
 kill_timeout = "5s"
 
@@ -15,12 +15,9 @@ kill_timeout = "5s"
   release_command = "/app/bin/migrate"
 
 [env]
+  BUCKET_MOUNT = "/tigris"
   BUMBLEBEE_CACHE_DIR = "/app/.bumblebee"
   PHX_HOST = "livebeats.fly.dev"
-
-[mounts]
-  source="data"
-  destination="/app/uploads"
 
 [[services]]
   protocol = "tcp"

@@ -14,8 +14,17 @@ defmodule LiveBeats.SongsCleaner do
 
   @impl true
   def init(opts) do
-    {count, interval} = Keyword.fetch!(opts, :interval)
-    {:ok, schedule_cleanup(%{count: count, interval: interval}, 0)}
+    region = System.get_env("FLY_REGION")
+    primary_region = System.get_env("PRIMARY_REGION")
+
+    case region do
+      region when region in [nil, primary_region] ->
+        {count, interval} = Keyword.fetch!(opts, :interval)
+        {:ok, schedule_cleanup(%{count: count, interval: interval}, 0)}
+
+      _ ->
+        :ignore
+    end
   end
 
   @impl true

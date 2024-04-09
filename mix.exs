@@ -4,7 +4,7 @@ defmodule LiveBeats.MixProject do
   def project do
     [
       app: :live_beats,
-      version: "0.1.0",
+      version: "0.1.1",
       elixir: "~> 1.12",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
@@ -33,10 +33,11 @@ defmodule LiveBeats.MixProject do
   defp deps do
     [
       {:phoenix, "~> 1.7.1"},
-      {:phoenix_live_view, "~> 0.18.17"},
-      {:phoenix_live_dashboard, "~> 0.7.2"},
+      {:dns_cluster, ">= 0.0.0"},
+      {:phoenix_live_view, github: "phoenixframework/phoenix_live_view", override: true},
+      {:phoenix_live_dashboard, "~> 0.8"},
       {:phoenix_ecto, "~> 4.4"},
-      {:ecto_sql, "~> 3.6"},
+      {:ecto_sql, "~> 3.11"},
       {:ecto_network, "~> 1.3.0"},
       {:postgrex, ">= 0.0.0"},
       {:phoenix_html, "~> 3.3", override: true},
@@ -54,10 +55,10 @@ defmodule LiveBeats.MixProject do
       {:heroicons, "~> 0.2.2"},
       {:castore, "~> 0.1.13"},
       {:tailwind, "~> 0.2.0"},
-      {:libcluster, "~> 3.3.1"},
       {:bumblebee, github: "elixir-nx/bumblebee"},
       {:exla, ">= 0.0.0"},
-      {:req, "~> 0.3.7"}
+      {:req, "~> 0.4"},
+      {:flame, "~> 0.1.12"}
     ]
   end
 

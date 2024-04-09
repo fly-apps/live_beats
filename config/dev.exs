@@ -2,7 +2,7 @@ import Config
 
 config :live_beats, :files,
   uploads_dir: Path.expand("../priv/uploads", __DIR__),
-  host: [scheme: "http", host: "localhost", port: 4001],
+  host: [scheme: "http", host: "localhost", port: 4000],
   server_ip: "127.0.0.1",
   hostname: "localhost",
   transport_opts: []
@@ -13,22 +13,15 @@ config :live_beats, :github,
 
 # Configure your database
 config :live_beats, LiveBeats.Repo,
-  username: "postgres",
-  password: "postgres",
-  database: "live_beats_dev",
+  username: "root",
+  password: nil,
   hostname: "localhost",
+  port: 26257,
+  database: "live_beats_dev",
+  migration_lock: false,
+  stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
-
-# Configure your replica database
-config :live_beats, LiveBeats.ReplicaRepo,
-  username: "postgres",
-  password: "postgres",
-  database: "live_beats_dev",
-  hostname: "localhost",
-  show_sensitive_data_on_connection_error: true,
-  pool_size: 10,
-  priv: "priv/repo"
 
 # For development, we disable any cache and enable
 # debugging and code reloading.

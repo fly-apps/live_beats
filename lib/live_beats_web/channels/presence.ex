@@ -166,7 +166,7 @@ defmodule LiveBeatsWeb.Presence.BadgeComponent do
               <%= if @region do %>
                 <img
                   class="inline w-7 h-7 absolute right-3 top-3"
-                  src={"https://fly.io/ui/images/#{@region}.svg"}
+                  src={"https://fly.io/phx/ui/images/#{@region}.svg"}
                   title={region_name(@region)}
                 />
               <% end %>

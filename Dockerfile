@@ -70,7 +70,7 @@ RUN mix release
 # the compiled release and other runtime necessities
 FROM ${RUNNER_IMAGE}
 
-RUN apt-get update -y && apt-get install -y libstdc++6 openssl libncurses5 locales curl ffmpeg \
+RUN apt-get update -y && apt-get install -y libstdc++6 openssl libncurses5 locales curl ffmpeg s3fs \
   && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 # Set the locale
@@ -86,9 +86,10 @@ ENV BUMBLEBEE_CACHE_DIR="/app/.bumblebee"
 
 # Only copy the final release from the build stage
 COPY --from=builder --chown=nobody:root /app/_build/prod/rel/live_beats ./
+# COPY --from=builder --chown=nobody:root /app/.postgresql/ ./.postgresql
 COPY --from=builder --chown=nobody:root /app/.bumblebee/ ./.bumblebee
 
-USER nobody
+USER root
 
 # Set the runtime ENV
 ENV ECTO_IPV6="true"

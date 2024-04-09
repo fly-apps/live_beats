@@ -3,7 +3,7 @@ defmodule LiveBeats.Repo.Migrations.AddServerIpToSongs do
 
   def change do
     alter table(:songs) do
-      add :server_ip, :inet
+      add :server_ip, :string
     end
   end
 end

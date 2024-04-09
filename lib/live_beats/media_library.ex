@@ -145,7 +145,7 @@ defmodule LiveBeats.MediaLibrary do
 
   def store_mp3(%Song{} = song, tmp_path) do
     File.mkdir_p!(Path.dirname(song.mp3_filepath))
-    File.cp!(tmp_path, song.mp3_filepath)
+    {:ok, _} = File.copy(tmp_path, song.mp3_filepath)
   end
 
   def put_stats(%Ecto.Changeset{} = changeset, %MP3Stat{} = stat) do
@@ -160,9 +160,6 @@ defmodule LiveBeats.MediaLibrary do
 
   def import_songs(%Accounts.User{} = user, changesets, consume_file)
       when is_map(changesets) and is_function(consume_file, 2) do
-    # refetch user for fresh song count
-    user = Accounts.get_user!(user.id)
-
     multi =
       Ecto.Multi.new()
       |> lock_playlist(user.id)
@@ -179,19 +176,24 @@ defmodule LiveBeats.MediaLibrary do
           chset
           |> Song.put_user(user)
           |> Song.put_mp3_path()
-          |> Song.put_server_ip()
           |> Ecto.Changeset.put_change(:position, pos_start + i + 1)
         end)
       end)
-      |> Ecto.Multi.run(:valid_songs_count, fn _repo, changes ->
+      |> Ecto.Multi.run(:valid_songs_count, fn repo, changes ->
         new_songs_count = changes |> Enum.filter(&match?({{:song, _ref}, _}, &1)) |> Enum.count()
-        validate_songs_limit(user.songs_count, new_songs_count)
+
+        songs_count =
+          repo.one(
+            from(u in Accounts.User, where: u.id == ^user.id, select: u.songs_count, limit: 1)
+          )
+
+        validate_songs_limit(songs_count, new_songs_count)
       end)
       |> Ecto.Multi.update_all(
         :update_songs_count,
         fn %{valid_songs_count: new_count} ->
           from(u in Accounts.User,
-            where: u.id == ^user.id and u.songs_count == ^user.songs_count,
+            where: u.id == ^user.id,
             update: [inc: [songs_count: ^new_count]]
           )
         end,
@@ -233,17 +235,18 @@ defmodule LiveBeats.MediaLibrary do
   end
 
   defp async_transcribe(%Song{} = song, %Accounts.User{} = user) do
-    Task.Supervisor.start_child(LiveBeats.TaskSupervisor, fn ->
+    # Task.Supervisor.start_child(LiveBeats.TaskSupervisor, fn ->
+    FLAME.cast(LiveBeats.WhisperRunner, fn ->
       segments =
         LiveBeats.Audio.speech_to_text(song.mp3_filepath, 20, fn ss, text ->
-          segment = %Song.TranscriptSegment{ss: ss, text: text}
+          segment = %Song.Transcript.Segment{ss: ss, text: text}
           broadcast!(user.id, {segment, song.id})
 
           segment
         end)
 
       Repo.update_all(from(s in Song, where: s.id == ^song.id),
-        set: [transcript_segments: segments]
+        set: [transcript: %Song.Transcript{segments: segments}]
       )
     end)
   end
@@ -267,7 +270,7 @@ defmodule LiveBeats.MediaLibrary do
   end
 
   def list_genres do
-    Repo.replica().all(Genre, order_by: [asc: :title])
+    Repo.all(Genre, order_by: [asc: :title])
   end
 
   def list_profile_songs(%Profile{} = profile, limit \\ 100) do
@@ -276,7 +279,7 @@ defmodule LiveBeats.MediaLibrary do
       limit: ^limit
     )
     |> order_by_playlist(:asc)
-    |> Repo.replica().all()
+    |> Repo.all()
   end
 
   def list_active_profiles(opts) do
@@ -288,13 +291,13 @@ defmodule LiveBeats.MediaLibrary do
       order_by: [desc: s.updated_at],
       select: struct(u, [:id, :username, :profile_tagline, :avatar_url, :external_homepage_url])
     )
-    |> Repo.replica().all()
+    |> Repo.all()
     |> Enum.map(&get_profile!/1)
   end
 
   def get_current_active_song(%Profile{user_id: user_id}) do
-    Repo.replica().one(
-      from(s in Song, where: s.user_id == ^user_id and s.status in [:playing, :paused])
+    Repo.one(
+      from(s in Song, where: s.user_id == ^user_id and s.status in [:playing, :paused], limit: 1)
     )
   end
 
@@ -330,7 +333,7 @@ defmodule LiveBeats.MediaLibrary do
     end
   end
 
-  def get_song!(id), do: Repo.replica().get!(Song, id)
+  def get_song!(id), do: Repo.get!(Song, id)
 
   def get_first_song(%Profile{user_id: user_id}) do
     from(s in Song,
@@ -338,7 +341,7 @@ defmodule LiveBeats.MediaLibrary do
       limit: 1
     )
     |> order_by_playlist(:asc)
-    |> Repo.replica().one()
+    |> Repo.one()
   end
 
   def get_last_song(%Profile{user_id: user_id}) do
@@ -347,7 +350,7 @@ defmodule LiveBeats.MediaLibrary do
       limit: 1
     )
     |> order_by_playlist(:desc)
-    |> Repo.replica().one()
+    |> Repo.one()
   end
 
   def get_next_song(%Song{} = song, %Profile{} = profile) do
@@ -357,7 +360,7 @@ defmodule LiveBeats.MediaLibrary do
         limit: 1
       )
       |> order_by_playlist(:asc)
-      |> Repo.replica().one()
+      |> Repo.one()
 
     next || get_first_song(profile)
   end
@@ -369,7 +372,7 @@ defmodule LiveBeats.MediaLibrary do
         limit: 1
       )
       |> order_by_playlist(:desc)
-      |> Repo.replica().one()
+      |> Repo.one()
 
     prev || get_last_song(profile)
   end
@@ -379,7 +382,7 @@ defmodule LiveBeats.MediaLibrary do
 
     multi =
       Ecto.Multi.new()
-      |> lock_playlist(song.user_id)
+      # |> lock_playlist(song.user_id)
       |> Ecto.Multi.run(:index, fn repo, _changes ->
         case repo.one(from(s in Song, where: s.user_id == ^song.user_id, select: count(s.id))) do
           count when new_index < count -> {:ok, new_index}
@@ -409,7 +412,10 @@ defmodule LiveBeats.MediaLibrary do
 
     case LiveBeats.Repo.transaction(multi) do
       {:ok, _} ->
-        broadcast!(song.user_id, %Events.NewPosition{song: %Song{song | position: new_index}})
+        broadcast_from!(self(), song.user_id, %Events.NewPosition{
+          song: %Song{song | position: new_index}
+        })
+
         :ok
 
       {:error, failed_op, _failed_val, _changes} ->
@@ -428,7 +434,7 @@ defmodule LiveBeats.MediaLibrary do
     old_index = song.position
 
     Ecto.Multi.new()
-    |> lock_playlist(song.user_id)
+    # |> lock_playlist(song.user_id)
     |> Ecto.Multi.delete(:delete, song)
     |> multi_update_all(:dec_positions, fn _ ->
       from(s in Song,
@@ -451,7 +457,7 @@ defmodule LiveBeats.MediaLibrary do
 
   def expire_songs_older_than(count, interval) when interval in [:month, :day, :second] do
     admin_usernames = LiveBeats.config([:files, :admin_usernames])
-    server_ip = LiveBeats.config([:files, :server_ip])
+    # server_ip = LiveBeats.config([:files, :server_ip])
 
     Ecto.Multi.new()
     |> Ecto.Multi.delete_all(
@@ -459,7 +465,7 @@ defmodule LiveBeats.MediaLibrary do
       from(s in Song,
         join: u in assoc(s, :user),
         where: s.inserted_at < from_now(^(-count), ^to_string(interval)),
-        where: s.server_ip == ^server_ip,
+        # where: s.server_ip == ^server_ip,
         where: u.username not in ^admin_usernames,
         select: %{user_id: s.user_id, mp3_filepath: s.mp3_filepath}
       )
@@ -543,6 +549,10 @@ defmodule LiveBeats.MediaLibrary do
     Phoenix.PubSub.broadcast!(@pubsub, topic(user_id), {__MODULE__, msg})
   end
 
+  defp broadcast_from!(pid, user_id, msg) when is_integer(user_id) do
+    Phoenix.PubSub.broadcast_from!(@pubsub, pid, topic(user_id), {__MODULE__, msg})
+  end
+
   defp topic(user_id) when is_integer(user_id), do: "profile:#{user_id}"
 
   defp validate_songs_limit(user_songs, new_songs_count) do
@@ -558,6 +568,9 @@ defmodule LiveBeats.MediaLibrary do
   end
 
   defp lock_playlist(%Ecto.Multi{} = multi, user_id) do
-    Repo.multi_transaction_lock(multi, :playlist, user_id)
+    Ecto.Multi.run(multi, :playlist_lock, fn repo, _changes ->
+      repo.all(from(u in "users", where: u.id == ^user_id, select: u.id, lock: "FOR UPDATE"))
+      {:ok, user_id}
+    end)
   end
 end

@@ -33,6 +33,7 @@ defmodule LiveBeatsWeb.CoreComponents do
     <div
       id="connection-status"
       class="hidden rounded-md bg-red-50 p-4 fixed top-1 right-1 w-96 fade-in-scale z-50"
+      phx-disconnected={JS.show()}
       js-show={show("#connection-status")}
       js-hide={hide("#connection-status")}
     >
@@ -105,7 +106,6 @@ defmodule LiveBeatsWeb.CoreComponents do
       class="rounded-md bg-green-50 p-4 fixed top-1 right-1 w-96 fade-in-scale z-50"
       phx-click={JS.push("lv:clear-flash") |> JS.remove_class("fade-in-scale") |> hide("#flash")}
       phx-value-key="info"
-      phx-hook="Flash"
     >
       <div class="flex justify-between items-center space-x-3 text-green-700">
         <.icon name={:check_circle} class="w-5 h-5" />
@@ -278,7 +278,7 @@ defmodule LiveBeatsWeb.CoreComponents do
         {"transition ease-in-out duration-300 transform", "-translate-x-full", "translate-x-0"}
     )
     |> JS.hide(to: "#show-mobile-sidebar", transition: "fade-out")
-    |> JS.dispatch("js:exec", to: "#hide-mobile-sidebar", detail: %{call: "focus", args: []})
+    |> JS.dispatch("js:call", to: "#hide-mobile-sidebar", detail: %{call: "focus", args: []})
   end
 
   def hide_mobile_sidebar(js \\ %JS{}) do
@@ -291,7 +291,7 @@ defmodule LiveBeatsWeb.CoreComponents do
         {"transition ease-in-out duration-300 transform", "translate-x-0", "-translate-x-full"}
     )
     |> JS.show(to: "#show-mobile-sidebar", transition: "fade-in")
-    |> JS.dispatch("js:exec", to: "#show-mobile-sidebar", detail: %{call: "focus", args: []})
+    |> JS.dispatch("js:call", to: "#show-mobile-sidebar", detail: %{call: "focus", args: []})
   end
 
   def show(js \\ %JS{}, selector) do
@@ -348,6 +348,7 @@ defmodule LiveBeatsWeb.CoreComponents do
 
   def show_modal(js \\ %JS{}, id) when is_binary(id) do
     js
+    |> JS.remove_attribute("disabled", to: "##{id}-confirm")
     |> JS.show(
       to: "##{id}",
       display: "inline-block",
@@ -360,11 +361,12 @@ defmodule LiveBeatsWeb.CoreComponents do
         {"ease-out duration-300", "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95",
          "opacity-100 translate-y-0 sm:scale-100"}
     )
-    |> js_exec("##{id}-confirm", "focus", [])
+    |> js_call("##{id}-confirm", "focus", [])
   end
 
   def hide_modal(js \\ %JS{}, id) do
     js
+    |> JS.set_attribute({"disabled", ""}, to: "##{id}-confirm")
     |> JS.remove_class("fade-in", to: "##{id}")
     |> JS.hide(
       to: "##{id}",
@@ -388,7 +390,10 @@ defmodule LiveBeatsWeb.CoreComponents do
   attr :rest, :global
 
   slot :title
-  slot :confirm
+  slot :confirm do
+    attr :type, :string
+    attr :form, :string
+  end
   slot :cancel
 
   def modal(assigns) do
@@ -447,9 +452,8 @@ defmodule LiveBeatsWeb.CoreComponents do
               <%= for confirm <- @confirm do %>
                 <button
                   id={"#{@id}-confirm"}
-                  class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
+                  class="phx-submit-loading:opacity-50 disabled:opacity-50 w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
                   phx-click={@on_confirm}
-                  phx-disable-with
                   {assigns_to_attributes(confirm)}
                 >
                   <%= render_slot(confirm) %>
@@ -527,15 +531,13 @@ defmodule LiveBeatsWeb.CoreComponents do
   def button(%{patch: _} = assigns) do
     ~H"""
     <%= if @primary do %>
-      <%= live_patch [to: @patch, class: "order-0 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3"] ++
-        Map.to_list(@rest) do %>
+      <.link patch={@patch} class="order-0 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3" {@rest}>
         <%= render_slot(@inner_block) %>
-      <% end %>
+      </.link>
     <% else %>
-      <%= live_patch [to: @patch, class: "order-1 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-0 sm:ml-0 lg:ml-3"] ++
-        assigns_to_attributes(assigns, [:primary, :patch]) do %>
+      <.link patch={@patch} class="order-1 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-0 sm:ml-0 lg:ml-3" {assigns_to_attributes(assigns, [:primary, :patch])}>
         <%= render_slot(@inner_block) %>
-      <% end %>
+      </.link>
     <% end %>
     """
   end
@@ -598,7 +600,7 @@ defmodule LiveBeatsWeb.CoreComponents do
             data-drop={@sortable_drop}
           >
             <tr
-              :for={{row, i} <- Enum.with_index(@rows)}
+              :for={row <- @rows}
               id={@row_id && @row_id.(row)}
               phx-remove={@row_remove && @row_remove.(row)}
               class="hover:bg-gray-50"
@@ -606,10 +608,11 @@ defmodule LiveBeatsWeb.CoreComponents do
               <td
                 :for={col <- @col}
                 phx-click={@row_click && @row_click.(row)}
-                class={
+                class={[
+                  "phxp-click-loading:cursor-not-allowed phxp-click-loading:pointer-events-none",
                   col[:class!] ||
                     "px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900 #{col[:class]}"
-                }
+                ]}
               >
                 <div class="flex items-center space-x-3 lg:pl-2">
                   <%= render_slot(col, row) %>
@@ -623,59 +626,17 @@ defmodule LiveBeatsWeb.CoreComponents do
     """
   end
 
-  attr :id, :any, required: true
-  attr :module, :atom, required: true
-  attr :row_id, :any, default: false
-  attr :rows, :list, required: true
-  attr :owns_profile?, :boolean, default: false
-  attr :active_id, :any, default: nil
-
-  slot :col do
-    attr :label, :string
-    attr :class, :string
-  end
-
-  def live_table(assigns) do
-    ~H"""
-    <div class="hidden mt-8 sm:block">
-      <div class="align-middle inline-block min-w-full border-b border-gray-200">
-        <table class="min-w-full">
-          <thead>
-            <tr class="border-t border-gray-200">
-              <%= for col <- @col do %>
-                <th class="px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <span class="lg:pl-2"><%= col.label %></span>
-                </th>
-              <% end %>
-            </tr>
-          </thead>
-          <tbody id={@id} class="bg-white divide-y divide-gray-100" phx-update="append">
-            <%= for {row, i} <- Enum.with_index(@rows) do %>
-              <.live_component
-                module={@module}
-                id={@row_id.(row)}
-                row={row}
-                col={@col}
-                index={i}
-                active_id={@active_id}
-                class="hover:bg-gray-50"
-                owns_profile?={@owns_profile?}
-              />
-            <% end %>
-          </tbody>
-        </table>
-      </div>
-    </div>
-    """
-  end
-
   @doc """
   Calls a wired up event listener to call a function with arguments.
 
-      window.addEventListener("js:exec", e => e.target[e.detail.call](...e.detail.args))
+      window.addEventListener("js:call", e => e.target[e.detail.call](...e.detail.args))
   """
-  def js_exec(js \\ %JS{}, to, call, args) do
-    JS.dispatch(js, "js:exec", to: to, detail: %{call: call, args: args})
+  def js_call(js \\ %JS{}, to, call, args) do
+    JS.dispatch(js, "js:call", to: to, detail: %{call: call, args: args})
+  end
+
+  def push_js_cmd(socket, %JS{ops: ops}) do
+    Phoenix.LiveView.push_event(socket, "js:exec", %{cmd: Phoenix.json_library().encode!(ops)})
   end
 
   def focus(js \\ %JS{}, parent, to) do

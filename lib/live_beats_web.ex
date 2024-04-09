@@ -41,6 +41,8 @@ defmodule LiveBeatsWeb do
       import Phoenix.Controller,
         only: [get_csrf_token: 0, view_module: 1, view_template: 1]
 
+      use Phoenix.Component
+
       # Include general helpers for rendering HTML
       unquote(html_helpers())
     end
@@ -99,9 +101,6 @@ defmodule LiveBeatsWeb do
     quote do
       # Use all HTML functionality (forms, tags, etc)
       use Phoenix.HTML
-
-      # Import LiveView and .heex helpers (live_render, live_patch, <.form>, etc)
-      use Phoenix.Component
 
       import LiveBeatsWeb.CoreComponents
       import LiveBeatsWeb.Gettext

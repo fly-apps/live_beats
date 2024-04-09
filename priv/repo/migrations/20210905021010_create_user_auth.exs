@@ -1,11 +1,20 @@
 defmodule LiveBeats.Repo.Migrations.CreateUserAuth do
   use Ecto.Migration
+  import Ecto.Query
 
   def change do
-    execute "CREATE EXTENSION IF NOT EXISTS citext", ""
+    # email_type =
+    #   if repo().exists?(
+    #        from(e in "pg_available_extensions", where: e.name == "citext", select: e.name)
+    #      ) do
+    #     execute "CREATE EXTENSION IF NOT EXISTS citext", ""
+    #     :citext
+    #   else
+    #     :string
+    #   end
 
     create table(:users) do
-      add :email, :citext, null: false
+      add :email, :string, null: false
       add :username, :string, null: false
       add :name, :string
       add :role, :string, null: false
@@ -16,8 +25,8 @@ defmodule LiveBeats.Repo.Migrations.CreateUserAuth do
       timestamps()
     end
 
-    create unique_index(:users, [:email])
-    create unique_index(:users, [:username])
+    create unique_index(:users, ["lower(email)"], name: :users_email_index)
+    create unique_index(:users, ["lower(username)"], name: :users_username_index)
 
     create table(:identities) do
       add :user_id, references(:users, on_delete: :delete_all), null: false

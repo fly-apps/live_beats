@@ -11,10 +11,15 @@ defmodule LiveBeatsWeb.SettingsLive do
 
     <div class="max-w-3xl px-4 mx-auto mt-6">
       <.form
-        id="settings-form"
         :let={f}
+        id="settings-form"
         for={@changeset}
-        phx-change="validate"
+        phx-change={
+          JS.push("validate",
+            loading:
+              "#settings-form, #settings-form button, #settings-form input, #settings-form [phx-feedback-for]"
+          )
+        }
         phx-submit="save"
         class="space-y-8 divide-y divide-gray-200"
       >
@@ -102,6 +107,8 @@ defmodule LiveBeatsWeb.SettingsLive do
     changeset = Accounts.change_settings(socket.assigns.current_user, %{})
     {:ok, assign(socket, changeset: changeset)}
   end
+
+  def handle_params(_, _, socket), do: {:noreply, socket}
 
   def handle_event("validate", %{"user" => params}, socket) do
     changeset = Accounts.change_settings(socket.assigns.current_user, params)
