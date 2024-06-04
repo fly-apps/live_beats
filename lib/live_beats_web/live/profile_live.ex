@@ -430,7 +430,7 @@ defmodule LiveBeatsWeb.ProfileLive do
   defp assign_presences(socket) do
     socket = assign(socket, presences_count: 0, presences: %{}, presence_ids: %{})
 
-    if profile = connected?(socket) && socket.assigns.profile do
+    if profile = socket.assigns.profile do
       profile
       |> LiveBeatsWeb.Presence.list_profile_users()
       |> Enum.reduce(socket, fn {_, presence}, acc -> assign_presence(acc, presence) end)

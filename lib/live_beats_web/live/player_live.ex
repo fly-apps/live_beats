@@ -14,7 +14,7 @@ defmodule LiveBeatsWeb.PlayerLive do
       <div id="audio-ignore" phx-update="ignore">
         <audio></audio>
       </div>
-      <div class="bg-white dark:bg-gray-800 p-4">
+      <div class="bg-gray-800 p-4">
         <div class="flex items-center space-x-3.5 sm:space-x-5 lg:space-x-3.5 xl:space-x-5">
           <div class="pr-5">
             <div class="min-w-0 max-w-xs flex-col space-y-0.5">

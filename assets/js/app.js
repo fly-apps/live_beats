@@ -296,7 +296,7 @@ let routeUpdated = () => {
 
 // Show progress bar on live navigation and form submits
 topbar.config({barColors: {0: "rgba(147, 51, 234, 1)"}, shadowColor: "rgba(0, 0, 0, .3)"})
-window.addEventListener("phx:page-loading-start", info => topbar.delayedShow(200))
+window.addEventListener("phx:page-loading-start", info => topbar.delayedShow(350))
 window.addEventListener("phx:page-loading-stop", info => topbar.hide())
 
 // Accessible routing
