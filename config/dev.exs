@@ -13,10 +13,9 @@ config :live_beats, :github,
 
 # Configure your database
 config :live_beats, LiveBeats.Repo,
-  username: "root",
-  password: nil,
+  username: "postgres",
+  password: "postgres",
   hostname: "localhost",
-  port: 26257,
   database: "live_beats_dev",
   migration_lock: false,
   stacktrace: true,

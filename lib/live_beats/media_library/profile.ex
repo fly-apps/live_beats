@@ -1,3 +1,8 @@
 defmodule LiveBeats.MediaLibrary.Profile do
-  defstruct user_id: nil, username: nil, tagline: nil, avatar_url: nil, external_homepage_url: nil
+  defstruct user_id: nil,
+            username: nil,
+            tagline: nil,
+            avatar_url: nil,
+            external_homepage_url: nil,
+            songs_count: 0
 end

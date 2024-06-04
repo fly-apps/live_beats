@@ -52,7 +52,7 @@ defmodule LiveBeatsWeb.PlayerLive do
           <div class="mx-auto flex"></div>
         <% end %>
 
-        <%= if is_nil(@profile) or @own_profile? do %>
+        <%= if @own_profile? do %>
           <!-- prev -->
           <button
             type="button"
@@ -137,7 +137,8 @@ defmodule LiveBeatsWeb.PlayerLive do
             </svg>
           </button>
           <!-- next -->
-        <% else %>
+        <% end %>
+        <%= if !@own_profile? && @profile && @profile.songs_count > 0 do %>
           <button type="button" class="mx-auto scale-75"></button>
           <!-- stop button -->
           <button
@@ -185,14 +186,13 @@ defmodule LiveBeatsWeb.PlayerLive do
     socket =
       socket
       |> assign(
-        foo: true,
         song: nil,
         playing: false,
         profile: nil,
         current_user_id: current_user.id,
         own_profile?: false
       )
-      |> switch_profile(current_user.active_profile_user_id || current_user.id)
+      |> switch_profile(current_user.active_profile_user_id)
 
     {:ok, socket, layout: false, temporary_assigns: []}
   end

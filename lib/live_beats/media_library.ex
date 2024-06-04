@@ -304,6 +304,7 @@ defmodule LiveBeats.MediaLibrary do
   def get_profile!(%Accounts.User{} = user) do
     %Profile{
       user_id: user.id,
+      songs_count: user.songs_count,
       username: user.username,
       tagline: user.profile_tagline,
       avatar_url: user.avatar_url,

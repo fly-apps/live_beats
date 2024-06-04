@@ -524,7 +524,7 @@ defmodule LiveBeatsWeb.CoreComponents do
 
   attr :patch, :string
   attr :primary, :boolean, default: false
-  attr :rest, :global
+  attr :rest, :global, include: ["disabled"]
 
   slot :inner_block
 

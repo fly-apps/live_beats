@@ -43,6 +43,7 @@ defmodule LiveBeatsWeb.ProfileLive do
       <:actions>
         <%= if @active_profile_id == @profile.user_id do %>
           <.button
+            :if={@songs_count > 0}
             primary
             phx-click={
               JS.push("switch_profile", value: %{user_id: nil}, target: "#player", loading: "#player")
@@ -52,6 +53,7 @@ defmodule LiveBeatsWeb.ProfileLive do
           </.button>
         <% else %>
           <.button
+            :if={@songs_count > 0}
             primary
             phx-click={
               JS.push("switch_profile",
@@ -113,20 +115,24 @@ defmodule LiveBeatsWeb.ProfileLive do
         rows={@streams.songs}
         row_id={fn {id, _song} -> id end}
         row_click={
-          fn {id, song} ->
-            JS.push("play_or_pause",
-              loading: "#songs tbody, ##{id}",
-              value: %{id: to_string(song.id)}
-            )
-          end
+          @owns_profile? &&
+            fn {id, song} ->
+              JS.push("play_or_pause",
+                loading: "#songs tbody, ##{id}",
+                value: %{id: to_string(song.id)}
+              )
+            end
         }
         streamable
-        sortable_drop="row_dropped"
+        sortable_drop={@owns_profile? && "row_dropped"}
       >
         <:col
           :let={{_id, song}}
           label="Title"
-          class!="px-6 py-3 text-sm font-medium text-gray-900 min-w-[200px] md:min-w-[20rem] cursor-pointer"
+          class!={[
+            "px-6 py-3 text-sm font-medium text-gray-900 min-w-[200px] md:min-w-[20rem]",
+            @owns_profile? && "cursor-pointer"
+          ]}
         >
           <span :if={song.status == :playing} class="flex pt-1 relative mr-2 w-4">
             <span class="w-3 h-3 animate-ping bg-purple-400 rounded-full absolute"></span>
@@ -428,9 +434,10 @@ defmodule LiveBeatsWeb.ProfileLive do
   end
 
   defp assign_presences(socket) do
+    %{profile: profile} = socket.assigns
     socket = assign(socket, presences_count: 0, presences: %{}, presence_ids: %{})
 
-    if profile = socket.assigns.profile do
+    if profile do
       profile
       |> LiveBeatsWeb.Presence.list_profile_users()
       |> Enum.reduce(socket, fn {_, presence}, acc -> assign_presence(acc, presence) end)

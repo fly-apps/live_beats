@@ -161,16 +161,13 @@ defmodule LiveBeatsWeb.Presence.BadgeComponent do
         <div class="flex-1 flex items-center justify-between text-gray-900 text-sm font-medium hover:text-gray-600 pl-3">
           <div class="flex-1 py-1 text-sm truncate">
             <%= @presence.username %>
-            <%= if @ping do %>
-              <p class="text-gray-400 text-xs">ping: <%= @ping %>ms</p>
-              <%= if @region do %>
-                <img
-                  class="inline w-7 h-7 absolute right-3 top-3"
-                  src={"https://fly.io/phx/ui/images/#{@region}.svg"}
-                  title={region_name(@region)}
-                />
-              <% end %>
-            <% end %>
+            <p class="text-gray-400 text-xs">ping: <%= if @ping, do: "#{@ping}ms", else: "..." %></p>
+            <img
+              :if={@region}
+              class="inline w-7 h-7 absolute right-3 top-3"
+              src={"https://fly.io/phx/ui/images/#{@region}.svg"}
+              title={region_name(@region)}
+            />
           </div>
         </div>
       </.link>
