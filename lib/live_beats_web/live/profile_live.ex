@@ -109,7 +109,21 @@ defmodule LiveBeatsWeb.ProfileLive do
       </.modal>
     </div>
 
-    <div>
+    <div :if={@songs_count == 0} class="my-2 text-center">
+      <.icon name={:music_note} class="mx-auto h-12 w-12 text-gray-400" />
+      <h3 class="mt-2 text-sm font-semibold text-gray-900">No music</h3>
+      <p class="mt-1 text-sm text-gray-500">Get started by uploading a new playlist</p>
+      <div class="mt-6">
+        <.button
+          primary
+          phx-click={show_modal("upload") |> JS.patch(profile_upload_path(@current_user))}
+        >
+          <.icon name={:upload} />
+          <span class="ml-2">Upload songs</span>
+        </.button>
+      </div>
+    </div>
+    <div :if={@songs_count > 0}>
       <.table
         id="songs"
         rows={@streams.songs}
