@@ -21,10 +21,11 @@ defmodule LiveBeats.Application do
   def start(_type, _args) do
     parent = FLAME.Parent.get()
     LiveBeats.MediaLibrary.attach()
+    whisper_serving? = parent || FLAME.Backend.impl() != FLAME.FlyBackend
 
     children =
       [
-        {Nx.Serving, name: LiveBeats.WhisperServing, serving: load_serving()},
+        whisper_serving? && {Nx.Serving, name: LiveBeats.WhisperServing, serving: load_serving()},
         !parent && {DNSCluster, query: Application.get_env(:wps, :dns_cluster_query) || :ignore},
         {Task.Supervisor, name: LiveBeats.TaskSupervisor},
         # Start the Ecto repository

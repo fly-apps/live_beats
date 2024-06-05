@@ -6,12 +6,22 @@ defmodule LiveBeatsWeb.Nav do
   alias LiveBeatsWeb.{ProfileLive, SettingsLive}
 
   def on_mount(:default, _params, _session, socket) do
+    if connected?(socket) do
+      MediaLibrary.subscribe_to_active_profiles()
+    end
+
+    active_users = MediaLibrary.list_active_profiles(limit: 20)
+
     {:cont,
      socket
-     |> assign(active_users: MediaLibrary.list_active_profiles(limit: 20))
+     |> stream_configure(:mobile_active_users, dom_id: &"mobile_active-#{&1.user_id}")
+     |> stream_configure(:active_users, dom_id: &"active-#{&1.user_id}")
+     |> stream(:active_users, active_users)
+     |> stream(:mobile_active_users, active_users)
      |> assign(:region, System.get_env("FLY_REGION") || "iad")
      |> attach_hook(:active_tab, :handle_params, &handle_active_tab_params/3)
-     |> attach_hook(:ping, :handle_event, &handle_event/3)}
+     |> attach_hook(:ping, :handle_event, &handle_event/3)
+     |> attach_hook(:active_profile_changes, :handle_info, &handle_info/2)}
   end
 
   defp handle_active_tab_params(params, _url, socket) do
@@ -40,6 +50,16 @@ defmodule LiveBeatsWeb.Nav do
   end
 
   defp handle_event(_, _, socket), do: {:cont, socket}
+
+  defp handle_info({MediaLibrary, %MediaLibrary.Events.PublicProfileActive{} = update}, socket) do
+    {:halt, stream_insert(socket, :active_users, update.profile)}
+  end
+
+  defp handle_info({MediaLibrary, %MediaLibrary.Events.PublicProfileInActive{} = update}, socket) do
+    {:halt, stream_delete(socket, :active_users, update.profile)}
+  end
+
+  defp handle_info(_, socket), do: {:cont, socket}
 
   defp rate_limited_ping_broadcast(socket, %Accounts.User{} = user, rtt) when is_integer(rtt) do
     now = System.system_time(:millisecond)

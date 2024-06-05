@@ -7,7 +7,7 @@ defmodule LiveBeatsWeb.Endpoint do
   @session_options [
     store: :cookie,
     key: "_live_beats_key_v1",
-    signing_salt: "9OALgV62"
+    signing_salt: "1a9OALgV62"
   ]
 
   socket "/live", Phoenix.LiveView.Socket,

@@ -8,6 +8,14 @@ defmodule LiveBeats.MediaLibrary.Events do
   end
 
   defmodule PublicProfileUpdated do
+    defstruct profile: nil, active?: false
+  end
+
+  defmodule PublicProfileActive do
+    defstruct profile: nil
+  end
+
+  defmodule PublicProfileInActive do
     defstruct profile: nil
   end
 

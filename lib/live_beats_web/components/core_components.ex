@@ -574,8 +574,8 @@ defmodule LiveBeatsWeb.CoreComponents do
 
   slot :col, required: true do
     attr :label, :string
-    attr :class, :string
-    attr :class!, :string
+    attr :class, :any
+    attr :class!, :any
   end
 
   def table(assigns) do
