@@ -57,7 +57,7 @@
         <%= if @current_user do %>
           <.sidebar_nav_links current_user={@current_user} active_tab={@active_tab} />
         <% end %>
-        <.sidebar_active_users id="desktop-active-users" users={@active_users} />
+        <.sidebar_active_users id="mobile-active-users" users={@streams.mobile_active_users} />
       </nav>
     </div>
   </div>
@@ -121,7 +121,7 @@
           <.sidebar_nav_links current_user={@current_user} active_tab={@active_tab} />
         <% end %>
         <!-- Secondary navigation -->
-        <.sidebar_active_users id="mobile-active-users" users={@active_users} />
+        <.sidebar_active_users id="desktop-active-users" users={@streams.active_users} />
       </nav>
     </div>
   </div>

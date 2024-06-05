@@ -23,7 +23,28 @@ defmodule LiveBeats.MediaLibrary do
 
   def handle_execute({Accounts, %Accounts.Events.PublicSettingsChanged{user: user}}) do
     profile = get_profile!(user)
-    broadcast!(user.id, %Events.PublicProfileUpdated{profile: profile})
+
+    active? =
+      Repo.exists?(
+        from(s in Song,
+          inner_join: u in LiveBeats.Accounts.User,
+          on: s.user_id == ^user.id,
+          where: s.status in [:playing],
+          limit: 1
+        )
+      )
+
+    if active? do
+      broadcast_active_profile!(profile)
+    else
+      broadcast_inactive_profile!(profile)
+    end
+
+    broadcast!(user.id, %Events.PublicProfileUpdated{profile: profile, active?: active?})
+  end
+
+  def subscribe_to_active_profiles do
+    Phoenix.PubSub.subscribe(@pubsub, "active_profiles")
   end
 
   def subscribe_to_profile(%Profile{} = profile) do
@@ -53,6 +74,8 @@ defmodule LiveBeats.MediaLibrary do
   end
 
   def play_song(%Song{} = song) do
+    user = Accounts.get_user!(song.user_id)
+
     played_at =
       cond do
         playing?(song) ->
@@ -86,6 +109,7 @@ defmodule LiveBeats.MediaLibrary do
 
     elapsed = elapsed_playback(new_song)
 
+    broadcast_active_profile!(get_profile!(user))
     broadcast!(song.user_id, %Events.Play{song: song, elapsed: elapsed})
 
     new_song
@@ -98,6 +122,8 @@ defmodule LiveBeats.MediaLibrary do
   end
 
   def pause_song(%Song{} = song) do
+    user = Accounts.get_user!(song.user_id)
+
     now = DateTime.truncate(DateTime.utc_now(), :second)
     set = [status: :paused, paused_at: now]
     pause_query = from(s in Song, where: s.id == ^song.id, update: [set: ^set])
@@ -114,6 +140,7 @@ defmodule LiveBeats.MediaLibrary do
       |> Multi.update_all(:now_paused, fn _ -> pause_query end, [])
       |> Repo.transaction()
 
+    broadcast_inactive_profile!(get_profile!(user))
     broadcast!(song.user_id, %Events.Pause{song: song})
   end
 
@@ -552,6 +579,16 @@ defmodule LiveBeats.MediaLibrary do
 
   defp broadcast_from!(pid, user_id, msg) when is_integer(user_id) do
     Phoenix.PubSub.broadcast_from!(@pubsub, pid, topic(user_id), {__MODULE__, msg})
+  end
+
+  defp broadcast_active_profile!(%Profile{} = profile) do
+    msg = %Events.PublicProfileActive{profile: profile}
+    Phoenix.PubSub.broadcast!(@pubsub, "active_profiles", {__MODULE__, msg})
+  end
+
+  defp broadcast_inactive_profile!(%Profile{} = profile) do
+    msg = %Events.PublicProfileInActive{profile: profile}
+    Phoenix.PubSub.broadcast!(@pubsub, "active_profiles", {__MODULE__, msg})
   end
 
   defp topic(user_id) when is_integer(user_id), do: "profile:#{user_id}"
