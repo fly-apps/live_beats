@@ -17,8 +17,7 @@ defmodule LiveBeatsWeb.ProfileLive.SongEntryComponent do
           <% else %>
             Title
             <span class="text-gray-400">
-              (calculating duration
-              <.spinner class="inline-block animate-spin h-2.5 w-2.5 text-gray-400" />)
+              (calculating duration)
             </span>
           <% end %>
         </label>
