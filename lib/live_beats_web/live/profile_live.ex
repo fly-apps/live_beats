@@ -12,7 +12,7 @@ defmodule LiveBeatsWeb.ProfileLive do
     <.modal
       id="upload"
       patch={profile_path(@current_user)}
-      on_cancel={JS.push("cancel", target: "#upload-form")}
+      on_cancel={JS.push("cancel", target: "#song-form")}
       phx-mounted={@live_action == :new && show_modal("upload")}
     >
       <:title>Add Music</:title>
