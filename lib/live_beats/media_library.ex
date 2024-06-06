@@ -410,7 +410,7 @@ defmodule LiveBeats.MediaLibrary do
 
     multi =
       Ecto.Multi.new()
-      # |> lock_playlist(song.user_id)
+      |> lock_playlist(song.user_id)
       |> Ecto.Multi.run(:index, fn repo, _changes ->
         case repo.one(from(s in Song, where: s.user_id == ^song.user_id, select: count(s.id))) do
           count when new_index < count -> {:ok, new_index}
