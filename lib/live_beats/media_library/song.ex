@@ -60,6 +60,8 @@ defmodule LiveBeats.MediaLibrary.Song do
     |> maybe_put(:artist, stat.artist)
     |> maybe_put(:attribution, stat.attrib)
     |> Ecto.Changeset.put_change(:mp3_filesize, stat.size)
+    |> Ecto.Changeset.put_change(:artist, stat.artist)
+    |> Ecto.Changeset.put_change(:title, stat.title)
   end
 
   def maybe_put(%Ecto.Changeset{} = changeset, field, value) do
