@@ -32,6 +32,10 @@ defmodule LiveBeatsWeb.SignInLive do
   end
 
   def mount(_params, _session, socket) do
-    {:ok, socket}
+    if user = socket.assigns.current_user do
+      {:ok, redirect(socket, to: profile_path(user))}
+    else
+      {:ok, socket}
+    end
   end
 end
