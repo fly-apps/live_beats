@@ -45,7 +45,7 @@ defmodule LiveBeatsWeb.Layouts do
           aria-current={if @active_tab == :profile, do: "true", else: "false"}
         >
           <.icon
-            name={:music_note}
+            name={:musical_note}
             outlined
             class="text-gray-400 group-hover:text-gray-500 mr-3 flex-shrink-0 h-6 w-6"
           /> My Songs
@@ -59,7 +59,7 @@ defmodule LiveBeatsWeb.Layouts do
           aria-current={if @active_tab == :settings, do: "true", else: "false"}
         >
           <.icon
-            name={:adjustments}
+            name={:adjustments_vertical}
             outlined
             class="text-gray-400 group-hover:text-gray-500 mr-3 flex-shrink-0 h-6 w-6"
           /> Settings

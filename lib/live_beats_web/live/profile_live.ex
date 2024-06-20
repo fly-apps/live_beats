@@ -37,7 +37,7 @@ defmodule LiveBeatsWeb.ProfileLive do
           </span>
         </div>
         <.link href={@profile.external_homepage_url} target="_blank" class="text-sm text-gray-600">
-          <.icon name={:code} /> <span class=""><%= url_text(@profile.external_homepage_url) %></span>
+          <.icon name={:code_bracket} /> <span class=""><%= url_text(@profile.external_homepage_url) %></span>
         </.link>
       </div>
       <:actions>
@@ -49,7 +49,7 @@ defmodule LiveBeatsWeb.ProfileLive do
               JS.push("switch_profile", value: %{user_id: nil}, target: "#player", loading: "#player")
             }
           >
-            <.icon name={:stop} /><span class="ml-2">Stop Listening</span>
+            <.icon name={:stop_circle} /><span class="ml-2">Stop Listening</span>
           </.button>
         <% else %>
           <.button
@@ -63,7 +63,7 @@ defmodule LiveBeatsWeb.ProfileLive do
               )
             }
           >
-            <.icon name={:play} /><span class="ml-2">Listen</span>
+            <.icon name={:play_circle} /><span class="ml-2">Listen</span>
           </.button>
         <% end %>
         <.button
@@ -72,7 +72,7 @@ defmodule LiveBeatsWeb.ProfileLive do
           primary
           phx-click={show_modal("upload") |> JS.patch(profile_upload_path(@current_user))}
         >
-          <.icon name={:upload} /><span class="ml-2">Upload Songs</span>
+          <.icon name={:arrow_up_tray} /><span class="ml-2">Upload Songs</span>
         </.button>
       </:actions>
     </.title_bar>
@@ -110,7 +110,7 @@ defmodule LiveBeatsWeb.ProfileLive do
     </div>
 
     <div :if={@songs_count == 0} class="my-2 text-center">
-      <.icon name={:music_note} class="mx-auto h-12 w-12 text-gray-400" />
+      <.icon name={:musical_note} class="mx-auto h-12 w-12 text-gray-400" />
       <h3 class="mt-2 text-sm font-semibold text-gray-900">No music</h3>
       <p class="mt-1 text-sm text-gray-500">Get started by uploading a new playlist</p>
       <div class="mt-6">
@@ -118,7 +118,7 @@ defmodule LiveBeatsWeb.ProfileLive do
           primary
           phx-click={show_modal("upload") |> JS.patch(profile_upload_path(@current_user))}
         >
-          <.icon name={:upload} />
+          <.icon name={:arrow_up_tray} />
           <span class="ml-2">Upload songs</span>
         </.button>
       </div>
@@ -150,11 +150,11 @@ defmodule LiveBeatsWeb.ProfileLive do
         >
           <span :if={song.status == :playing} class="flex pt-1 relative mr-2 w-4">
             <span class="w-3 h-3 animate-ping bg-purple-400 rounded-full absolute"></span>
-            <.icon name={:volume_up} class="h-5 w-5 -mt-1 -ml-1" aria-label="Playing" role="button" />
+            <.icon name={:speaker_wave} class="h-5 w-5 -mt-1 -ml-1" aria-label="Playing" role="button" />
           </span>
           <span :if={song.status == :paused} class="flex pt-1 relative mr-2 w-4">
             <.icon
-              name={:volume_up}
+              name={:speaker_wave}
               class="h-5 w-5 -mt-1 -ml-1 text-gray-400"
               aria-label="Paused"
               role="button"
@@ -163,7 +163,7 @@ defmodule LiveBeatsWeb.ProfileLive do
           <span :if={song.status == :stopped} class="flex relative w-6 -translate-x-1">
             <.icon
               :if={@owns_profile?}
-              name={:play}
+              name={:play_circle}
               class="h-5 w-5 text-gray-400"
               aria-label="Play"
               role="button"
