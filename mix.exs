@@ -50,6 +50,7 @@ defmodule LiveBeats.MixProject do
       {:phoenix, "~> 1.7.0"},
       {:phoenix_ecto, "~> 4.6.0"},
       {:phoenix_html, "~> 4.1.0", override: true},
+      {:phoenix_html_helpers, "~> 1.0.0"},
       {:phoenix_live_dashboard, "~> 0.8.0"},
       {:phoenix_live_reload, "~> 1.5.0", only: :dev},
       {:phoenix_live_view, github: "phoenixframework/phoenix_live_view", override: true},
@@ -83,4 +84,3 @@ defmodule LiveBeats.MixProject do
     ]
   end
 end
-
