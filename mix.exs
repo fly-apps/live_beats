@@ -32,33 +32,34 @@ defmodule LiveBeats.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:phoenix, "~> 1.7.1"},
-      {:dns_cluster, ">= 0.0.0"},
-      {:phoenix_live_view, github: "phoenixframework/phoenix_live_view", override: true},
-      {:phoenix_live_dashboard, "~> 0.8"},
-      {:phoenix_ecto, "~> 4.4"},
-      {:ecto_sql, "~> 3.11"},
-      {:ecto_network, "~> 1.3.0"},
-      {:postgrex, ">= 0.0.0"},
-      {:phoenix_html, "~> 3.3", override: true},
-      {:phoenix_live_reload, "~> 1.2", only: :dev},
-      {:floki, ">= 0.30.0", only: :test},
-      {:esbuild, "~> 0.2", runtime: Mix.env() == :dev},
-      {:swoosh, "~> 1.3"},
-      {:finch, "~> 0.13"},
-      {:telemetry_metrics, "~> 0.6"},
-      {:telemetry_poller, "~> 1.0"},
-      {:gettext, "~> 0.18"},
-      {:jason, "~> 1.2"},
-      {:plug_cowboy, "~> 2.5"},
-      {:mint, "~> 1.0"},
-      {:heroicons, "~> 0.2.2"},
-      {:castore, "~> 0.1.13"},
-      {:tailwind, "~> 0.2.0"},
       {:bumblebee, github: "elixir-nx/bumblebee"},
+      {:castore, "~> 1.0.0"},
+      {:dns_cluster, ">= 0.0.0"},
+      {:ecto_network, "~> 1.5.0"},
+      {:ecto_sql, "~> 3.11.0"},
+      {:esbuild, "~> 0.8.0", runtime: Mix.env() == :dev},
       {:exla, ">= 0.0.0"},
-      {:req, "~> 0.4"},
-      {:flame, "~> 0.1.12"}
+      {:finch, "~> 0.18.0"},
+      {:flame, "~> 0.2.0"},
+      {:floki, "~> 0.36.0", only: :test},
+      {:gettext, "~> 0.24.0"},
+      {:heroicons, "~> 0.5.3"},
+      {:jason, "~> 1.4.0"},
+      {:libcluster, "~> 3.3.0"},
+      {:mint, "~> 1.6.0"},
+      {:phoenix, "~> 1.7.0"},
+      {:phoenix_ecto, "~> 4.6.0"},
+      {:phoenix_html, "~> 4.1.0", override: true},
+      {:phoenix_live_dashboard, "~> 0.8.0"},
+      {:phoenix_live_reload, "~> 1.5.0", only: :dev},
+      {:phoenix_live_view, github: "phoenixframework/phoenix_live_view", override: true},
+      {:plug_cowboy, "~> 2.7.0"},
+      {:postgrex, "~> 0.18.0"},
+      {:req, "~> 0.5.0"},
+      {:swoosh, "~> 1.16.0"},
+      {:tailwind, "~> 0.2.0"},
+      {:telemetry_metrics, "~> 1.0.0"},
+      {:telemetry_poller, "~> 1.1.0"}
     ]
   end
 
@@ -82,3 +83,4 @@ defmodule LiveBeats.MixProject do
     ]
   end
 end
+
