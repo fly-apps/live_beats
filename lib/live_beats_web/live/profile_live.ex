@@ -37,7 +37,8 @@ defmodule LiveBeatsWeb.ProfileLive do
           </span>
         </div>
         <.link href={@profile.external_homepage_url} target="_blank" class="text-sm text-gray-600">
-          <.icon name={:code_bracket} /> <span class=""><%= url_text(@profile.external_homepage_url) %></span>
+          <.icon name={:code_bracket} />
+          <span class=""><%= url_text(@profile.external_homepage_url) %></span>
         </.link>
       </div>
       <:actions>
@@ -150,7 +151,12 @@ defmodule LiveBeatsWeb.ProfileLive do
         >
           <span :if={song.status == :playing} class="flex pt-1 relative mr-2 w-4">
             <span class="w-3 h-3 animate-ping bg-purple-400 rounded-full absolute"></span>
-            <.icon name={:speaker_wave} class="h-5 w-5 -mt-1 -ml-1" aria-label="Playing" role="button" />
+            <.icon
+              name={:speaker_wave}
+              class="h-5 w-5 -mt-1 -ml-1"
+              aria-label="Playing"
+              role="button"
+            />
           </span>
           <span :if={song.status == :paused} class="flex pt-1 relative mr-2 w-4">
             <.icon

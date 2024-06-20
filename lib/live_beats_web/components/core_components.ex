@@ -391,10 +391,12 @@ defmodule LiveBeatsWeb.CoreComponents do
   attr :rest, :global
 
   slot :title
+
   slot :confirm do
     attr :type, :string
     attr :form, :string
   end
+
   slot :cancel
 
   def modal(assigns) do
@@ -532,11 +534,19 @@ defmodule LiveBeatsWeb.CoreComponents do
   def button(%{patch: _} = assigns) do
     ~H"""
     <%= if @primary do %>
-      <.link patch={@patch} class="order-0 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3" {@rest}>
+      <.link
+        patch={@patch}
+        class="order-0 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-1 sm:ml-3"
+        {@rest}
+      >
         <%= render_slot(@inner_block) %>
       </.link>
     <% else %>
-      <.link patch={@patch} class="order-1 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-0 sm:ml-0 lg:ml-3" {assigns_to_attributes(assigns, [:primary, :patch])}>
+      <.link
+        patch={@patch}
+        class="order-1 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:order-0 sm:ml-0 lg:ml-3"
+        {assigns_to_attributes(assigns, [:primary, :patch])}
+      >
         <%= render_slot(@inner_block) %>
       </.link>
     <% end %>
